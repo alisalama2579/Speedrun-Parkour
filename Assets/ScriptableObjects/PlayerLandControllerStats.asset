@@ -12,30 +12,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
-  maxLandSpeed: 29
-  minLandSpeed: 32
-  minAcceleration: 5
-  maxAcceleration: 200
+  maxLandSpeed: 45
+  minLandSpeed: 50
+  minAcceleration: 20
+  maxAcceleration: 50
   momentumGainSpeed: 0.4
-  momentumLossSpeed: 0.7
+  momentumLossSpeed: 0.1
   momentumGainThreshold: 0.5
   airAccelerationMultiplier: 2
   airSpeedMultiplier: 0.9
   apexSpeedMultiplier: 5
-  groundLayerMask:
+  collisionLayerMask:
     serializedVersion: 2
     m_Bits: 8
-  jumpHeight: 8
+  jumpForce: 50
   jumpUpBias: 0.7
   coyoteTime: 0.1
-  jumpBuffer: 0.2
+  jumpBuffer: 1
   jumpApexRange: 20
   jumpVelocityFallof: 15
   gravAfterFalloffMultiplier: 2
-  maxDownVelocity: 40
+  maxDownVelocity: 70
   gravity: 120
   apexAntigravity: 20
-  ceilingHitPush: 5
+  ceilingHitPush: 1
   groundingPush: 0
   maxCeilNormal: -1
   minGroundNormal: 0.5
@@ -43,4 +43,10 @@ MonoBehaviour:
   groundedDistance: 0.12
   groundSnapDistance: 2
   ceilingDistance: 0.5
-  wallDetectionDistance: 1
+  ledgeGrabDistance: 0.1
+  wallDetectionDistance: 0.2
+  onWallGrvaity: 30
+  wallFrictionAcceleration: 0
+  wallJumpForce: 90
+  wallNormalRange: 0.1
+  wallJumpUpBias: 0

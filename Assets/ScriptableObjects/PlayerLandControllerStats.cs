@@ -20,8 +20,8 @@ public class PlayerLandControllerStats : ScriptableObject
     [Space(5)]
 
     [Header("Jump")]
-    public LayerMask groundLayerMask;
-    public float jumpHeight;
+    public LayerMask collisionLayerMask;
+    public float jumpForce;
     [Range(0, 1)] public float jumpUpBias;
 
     [Range(0, 1)] public float coyoteTime;
@@ -51,5 +51,13 @@ public class PlayerLandControllerStats : ScriptableObject
     public float groundedDistance;
     public float groundSnapDistance;
     public float ceilingDistance;
+    public float ledgeGrabDistance;
+
+    [Header("Wall handling")]
     public float wallDetectionDistance;
+    public float onWallGrvaity;
+    public float wallFrictionAcceleration;
+    public float wallJumpForce;
+    public float wallNormalRange;
+    [Range(0, 1)] public float wallJumpUpBias;
 }

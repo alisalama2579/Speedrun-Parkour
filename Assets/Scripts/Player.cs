@@ -1,5 +1,5 @@
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class Player : PlayerStateMachine
@@ -74,49 +74,50 @@ public class Player : PlayerStateMachine
 
     private Vector2 groundNormal = Vector2.up;
     private Vector2 groundHorizontal = Vector2.right;
-
+    
     private Vector2 movementVelocity;
     private Vector2 verticalVelocity;
 
     private bool isGrounded;
 
-    private bool isOnWall;
-    private Vector2 wallNormal;
-
     #region Collisions
 
     private bool isSnappedToGround;
+    int wallDir;
+    private Vector2 jumpNormal;
 
     private void HandleCollisionInteractions()
     {
         Vector2 right = Vector2.right * (PlayerHalfWidth - stats.skinWidth);
         Vector2 down = Vector3.down * (PlayerHalfHeight - stats.skinWidth);
 
-        RaycastHit2D rightTopHit = Physics2D.Raycast(rb.position - down + right, groundHorizontal, stats.wallDetectionDistance, stats.groundLayerMask);
-        RaycastHit2D rightMiddleHit = Physics2D.Raycast(rb.position + right, groundHorizontal, stats.wallDetectionDistance, stats.groundLayerMask);
-        RaycastHit2D rightBottomHit = Physics2D.Raycast(rb.position + down + right, groundHorizontal, stats.wallDetectionDistance, stats.groundLayerMask);
-
-        RaycastHit2D leftTopHit = Physics2D.Raycast(rb.position - down - right, -groundHorizontal, stats.wallDetectionDistance, stats.groundLayerMask);
-        RaycastHit2D leftMiddleHit = Physics2D.Raycast(rb.position - right, -groundHorizontal, stats.wallDetectionDistance, stats.groundLayerMask);
-        RaycastHit2D leftBottomHit = Physics2D.Raycast(rb.position + down - right, -groundHorizontal, stats.wallDetectionDistance, stats.groundLayerMask);
+        RaycastHit2D leftTopHit = Physics2D.Raycast(rb.position - down - right, -groundHorizontal, stats.wallDetectionDistance, stats.collisionLayerMask);
+        RaycastHit2D leftMiddleHit = Physics2D.Raycast(rb.position - right, -groundHorizontal, stats.wallDetectionDistance, stats.collisionLayerMask);
+        RaycastHit2D leftBottomHit = Physics2D.Raycast(rb.position + down - right, -groundHorizontal, stats.wallDetectionDistance, stats.collisionLayerMask);
 
         HandleGround(
-            Physics2D.Raycast(rb.position + down - right, Vector2.down, stats.groundedDistance, stats.groundLayerMask),
-            Physics2D.Raycast(rb.position + down + right, Vector2.down, stats.groundedDistance, stats.groundLayerMask),
-            Physics2D.Raycast(rb.position + down, Vector2.down, stats.groundedDistance, stats.groundLayerMask),
-            Physics2D.Raycast(rb.position + down - right, Vector2.down, stats.groundSnapDistance, stats.groundLayerMask),
-            Physics2D.Raycast(rb.position + down + right, Vector2.down, stats.groundSnapDistance, stats.groundLayerMask),
-            Physics2D.Raycast(rb.position + down, Vector2.down, stats.groundSnapDistance, stats.groundLayerMask)
+            Physics2D.Raycast(rb.position + down - right, Vector2.down, stats.groundedDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position + down + right, Vector2.down, stats.groundedDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position + down, Vector2.down, stats.groundedDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position + down - right, Vector2.down, stats.groundSnapDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position + down + right, Vector2.down, stats.groundSnapDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position + down, Vector2.down, stats.groundSnapDistance, stats.collisionLayerMask)
         );
 
-        isOnWall = rightTopHit || rightMiddleHit || leftTopHit || leftMiddleHit;
-        Vector2 averageWallNormal = (rightTopHit.normal + rightMiddleHit.normal + leftTopHit.normal + leftMiddleHit.normal) * 0.25f;
-        wallNormal = Vector2.LerpUnclamped(averageWallNormal, Vector2.up, stats.jumpUpBias);
+        HandleWall(
+Physics2D.Raycast(rb.position - down + right, Vector2.right, stats.wallDetectionDistance, stats.collisionLayerMask),
+Physics2D.Raycast(rb.position + right, Vector2.right, stats.wallDetectionDistance, stats.collisionLayerMask),
+Physics2D.Raycast(rb.position + down + right, Vector2.right, stats.wallDetectionDistance, stats.collisionLayerMask),
+Physics2D.Raycast(rb.position - down - right, Vector2.left, stats.wallDetectionDistance, stats.collisionLayerMask),
+Physics2D.Raycast(rb.position - right, Vector2.left, stats.wallDetectionDistance, stats.collisionLayerMask),
+Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionDistance, stats.collisionLayerMask)
+);
+
 
         HandleCeiling(
-            Physics2D.Raycast(rb.position - down - right, Vector2.up, stats.ceilingDistance, stats.groundLayerMask),
-            Physics2D.Raycast(rb.position - down + right, Vector2.up, stats.ceilingDistance, stats.groundLayerMask),
-            Physics2D.Raycast(rb.position - down, Vector2.up, stats.ceilingDistance, stats.groundLayerMask)
+            Physics2D.Raycast(rb.position - down - right, Vector2.up, stats.ceilingDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position - down + right, Vector2.up, stats.ceilingDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position - down, Vector2.up, stats.ceilingDistance, stats.collisionLayerMask)
         );
     }
 
@@ -134,7 +135,7 @@ public class Player : PlayerStateMachine
 
         if (bottomLeftHit || bottomRightHit || bottomMiddleHit)
         {
-            if(averageGroundNormal.y > stats.minGroundNormal)
+            if (averageGroundNormal.y > stats.minGroundNormal)
             {
                 newGrounded = true;
                 groundNormal = averageGroundNormal;
@@ -160,7 +161,7 @@ public class Player : PlayerStateMachine
         Vector2 ceilingNudgeDir = Vector2.zero;
         Vector2 averageCeilNormal = (topLeftHit.normal + topMiddleHit.normal + topRightHit.normal).normalized;
 
-        if (((!topRightHit && topLeftHit) || (!topLeftHit && topRightHit)) && isJumping && averageCeilNormal.y < stats.maxCeilNormal && topMiddleHit)
+        if (((!topRightHit && topLeftHit) || (!topLeftHit && topRightHit)) && averageCeilNormal.y < stats.maxCeilNormal && topMiddleHit)
         {
             if (topLeftHit) ceilingNudgeDir = (topLeftHit.point - rb.position).normalized;
             if (topRightHit) ceilingNudgeDir = (topRightHit.point - rb.position).normalized;
@@ -170,7 +171,83 @@ public class Player : PlayerStateMachine
         else if (topLeftHit || topMiddleHit || topRightHit)
         {
             verticalVelocity.y = Mathf.Min(averageCeilNormal.y * stats.ceilingHitPush, verticalVelocity.y);
-            endedJumpEarly = true;
+            shouldApplyGravityFallof = true;
+        }
+    }
+
+    private void HandleWall(RaycastHit2D topHit, RaycastHit2D middleHit, RaycastHit2D bottomHit, RaycastHit2D topLeftHit, RaycastHit2D middlLeftHit, RaycastHit2D bottomLeftHit)
+    {
+
+        Vector2 averageWallNormal = Vector2.zero;
+        bool newIsOnWall = false;
+
+        if (middleHit && topHit)
+        {
+            averageWallNormal = (topHit.normal + middleHit.normal).normalized;
+            newIsOnWall = Mathf.Abs(averageWallNormal.y) > 0 && Mathf.Abs(averageWallNormal.y) < stats.wallNormalRange && !isGrounded;
+
+            if (newIsOnWall && frameInput.Move == 1) frameInput.Move = 0;
+            wallNormal = averageWallNormal;
+        }
+        else if(topLeftHit && middlLeftHit)
+        {
+            averageWallNormal = (topLeftHit.normal + middlLeftHit.normal).normalized;
+            newIsOnWall = Mathf.Abs(averageWallNormal.y) > 0 && Mathf.Abs(averageWallNormal.y) < stats.wallNormalRange && !isGrounded;
+
+            if (newIsOnWall && frameInput.Move == -1) frameInput.Move = 0;
+            wallNormal = averageWallNormal;
+        }
+
+        if (newIsOnWall ^ isOnWall) OnChangeWall(newIsOnWall);
+
+        if ((bottomHit || bottomLeftHit) && !newIsOnWall && !isGrounded)
+        {
+            int dir = bottomHit ? 1 : -1;
+            Vector2 ledgeNormal = bottomHit? bottomHit.normal : bottomLeftHit.normal;
+
+            float dist = Mathf.Abs(dir * bottomHit.point.x - dir * (rb.position.x + dir * PlayerHalfWidth));
+            Debug.Log("Dist: " + dist);
+            Debug.Log("Ledgenormal: " + ledgeNormal);
+
+            if (dist < stats.ledgeGrabDistance && ledgeNormal.y < stats.wallNormalRange)
+            {
+                if (verticalVelocity.y < 0) verticalVelocity.y = 0;
+                Vector2 ledgeGrabDir = (rb.position - bottomHit.point).normalized;
+                ledgeGrabDir.x *= -dir;
+
+                rb.position += ledgeGrabDir;
+            }
+        }
+    }
+
+    #endregion
+
+    #region Wall
+
+    private bool isOnWall;
+    private float wallFriction;
+    private Vector2 wallNormal;
+
+    private void OnChangeWall(bool newWall)
+    {
+        isOnWall = newWall;
+        lastSurfaceType = LastSurfaceType.Wall;
+
+        if (isOnWall)
+        {
+            isJumping = false;
+            coyoteUsable = true;
+            bufferedJumpUsable = true;
+            shouldApplyGravityFallof = false;
+            isGrounded = false;
+            wallFriction = stats.onWallGrvaity;
+
+            verticalVelocity = Vector2.zero;
+        }
+        else
+        {
+            leftSurfaceTime = time;
+            if (!isJumping) shouldApplyGravityFallof = true;
         }
     }
 
@@ -180,18 +257,20 @@ public class Player : PlayerStateMachine
     private void OnChangeGrounded(bool newGrounded)
     {
         isGrounded = newGrounded;
+        lastSurfaceType = LastSurfaceType.Ground;
+
         if (isGrounded)
         {
             isJumping = false;
-            isGrounded = true;
             coyoteUsable = true;
             bufferedJumpUsable = true;
-            endedJumpEarly = false;
+            shouldApplyGravityFallof = false;
+            verticalVelocity.x = 0;
         }
         else
         {
-            leftGroundTime = time;
-            if (!isJumping) endedJumpEarly = true;
+            leftSurfaceTime = time;
+            if (!isJumping) shouldApplyGravityFallof = true;
         }
     }
 
@@ -221,6 +300,7 @@ public class Player : PlayerStateMachine
         float apexBonus = moveInput * stats.apexSpeedMultiplier * ApexPoint;
 
         targetSpeed = Mathf.LerpUnclamped(stats.minLandSpeed, stats.maxLandSpeed, momentum) * moveInput;
+
         if (!isGrounded) targetSpeed *= stats.airSpeedMultiplier;
         targetSpeed += apexBonus;
 
@@ -235,14 +315,25 @@ public class Player : PlayerStateMachine
 
     #region Jump
 
+    private enum LastSurfaceType
+    {
+        Wall,
+        Ground
+    }
+
+    private LastSurfaceType lastSurfaceType = LastSurfaceType.Ground;
+
     private bool jumpRequested;
-    private bool endedJumpEarly;
+    private bool shouldApplyGravityFallof;
     private bool coyoteUsable;
     private bool bufferedJumpUsable;
     private float jumpPressedTime;
-    private float leftGroundTime;
+    private float leftSurfaceTime;
     private bool isJumping;
 
+
+    private bool IsRising => rb.linearVelocityY > 0;
+    private bool IsDescending => rb.linearVelocityY < 0;
 
     public float ApexPoint
     {
@@ -253,17 +344,16 @@ public class Player : PlayerStateMachine
         }
     }
 
-    private float JumpVelocity => Mathf.Sqrt(2f * stats.gravity * stats.jumpHeight);
     private bool HasBufferedJump => bufferedJumpUsable && time < jumpPressedTime + stats.jumpBuffer;
-    private bool CanUseCoyote => coyoteUsable && !isGrounded && time < leftGroundTime + stats.coyoteTime;
+    private bool CanUseCoyote => coyoteUsable && !isGrounded && time < leftSurfaceTime + stats.coyoteTime;
 
     private void HandleJump()
     {
-        if (!isGrounded && !frameInput.JumpHeld && rb.linearVelocityY > 0 && isJumping) endedJumpEarly = true;
+        if (!isGrounded && !frameInput.JumpHeld && rb.linearVelocityY > 0 && isJumping) shouldApplyGravityFallof = true;
 
         if (!jumpRequested && !HasBufferedJump) return;
 
-        if ((isGrounded || CanUseCoyote) && jumpRequested) ExecuteJump();
+        if ((isGrounded || isOnWall || CanUseCoyote) && jumpRequested) ExecuteJump();
 
         jumpRequested = false;
     }
@@ -272,11 +362,13 @@ public class Player : PlayerStateMachine
     {
         isJumping = true;
         jumpRequested = false;
-        endedJumpEarly = false;
+        shouldApplyGravityFallof = false;
         bufferedJumpUsable = false;
         coyoteUsable = false;
         isSnappedToGround = false;
-        verticalVelocity = JumpVelocity * Vector2.LerpUnclamped(groundNormal, Vector2.up, stats.jumpUpBias);
+
+        if (lastSurfaceType == LastSurfaceType.Wall) verticalVelocity = stats.wallJumpForce * Vector2.LerpUnclamped(wallNormal, Vector2.up, stats.wallJumpUpBias);
+        if(lastSurfaceType == LastSurfaceType.Ground) verticalVelocity = stats.jumpForce * Vector2.LerpUnclamped(groundNormal, Vector2.up, stats.jumpUpBias);
     }
 
     #endregion
@@ -289,18 +381,29 @@ public class Player : PlayerStateMachine
         if (!isGrounded)
         {
             float apexAntiGravity = Mathf.Lerp(0, -stats.apexAntigravity, ApexPoint);
-            float inAirGravity = stats.gravity + apexAntiGravity;
+            float downwardAcceleration;
 
-            if ((endedJumpEarly && verticalVelocity.y > 0 || verticalVelocity.y < stats.jumpVelocityFallof) && isJumping) inAirGravity *= stats.gravAfterFalloffMultiplier;
-            verticalVelocity.y = Mathf.MoveTowards(verticalVelocity.y, -stats.maxDownVelocity, inAirGravity * Time.fixedDeltaTime);
+            if (isOnWall && !isJumping) downwardAcceleration = stats.onWallGrvaity;
+            else
+            {
+                downwardAcceleration = stats.gravity;
+                downwardAcceleration += apexAntiGravity;
+
+                if ((shouldApplyGravityFallof && verticalVelocity.y > 0 || verticalVelocity.y < stats.jumpVelocityFallof) && isJumping)
+                {
+                    downwardAcceleration *= stats.gravAfterFalloffMultiplier;
+                }
+            }
+
+            verticalVelocity.y = Mathf.MoveTowards(verticalVelocity.y, -stats.maxDownVelocity, downwardAcceleration * Time.fixedDeltaTime);
         }
     }
 
     #endregion
 
-    private void ApplyMovement() 
+    private void ApplyMovement()
     {
-        if (isSnappedToGround) verticalVelocity = Vector2.down * stats.groundingPush;
-        rb.linearVelocity = movementVelocity + verticalVelocity;
-    } 
+        if (isSnappedToGround) verticalVelocity.y = stats.groundingPush;
+        rb.linearVelocity = movementVelocity + Vector2.up * verticalVelocity.y;
+    }
 }
