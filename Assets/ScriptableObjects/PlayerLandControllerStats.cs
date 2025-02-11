@@ -8,14 +8,22 @@ public class PlayerLandControllerStats : ScriptableObject
     [Range(1, 100)] public float minLandSpeed;
     [Range(1, 100)] public float minAcceleration;
     [Range(1, 200)] public float maxAcceleration;
-
-    [Range(0, 1)] public float momentumGainSpeed;
-    [Range(0, 1)] public float momentumLossSpeed;
-    public float momentumGainThreshold;
+    [Range(1, 100)] public float minDeceleration;
+    [Range(1, 200)] public float maxDeceleration;
+    public float turningAccelerationMultiplier;
 
     [Range(0, 5)] public float airAccelerationMultiplier;
     [Range(0, 5)] public float airSpeedMultiplier;
     public float apexSpeedMultiplier;
+
+    [Space(5)]
+
+    [Header("Momentum")]
+    public float wallJumpMomentumIncrease;
+    public float jumpMomentumIncrease;
+    [Range(0, 1)] public float momentumGainSpeed;
+    [Range(0, 1)] public float momentumLossSpeed;
+    public float momentumGainThreshold;
 
     [Space(5)]
 
@@ -25,7 +33,7 @@ public class PlayerLandControllerStats : ScriptableObject
     [Range(0, 1)] public float jumpUpBias;
 
     [Range(0, 1)] public float coyoteTime;
-    [Range(0, 1)] public float jumpBuffer;
+    public float jumpBuffer;
 
     public float jumpApexRange;
     public float jumpVelocityFallof;
@@ -54,6 +62,7 @@ public class PlayerLandControllerStats : ScriptableObject
     public float ledgeGrabDistance;
 
     [Header("Wall handling")]
+    public float timeToWallGrab;
     public float wallDetectionDistance;
     public float onWallGrvaity;
     public float wallFrictionAcceleration;
