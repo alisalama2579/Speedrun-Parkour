@@ -74,44 +74,41 @@ public class Player : PlayerStateMachine
 
     private Vector2 groundNormal = Vector2.up;
     private Vector2 groundHorizontal = Vector2.right;
-    
+
     private Vector2 movementVelocity;
     private Vector2 verticalVelocity;
 
     private bool isGrounded;
 
-   
-    
-    #region Collisions
 
-    int wallDir;
-    private Vector2 jumpNormal;
+
+    #region Collisions
 
     private void HandleCollisionInteractions()
     {
-        Vector2 right = Vector2.right * (PlayerHalfWidth - stats.skinWidth);
-        Vector2 down = Vector3.down * (PlayerHalfHeight - stats.skinWidth);
+        Vector2 rightOrigin = Vector2.right * (PlayerHalfWidth - stats.skinWidth);
+        Vector2 downOrigin = Vector3.down * (PlayerHalfHeight - stats.skinWidth);
 
-        HandleWall(
-Physics2D.Raycast(rb.position - down + right, Vector2.right, stats.wallDetectionDistance, stats.collisionLayerMask),
-Physics2D.Raycast(rb.position + right, Vector2.right, stats.wallDetectionDistance, stats.collisionLayerMask),
-Physics2D.Raycast(rb.position + down + right, Vector2.right, stats.wallDetectionDistance, stats.collisionLayerMask),
-Physics2D.Raycast(rb.position - down - right, Vector2.left, stats.wallDetectionDistance, stats.collisionLayerMask),
-Physics2D.Raycast(rb.position - right, Vector2.left, stats.wallDetectionDistance, stats.collisionLayerMask),
-Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionDistance, stats.collisionLayerMask)
-);
+        HandleWallDetection(
+            Physics2D.Raycast(rb.position - downOrigin + rightOrigin, Vector2.right, stats.wallDetectionDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position + rightOrigin, Vector2.right, stats.wallDetectionDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position + downOrigin + rightOrigin, Vector2.right, stats.wallDetectionDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position - downOrigin - rightOrigin, Vector2.left, stats.wallDetectionDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position - rightOrigin, Vector2.left, stats.wallDetectionDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position + downOrigin - rightOrigin, Vector2.left, stats.wallDetectionDistance, stats.collisionLayerMask)
+        );
 
         HandleGround(
-            Physics2D.Raycast(rb.position + down - right, Vector2.down, stats.groundedDistance, stats.collisionLayerMask),
-            Physics2D.Raycast(rb.position + down + right, Vector2.down, stats.groundedDistance, stats.collisionLayerMask),
-            Physics2D.Raycast(rb.position + down, Vector2.down, stats.groundedDistance, stats.collisionLayerMask)
+            Physics2D.Raycast(rb.position + downOrigin - rightOrigin, Vector2.down, stats.groundedDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position + downOrigin + rightOrigin, Vector2.down, stats.groundedDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position + downOrigin, Vector2.down, stats.groundedDistance, stats.collisionLayerMask)
         );
 
 
         HandleCeiling(
-            Physics2D.Raycast(rb.position - down - right, Vector2.up, stats.ceilingDistance, stats.collisionLayerMask),
-            Physics2D.Raycast(rb.position - down + right, Vector2.up, stats.ceilingDistance, stats.collisionLayerMask),
-            Physics2D.Raycast(rb.position - down, Vector2.up, stats.ceilingDistance, stats.collisionLayerMask)
+            Physics2D.Raycast(rb.position - downOrigin - rightOrigin, Vector2.up, stats.ceilingDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position - downOrigin + rightOrigin, Vector2.up, stats.ceilingDistance, stats.collisionLayerMask),
+            Physics2D.Raycast(rb.position - downOrigin, Vector2.up, stats.ceilingDistance, stats.collisionLayerMask)
         );
     }
 
@@ -131,6 +128,7 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
             {
                 newGrounded = true;
                 groundNormal = averageGroundNormal;
+                lastSurfaceType = LastSurfaceType.Ground;
             }
         }
 
@@ -160,39 +158,44 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
         }
     }
 
-    private void HandleWall(RaycastHit2D topHit, RaycastHit2D middleHit, RaycastHit2D bottomHit, RaycastHit2D topLeftHit, RaycastHit2D middlLeftHit, RaycastHit2D bottomLeftHit)
+    private bool NormalInWallRange(Vector2 normal) => Mathf.Abs(normal.y) >= 0 && Mathf.Abs(normal.y) <= stats.wallNormalRange;
+    private void HandleWallDetection(RaycastHit2D topHit, RaycastHit2D middleHit, RaycastHit2D bottomHit, RaycastHit2D topLeftHit, RaycastHit2D middlLeftHit, RaycastHit2D bottomLeftHit)
     {
-
         Vector2 averageWallNormal = Vector2.zero;
         bool newIsOnWall = false;
+        bool canGrabWall = !isGrounded && (lastSurfaceType == LastSurfaceType.Ground && rb.linearVelocityY < 0 || lastSurfaceType == LastSurfaceType.Wall);
 
-        if (middleHit && topHit)
+        averageWallNormal = (topHit.normal + middleHit.normal).normalized;
+        if (middleHit && topHit && NormalInWallRange(averageWallNormal) && canGrabWall)
         {
-            averageWallNormal = (topHit.normal + middleHit.normal).normalized;
-            newIsOnWall = Mathf.Abs(averageWallNormal.y) > 0 && Mathf.Abs(averageWallNormal.y) < stats.wallNormalRange && !isGrounded && leftSurfaceTime - time < stats.timeToWallGrab;
+            newIsOnWall = true;
+            lastSurfaceType = LastSurfaceType.Wall;
 
-            if (newIsOnWall && frameInput.Move == 1) frameInput.Move = 0;
+            if (frameInput.Move == 1) frameInput.Move = 0;
             wallNormal = averageWallNormal;
         }
-        else if(topLeftHit && middlLeftHit)
-        {
-            averageWallNormal = (topLeftHit.normal + middlLeftHit.normal).normalized;
-            newIsOnWall = Mathf.Abs(averageWallNormal.y) > 0 && Mathf.Abs(averageWallNormal.y) < stats.wallNormalRange && !isGrounded && leftSurfaceTime - time < stats.timeToWallGrab; ;
 
-            if (newIsOnWall && frameInput.Move == -1) frameInput.Move = 0;
+        averageWallNormal = (topLeftHit.normal + middlLeftHit.normal).normalized;
+        if (topLeftHit && middlLeftHit && NormalInWallRange(averageWallNormal) && canGrabWall)
+        {
+            newIsOnWall = true;
+            lastSurfaceType = LastSurfaceType.Wall;
+
+            if (frameInput.Move == -1) frameInput.Move = 0;
             wallNormal = averageWallNormal;
         }
 
         if (newIsOnWall ^ isOnWall) OnChangeWall(newIsOnWall);
 
-        if (((bottomHit && !topHit && !middleHit) || (bottomLeftHit && !topLeftHit && !middlLeftHit)) && Mathf.Abs(averageWallNormal.y) > 0 && Mathf.Abs(averageWallNormal.y) < stats.wallNormalRange && !isGrounded)
+        if (((bottomHit && !topHit && !middleHit) || (bottomLeftHit && !topLeftHit && !middlLeftHit)) && !isGrounded)
         {
+            RaycastHit2D ledgeGrabHit = bottomHit ? bottomHit : bottomLeftHit;
             int dir = bottomHit ? 1 : -1;
-            Vector2 ledgeNormal = bottomHit? bottomHit.normal : bottomLeftHit.normal;
 
-            float dist = Mathf.Abs(dir * bottomHit.point.x - dir * (rb.position.x + dir * PlayerHalfWidth));
+            Vector2 ledgeNormal = ledgeGrabHit.normal;
+            float dist = Mathf.Abs(ledgeGrabHit.point.x - (rb.position.x + dir * PlayerHalfWidth));
 
-            if (dist < stats.ledgeGrabDistance && ledgeNormal.y < stats.wallNormalRange)
+            if (dist < stats.ledgeGrabDistance && NormalInWallRange(ledgeNormal))
             {
                 if (verticalVelocity.y < 0) verticalVelocity.y = 0;
                 Vector2 ledgeGrabDir = (rb.position - bottomHit.point).normalized;
@@ -206,18 +209,14 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
     #endregion
 
 
-
-
     #region Wall
 
     private bool isOnWall;
-    private float wallFriction;
     private Vector2 wallNormal;
 
     private void OnChangeWall(bool newWall)
     {
         isOnWall = newWall;
-        lastSurfaceType = LastSurfaceType.Wall;
 
         if (isOnWall)
         {
@@ -226,7 +225,6 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
             bufferedJumpUsable = true;
             shouldApplyGravityFallof = false;
             isGrounded = false;
-            wallFriction = stats.onWallGrvaity;
 
             verticalVelocity = Vector2.zero;
         }
@@ -242,10 +240,10 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
 
 
     #region Ground
+
     private void OnChangeGrounded(bool newGrounded)
     {
         isGrounded = newGrounded;
-        lastSurfaceType = LastSurfaceType.Ground;
 
         if (isGrounded)
         {
@@ -276,12 +274,20 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
         momentum = Mathf.Clamp01(momentum);
     }
 
+    private void ApplyMomentum(float amount)
+    {
+        momentum += amount;
+        momentum = Mathf.Clamp01(momentum);
+    }
+
     #endregion
 
 
 
 
     #region HorizontalMovement
+
+    private bool IsTurning => (rb.linearVelocityX < 0 && frameInput.Move == 1) || (rb.linearVelocityX > 0 && frameInput.Move == -1);
 
     private float targetSpeed;
     private float acceleration;
@@ -294,27 +300,28 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
 
         targetSpeed = Mathf.Lerp(stats.minLandSpeed, stats.maxLandSpeed, momentum) * moveInput;
 
-        if (!isGrounded && !isOnWall)
+        if (Mathf.Abs(frameInput.Move) > 0)
+        {
+            acceleration = Mathf.Lerp(stats.minAcceleration, stats.maxAcceleration, momentum);
+        }
+        else Mathf.Lerp(stats.minDeceleration, stats.maxDeceleration, momentum);
+
+        if (IsInAir)
         {
             targetSpeed *= stats.airSpeedMultiplier;
             targetSpeed += apexBonus;
+
+            acceleration *= stats.airAccelerationMultiplier;
         }
-        else targetSpeed -= apexBonus;
-
-        if (Mathf.Abs(frameInput.Move) > 0) acceleration = Mathf.Lerp(stats.minAcceleration, stats.maxAcceleration, momentum);
-        else Mathf.Lerp(stats.minDeceleration, stats.maxDeceleration, momentum);
-
-        if (!isGrounded && !isOnWall) acceleration *= stats.airAccelerationMultiplier;
+        if (IsTurning) acceleration *= stats.turningAccelerationMultiplier;
 
         verticalVelocity.x = Mathf.MoveTowards(verticalVelocity.x, 0, acceleration * fixedDeltaTime);
 
         float speed = Mathf.MoveTowards(movementVelocity.magnitude * moveInput, targetSpeed, acceleration * fixedDeltaTime);
-        movementVelocity = speed * groundHorizontal ;
+        movementVelocity = speed * groundHorizontal;
     }
 
     #endregion
-
-
 
     #region Jump
 
@@ -330,7 +337,7 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
     private bool shouldApplyGravityFallof;
     private bool coyoteUsable;
     private bool bufferedJumpUsable;
-    private float jumpPressedTime;
+    private float jumpPressedTime = float.MinValue;
     private float leftSurfaceTime;
     private bool isJumping;
 
@@ -345,7 +352,7 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
     }
 
     private bool HasBufferedJump => bufferedJumpUsable && time < jumpPressedTime + stats.jumpBuffer;
-    private bool CanUseCoyote => coyoteUsable && !isGrounded && time < leftSurfaceTime + stats.coyoteTime;
+    private bool CanUseCoyote => coyoteUsable && !isGrounded && !isOnWall && time < leftSurfaceTime + stats.coyoteTime;
 
     private void HandleJump()
     {
@@ -353,7 +360,7 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
 
         if (!jumpRequested && !HasBufferedJump) return;
 
-        if ((isGrounded || isOnWall || CanUseCoyote || HasBufferedJump) && jumpRequested) ExecuteJump();
+        if (isGrounded || isOnWall || CanUseCoyote) ExecuteJump();
 
         jumpRequested = false;
     }
@@ -365,18 +372,18 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
         shouldApplyGravityFallof = false;
         bufferedJumpUsable = false;
         coyoteUsable = false;
-
+        jumpPressedTime = 0;
 
         if (lastSurfaceType == LastSurfaceType.Wall) 
         {
             verticalVelocity = stats.wallJumpForce * Vector2.LerpUnclamped(wallNormal, Vector2.up, stats.wallJumpUpBias);
-            momentum += stats.wallJumpMomentumIncrease;
+            ApplyMomentum(stats.wallJumpMomentumIncrease);
         }
         if (lastSurfaceType == LastSurfaceType.Ground) 
         {
             verticalVelocity = stats.jumpForce * Vector2.LerpUnclamped(groundNormal, Vector2.up, stats.jumpUpBias);
-            momentum += stats.jumpMomentumIncrease;
-        } 
+            ApplyMomentum(stats.jumpMomentumIncrease);
+        }
     }
 
     #endregion
@@ -385,6 +392,8 @@ Physics2D.Raycast(rb.position + down - right, Vector2.left, stats.wallDetectionD
 
 
     #region Gravity
+
+    private bool IsInAir => !isGrounded && !isOnWall;
 
     private void HandleGravity()
     {

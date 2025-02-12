@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxLandSpeed: 40
   minLandSpeed: 40
-  minAcceleration: 100
-  maxAcceleration: 100
-  minDeceleration: 100
-  maxDeceleration: 100
-  turningAccelerationMultiplier: 0
-  airAccelerationMultiplier: 0.85
-  airSpeedMultiplier: 0.8
-  apexSpeedMultiplier: 0
+  minAcceleration: 90
+  maxAcceleration: 90
+  minDeceleration: 90
+  maxDeceleration: 90
+  turningAccelerationMultiplier: 2
+  airAccelerationMultiplier: 0.95
+  airSpeedMultiplier: 0.9
+  apexSpeedMultiplier: 5
   wallJumpMomentumIncrease: 0.1
   jumpMomentumIncrease: 0.1
   momentumGainSpeed: 1
@@ -33,26 +33,25 @@ MonoBehaviour:
   jumpForce: 50
   jumpUpBias: 0.7
   coyoteTime: 0.2
-  jumpBuffer: 4
+  jumpBuffer: 0.3
   jumpApexRange: 5
   jumpVelocityFallof: 15
   gravAfterFalloffMultiplier: 3
-  maxDownVelocity: 70
-  gravity: 110
+  maxDownVelocity: 75
+  gravity: 130
   apexAntigravity: 30
-  ceilingHitPush: 1
+  ceilingHitPush: 0
   groundingPush: 0
   maxCeilNormal: -1
   minGroundNormal: 0.55
   skinWidth: 0.05
   groundedDistance: 0.12
   groundSnapDistance: 0.2
-  ceilingDistance: 0.1
-  ledgeGrabDistance: 0.05
-  timeToWallGrab: 0.1
+  ceilingDistance: 0.12
+  ledgeGrabDistance: 0.1
   wallDetectionDistance: 0.1
   onWallGrvaity: 50
   wallFrictionAcceleration: 0
-  wallJumpForce: 80
+  wallJumpForce: 90
   wallNormalRange: 0.1
   wallJumpUpBias: 0.7

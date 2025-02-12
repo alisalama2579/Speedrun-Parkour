@@ -62,7 +62,6 @@ public class PlayerLandControllerStats : ScriptableObject
     public float ledgeGrabDistance;
 
     [Header("Wall handling")]
-    public float timeToWallGrab;
     public float wallDetectionDistance;
     public float onWallGrvaity;
     public float wallFrictionAcceleration;
