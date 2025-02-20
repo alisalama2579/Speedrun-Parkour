@@ -12,46 +12,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
-  maxLandSpeed: 40
+  maxLandSpeed: 70
   minLandSpeed: 40
-  minAcceleration: 90
-  maxAcceleration: 90
+  minAcceleration: 100
+  maxAcceleration: 200
   minDeceleration: 90
-  maxDeceleration: 90
+  maxDeceleration: 75
   turningAccelerationMultiplier: 2
-  airAccelerationMultiplier: 0.95
+  slipMultiplier: 1.75
+  airAccelerationMultiplier: 0.9
   airSpeedMultiplier: 0.9
-  apexSpeedMultiplier: 5
-  wallJumpMomentumIncrease: 0.1
-  jumpMomentumIncrease: 0.1
-  momentumGainSpeed: 1
-  momentumLossSpeed: 0
-  momentumGainThreshold: 30
+  apexSpeedIncrease: 5
+  wallJumpMomentumIncrease: 0.07
+  jumpMomentumIncrease: 0.55
+  momentumGainSpeed: 0.2
+  momentumLossSpeed: 0.4
+  momentumGainThreshold: 0
   collisionLayerMask:
     serializedVersion: 2
-    m_Bits: 8
-  jumpForce: 50
+    m_Bits: 128
+  jumpForce: 55
   jumpUpBias: 0.7
+  horizontalJumpVelocityDeceleration: 50
   coyoteTime: 0.2
-  jumpBuffer: 0.3
+  jumpBuffer: 0.2
   jumpApexRange: 5
   jumpVelocityFallof: 15
   gravAfterFalloffMultiplier: 3
-  maxDownVelocity: 75
+  maxDownVelocity: 100
   gravity: 130
   apexAntigravity: 30
   ceilingHitPush: 0
   groundingPush: 0
   maxCeilNormal: -1
-  minGroundNormal: 0.55
+  minGroundNormal: 0.5
   skinWidth: 0.05
   groundedDistance: 0.12
   groundSnapDistance: 0.2
   ceilingDistance: 0.12
   ledgeGrabDistance: 0.1
-  wallDetectionDistance: 0.1
-  onWallGrvaity: 50
-  wallFrictionAcceleration: 0
-  wallJumpForce: 90
+  wallTag: WallGrabbable
+  wallDetectionDistance: 0.12
   wallNormalRange: 0.1
-  wallJumpUpBias: 0.7
+  timeToFullSpeedFromWall: 0.17
+  maxYVelocityForWallGrab: 5
+  onWallGravity: 70
+  wallJumpForce: 125
+  wallJumpUpBias: 0.65

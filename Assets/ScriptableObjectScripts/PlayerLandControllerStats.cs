@@ -11,10 +11,11 @@ public class PlayerLandControllerStats : ScriptableObject
     [Range(1, 100)] public float minDeceleration;
     [Range(1, 200)] public float maxDeceleration;
     public float turningAccelerationMultiplier;
+    public float slipMultiplier;
 
     [Range(0, 5)] public float airAccelerationMultiplier;
     [Range(0, 5)] public float airSpeedMultiplier;
-    public float apexSpeedMultiplier;
+    public float apexSpeedIncrease;
 
     [Space(5)]
 
@@ -31,6 +32,7 @@ public class PlayerLandControllerStats : ScriptableObject
     public LayerMask collisionLayerMask;
     public float jumpForce;
     [Range(0, 1)] public float jumpUpBias;
+    public float horizontalJumpVelocityDeceleration;
 
     [Range(0, 1)] public float coyoteTime;
     public float jumpBuffer;
@@ -62,10 +64,14 @@ public class PlayerLandControllerStats : ScriptableObject
     public float ledgeGrabDistance;
 
     [Header("Wall handling")]
+    public string wallTag;
     public float wallDetectionDistance;
-    public float onWallGrvaity;
-    public float wallFrictionAcceleration;
-    public float wallJumpForce;
     public float wallNormalRange;
+
+    public float timeToFullSpeedFromWall;
+    public float maxYVelocityForWallGrab;
+
+    public float onWallGravity;
+    public float wallJumpForce;
     [Range(0, 1)] public float wallJumpUpBias;
 }
