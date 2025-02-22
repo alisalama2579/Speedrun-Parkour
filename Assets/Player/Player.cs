@@ -35,7 +35,6 @@ public class Player : PlayerStateMachine
         controls = null;
     }
 
-
     private void Update()
     {
         MovementState.Update();

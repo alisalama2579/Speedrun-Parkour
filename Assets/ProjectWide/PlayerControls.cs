@@ -44,6 +44,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Dash"",
+                    ""type"": ""Button"",
+                    ""id"": ""5f169bbb-f3e8-42d9-bf9c-430349e81354"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -145,6 +154,28 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6a8259b8-898d-40fc-835d-b047fb42be35"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Dash"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8f912c01-4286-4dfa-8295-e73ff233adce"",
+                    ""path"": ""<Keyboard>/shift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Dash"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -182,6 +213,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_PlayerLand = asset.FindActionMap("PlayerLand", throwIfNotFound: true);
         m_PlayerLand_Move = m_PlayerLand.FindAction("Move", throwIfNotFound: true);
         m_PlayerLand_Jump = m_PlayerLand.FindAction("Jump", throwIfNotFound: true);
+        m_PlayerLand_Dash = m_PlayerLand.FindAction("Dash", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -250,12 +282,14 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private List<IPlayerLandActions> m_PlayerLandActionsCallbackInterfaces = new List<IPlayerLandActions>();
     private readonly InputAction m_PlayerLand_Move;
     private readonly InputAction m_PlayerLand_Jump;
+    private readonly InputAction m_PlayerLand_Dash;
     public struct PlayerLandActions
     {
         private @PlayerControls m_Wrapper;
         public PlayerLandActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @Move => m_Wrapper.m_PlayerLand_Move;
         public InputAction @Jump => m_Wrapper.m_PlayerLand_Jump;
+        public InputAction @Dash => m_Wrapper.m_PlayerLand_Dash;
         public InputActionMap Get() { return m_Wrapper.m_PlayerLand; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -271,6 +305,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Jump.started += instance.OnJump;
             @Jump.performed += instance.OnJump;
             @Jump.canceled += instance.OnJump;
+            @Dash.started += instance.OnDash;
+            @Dash.performed += instance.OnDash;
+            @Dash.canceled += instance.OnDash;
         }
 
         private void UnregisterCallbacks(IPlayerLandActions instance)
@@ -281,6 +318,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Jump.started -= instance.OnJump;
             @Jump.performed -= instance.OnJump;
             @Jump.canceled -= instance.OnJump;
+            @Dash.started -= instance.OnDash;
+            @Dash.performed -= instance.OnDash;
+            @Dash.canceled -= instance.OnDash;
         }
 
         public void RemoveCallbacks(IPlayerLandActions instance)
@@ -311,5 +351,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     {
         void OnMove(InputAction.CallbackContext context);
         void OnJump(InputAction.CallbackContext context);
+        void OnDash(InputAction.CallbackContext context);
     }
 }

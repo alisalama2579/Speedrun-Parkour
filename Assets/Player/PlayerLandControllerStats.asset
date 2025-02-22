@@ -19,7 +19,7 @@ MonoBehaviour:
   minDeceleration: 90
   maxDeceleration: 75
   turningAccelerationMultiplier: 2
-  slipMultiplier: 1.75
+  slipMultiplier: 2
   airAccelerationMultiplier: 0.9
   airSpeedMultiplier: 0.9
   apexSpeedIncrease: 5
@@ -39,6 +39,80 @@ MonoBehaviour:
   jumpApexRange: 5
   jumpVelocityFallof: 15
   gravAfterFalloffMultiplier: 3
+  targetDashVelocity: {x: 150, y: 10}
+  dashDuration: 0.5
+  dashSpeedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.0033340454
+      value: 1.0005951
+      inSlope: -2.7472236
+      outSlope: -2.7472236
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.09271524
+    - serializedVersion: 3
+      time: 1
+      value: 0.066352844
+      inSlope: -0.37800238
+      outSlope: -0.37800238
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.6831115
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  dashHorizontalCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.699779
+      value: 0.36420968
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1.0222015
+      value: 1.0258179
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  dashVerticalCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.2536432
+      value: 0.49318752
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.76565534
+      value: 1.5127786
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   maxDownVelocity: 100
   gravity: 130
   apexAntigravity: 30

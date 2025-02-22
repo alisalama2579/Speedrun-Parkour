@@ -147,10 +147,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1882718633005141913}
   - component: {fileID: 6814386597954402518}
-  - component: {fileID: 2983952356087433576}
   - component: {fileID: 7029998178845102455}
   - component: {fileID: 4412153119908778084}
-  - component: {fileID: 6037362237231794384}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -166,7 +164,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4960661556678062109}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -833.7, y: -261.4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -189,21 +187,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   landMovementStats: {fileID: 11400000, guid: 244854ba9c699c340a34928f41e8e81f, type: 2}
   animator: {fileID: 306821808053238658}
---- !u!114 &2983952356087433576
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4960661556678062109}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7c1b78c700b97d41b2ca4dc41894fb5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  animator: {fileID: 0}
-  recordsHolder: {fileID: 11400000, guid: 2f26b43335b4b82429d1833cf4927df6, type: 2}
-  recordIndex: 0
 --- !u!50 &7029998178845102455
 Rigidbody2D:
   serializedVersion: 5
@@ -277,36 +260,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.5, y: 2}
   m_EdgeRadius: 0
---- !u!114 &6037362237231794384
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4960661556678062109}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Actions: {fileID: -944628639613478452, guid: b618206a4f9444042b689ba47b898c94, type: 3}
-  m_NotificationBehavior: 3
-  m_UIInputModule: {fileID: 0}
-  m_DeviceLostEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_DeviceRegainedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ControlsChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  m_ActionEvents: []
-  m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: DefaultScheme
-  m_DefaultActionMap: PlayerLand
-  m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
 --- !u!1001 &7425361476376800422
 PrefabInstance:
   m_ObjectHideFlags: 0

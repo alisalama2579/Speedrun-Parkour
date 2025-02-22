@@ -17,6 +17,9 @@ public class PlayerLandControllerStats : ScriptableObject
     [Range(0, 5)] public float airSpeedMultiplier;
     public float apexSpeedIncrease;
 
+
+
+
     [Space(5)]
 
     [Header("Momentum")]
@@ -26,6 +29,9 @@ public class PlayerLandControllerStats : ScriptableObject
     [Range(0, 1)] public float momentumLossSpeed;
     public float momentumGainThreshold;
 
+
+
+
     [Space(5)]
 
     [Header("Jump")]
@@ -33,15 +39,31 @@ public class PlayerLandControllerStats : ScriptableObject
     public float jumpForce;
     [Range(0, 1)] public float jumpUpBias;
     public float horizontalJumpVelocityDeceleration;
-
     [Range(0, 1)] public float coyoteTime;
     public float jumpBuffer;
-
     public float jumpApexRange;
     public float jumpVelocityFallof;
     public float gravAfterFalloffMultiplier;
 
+
+
+
+
     [Space(5)]
+
+    [Header("Momentum")]
+    public Vector2 targetDashVelocity;
+    public float dashDuration;
+
+    public AnimationCurve dashSpeedCurve;
+    public AnimationCurve dashHorizontalCurve;
+    public AnimationCurve dashVerticalCurve;
+
+
+    [Space(5)]
+
+
+
 
     [Header("Gravity and down velocity")]
     public float maxDownVelocity;
@@ -49,6 +71,9 @@ public class PlayerLandControllerStats : ScriptableObject
     public float apexAntigravity;
 
     [Space(5)]
+
+
+
 
     [Header("Ground and wall detection")]
     public float ceilingHitPush;
@@ -62,6 +87,8 @@ public class PlayerLandControllerStats : ScriptableObject
     public float groundSnapDistance;
     public float ceilingDistance;
     public float ledgeGrabDistance;
+
+
 
     [Header("Wall handling")]
     public string wallTag;
