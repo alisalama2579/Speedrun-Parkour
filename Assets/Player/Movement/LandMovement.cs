@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class LandMovement : BaseMovementState
 {
-    private PlayerLandControllerStats stats;
+    private readonly PlayerLandControllerStats stats;
 
     public LandMovement(Player player, ScriptableObject movementStats, PlayerControls controls, Rigidbody2D rb, Collider2D col) : base(player, movementStats, controls, rb, col)
     {
@@ -34,9 +34,11 @@ public class LandMovement : BaseMovementState
             DashDown = controls.PlayerLand.Dash.WasPressedThisFrame()
         };
 
-        facingDirection = frameInput.Move != 0 ? frameInput.Move : facingDirection;
-        Debug.Log(facingDirection);
-        dashRequested = frameInput.DashDown ? true : dashRequested;
+        if (frameInput.Move == 1) isFacingRight = true;
+        if (frameInput.Move == -1) isFacingRight = false;
+
+        //Only changes dash requested if DashDown
+        dashRequested = frameInput.DashDown || dashRequested;
 
         if (frameInput.JumpDown)
         {
@@ -83,9 +85,9 @@ public class LandMovement : BaseMovementState
     public event Action WallJumped;
     public event Action<float> Moved;
 
-    private float facingDirection;
-
-    private float SlipMultiplier => wasOnSlipperyGround ? 1 / stats.slipMultiplier : 1;
+    private bool isFacingRight;
+    private int FacingDirection => isFacingRight ? 1 : -1;
+    private float SlipMultiplier => wasOnSlipperyGround ? 1 / stats.slipStrength : 1;
 
     #region Collisions
     private float PlayerHalfWidth => playerCol.bounds.extents.x;
@@ -144,47 +146,56 @@ public class LandMovement : BaseMovementState
     public bool isOnWall { get; private set; }
     private Vector2 wallNormal;
 
-    private bool NormalInWallRange(Vector2 normal) => Mathf.Abs(normal.y) >= 0 && Mathf.Abs(normal.y) <= stats.wallNormalRange;
+    private bool NormalInWallRange(Vector2 normal) => 
+        Mathf.Abs(normal.y) >= 0 
+        && Mathf.Abs(normal.y) <= stats.wallNormalRange;
+    private bool HitWall(RaycastHit2D hit) => hit.transform.TryGetComponent(out Terrain terrain) && terrain.isWall;
+
     private void HandleWallDetection(RaycastHit2D topRightHit, RaycastHit2D middleRightHit, RaycastHit2D bottomRightHit, RaycastHit2D topLeftHit, RaycastHit2D middleLeftHit, RaycastHit2D bottomLeftHit)
     {
         Vector2 averageWallNormal;
         bool newIsOnWall = false;
-        bool canGrabWall = !isGrounded && ((lastSurfaceType == LastSurfaceType.Ground) || (lastSurfaceType == LastSurfaceType.Wall)) && velocity.y < stats.maxYVelocityForWallGrab;
+        bool canGrabWall = !isGrounded  && velocity.y < stats.maxYVelocityForWallGrab;
 
-        HandleWallGrab(topRightHit, middleRightHit, 1);
-        HandleWallGrab(topLeftHit, middleLeftHit, -1);
+        HandleWallGrab(topRightHit, middleRightHit);
+        HandleWallGrab(topLeftHit, middleLeftHit);
 
-        void HandleWallGrab(RaycastHit2D topHit, RaycastHit2D middleHit, int dir)
+        void HandleWallGrab(RaycastHit2D topHit, RaycastHit2D middleHit)
         {
             averageWallNormal = (topHit.normal + middleHit.normal).normalized;
-            bool wallGrabbable = NormalInWallRange(averageWallNormal) && ((middleHit && middleHit.transform.CompareTag(stats.wallTag)) || (topHit && topHit.transform.CompareTag(stats.wallTag)));
+
+            bool wallGrabbable = NormalInWallRange(averageWallNormal) 
+                && ((middleHit && HitWall(middleHit)) || (topHit && HitWall(topHit)));
 
             if (wallGrabbable && canGrabWall)
             {
                 newIsOnWall = true;
                 lastSurfaceType = LastSurfaceType.Wall;
 
-                playerRB.linearVelocityX = 0;
+                horizontalVelocity.x = 0;
                 jumpAndGravVelocity.x = 0;
 
                 wallNormal = averageWallNormal;
             }
         }
 
-        dashInterrupted = newIsOnWall ? true : dashInterrupted;
         if (newIsOnWall ^ isOnWall) OnChangeWall(newIsOnWall);
+
+        //Only changes dash interrupted if on wall
+        dashPrevented = newIsOnWall || dashPrevented;
 
         //Ledge grab
         if (((bottomRightHit && !topRightHit && !middleRightHit) || (bottomLeftHit && !topLeftHit && !middleLeftHit)) && !isGrounded)
         {
             RaycastHit2D ledgeGrabHit = bottomRightHit ? bottomRightHit : bottomLeftHit;
 
-            if (!ledgeGrabHit.transform.CompareTag(stats.wallTag))
+            //Ledge grabs only on non-wall-grabbable walls for greater control
+            if (!HitWall(ledgeGrabHit))
             {
                 int dir = bottomRightHit ? 1 : -1;
+                float dist = Mathf.Abs(ledgeGrabHit.point.x - (position.x + dir * PlayerHalfWidth));
 
                 Vector2 ledgeNormal = ledgeGrabHit.normal;
-                float dist = Mathf.Abs(ledgeGrabHit.point.x - (position.x + dir * PlayerHalfWidth));
 
                 if (dist < stats.ledgeGrabDistance && NormalInWallRange(ledgeNormal))
                 {
@@ -209,7 +220,7 @@ public class LandMovement : BaseMovementState
             bufferedJumpUsable = true;
             shouldApplyGravityFallof = false;
             isGrounded = false;
-            dashInterrupted = true;
+            dashPrevented = true;
         }
         else
         {
@@ -221,21 +232,20 @@ public class LandMovement : BaseMovementState
     #endregion
 
     #region Ground
-    public bool isGrounded { get; private set; }
+    private bool isGrounded;
     private bool wasOnSlipperyGround;
+
+    public bool IsGrounded => isGrounded;
+    private bool HitIsSlippery(RaycastHit2D hit) => hit && hit.transform.TryGetComponent(out Terrain terrain) && terrain.isSlippery;
 
     private void HandleGround(RaycastHit2D bottomLeftHit, RaycastHit2D bottomMiddleHit, RaycastHit2D bottomRightHit)
     {
         bool newGrounded = false;
         Vector2 averageGroundNormal = (bottomLeftHit.normal + bottomRightHit.normal + bottomMiddleHit.normal).normalized;
 
-
         if (bottomLeftHit || bottomRightHit || bottomMiddleHit)
         {
-            if (bottomLeftHit && bottomLeftHit.transform.TryGetComponent(out Terrain leftTerrain)) wasOnSlipperyGround = leftTerrain.isSlippery;
-            else if (bottomMiddleHit && bottomMiddleHit.transform.TryGetComponent(out Terrain middleTerrain)) wasOnSlipperyGround = middleTerrain.isSlippery;
-            else if (bottomLeftHit && bottomLeftHit.transform.TryGetComponent(out Terrain rightTerrain)) wasOnSlipperyGround = rightTerrain.isSlippery;
-            else wasOnSlipperyGround = false;
+            wasOnSlipperyGround = HitIsSlippery(bottomLeftHit) || HitIsSlippery(bottomMiddleHit) || HitIsSlippery(bottomRightHit);
 
             if (averageGroundNormal.y > stats.minGroundNormal)
             {
@@ -245,7 +255,7 @@ public class LandMovement : BaseMovementState
             }
         }
 
-        dashInterrupted = newGrounded ? true : dashInterrupted;
+        dashPrevented = newGrounded || dashPrevented;
         if (isGrounded ^ newGrounded) OnChangeGrounded(newGrounded);
     }
 
@@ -264,6 +274,8 @@ public class LandMovement : BaseMovementState
         else
         {
             leftSurfaceTime = time;
+
+            //Applies gravity fallof if not jumping, such as walking off a ledge
             if (!isJumping) shouldApplyGravityFallof = true;
         }
     }
@@ -272,19 +284,19 @@ public class LandMovement : BaseMovementState
 
     #region Momentum
 
+    //Increases when performing actions, raising acceleration and max move speed
+    public float momentum;
+
     private void HandleMomentum()
     {
         if ((horizontalVelocity.magnitude > stats.momentumGainThreshold || jumpAndGravVelocity.magnitude > stats.momentumGainThreshold))
         { momentum += stats.momentumGainSpeed * fixedDeltaTime; }
         else { momentum -= stats.momentumLossSpeed * fixedDeltaTime; }
+
         momentum = Mathf.Clamp01(momentum);
     }
 
-    private void ApplyMomentum(float amount)
-    {
-        momentum += amount;
-        momentum = Mathf.Clamp01(momentum);
-    }
+    private void ApplyMomentum(float amount) => momentum = Mathf.Clamp01(momentum + amount);
 
     #endregion
 
@@ -292,37 +304,45 @@ public class LandMovement : BaseMovementState
 
     private float targetSpeed;
     private float acceleration;
-    public float momentum;
 
-    public float TurningDot => 1 - (playerRB.linearVelocity.normalized.x + frameInput.Move);
+    //How strongly the desired input opposes with the current velocity
+    public float OpposingMovementStrength => 1 - (playerRB.linearVelocity.normalized.x + frameInput.Move);
 
     private void HandleHorizontalMovement()
     {
         float moveInput = frameInput.Move;
         float absMoveInput = Mathf.Abs(moveInput);
 
-        float turningMultiplier = Mathf.Lerp(1, stats.turningAccelerationMultiplier *  SlipMultiplier, TurningDot);
-        float apexBonus = moveInput * stats.apexSpeedIncrease * ApexPoint;
+        float turningMult = Mathf.Lerp(1, stats.turningAccelerationMultiplier 
+            //*  SlipMultiplier
+            , OpposingMovementStrength);
+        float apexBonus = moveInput * stats.apexSpeedIncrease * ApexProximity;
+
+        //used for slower exit from wall
+        float wallExitMult = lastSurfaceType == LastSurfaceType.Wall 
+            ? Mathf.Clamp01( (time - leftSurfaceTime) / stats.timeToFullSpeedFromWall )
+            : 1;
 
         acceleration = absMoveInput > 0 
-            ? Mathf.Lerp(stats.minAcceleration, stats.maxAcceleration, momentum) * turningMultiplier
-            : Mathf.Lerp(stats.minDeceleration, stats.maxDeceleration, momentum);
+            ? Mathf.Lerp(stats.minAcceleration, stats.maxAcceleration, momentum) * turningMult   //acceleration
+            : Mathf.Lerp(stats.minDeceleration, stats.maxDeceleration, momentum);                //deceleration
 
-        targetSpeed = Mathf.Lerp(stats.minLandSpeed, stats.maxLandSpeed, momentum) * moveInput * 1/SlipMultiplier;
+        targetSpeed = moveInput * 1 / SlipMultiplier * Mathf.Lerp(stats.minLandSpeed, stats.maxLandSpeed, momentum);
 
         if (IsInAir)
         {
-            targetSpeed *= stats.airSpeedMultiplier;
-            targetSpeed += apexBonus;
-
+            targetSpeed = targetSpeed * stats.airSpeedMultiplier + apexBonus;
             acceleration *= stats.airAccelerationMultiplier;
         }
-        else acceleration *= SlipMultiplier;
+        else acceleration *= SlipMultiplier;   //For faster aceleration in air when slippery
 
-        float speed = Mathf.MoveTowards(horizontalVelocity.x, targetSpeed, acceleration * fixedDeltaTime);
-        if (lastSurfaceType == LastSurfaceType.Wall) speed = Mathf.Lerp(0, speed, (time - leftSurfaceTime) / stats.timeToFullSpeedFromWall);
+        float desiredSpeed = Mathf.MoveTowards(horizontalVelocity.x, targetSpeed, acceleration * fixedDeltaTime);
+        float speed = desiredSpeed * wallExitMult;
 
-        horizontalVelocity = speed * groundHorizontal;
+        horizontalVelocity = speed * dashSpeedMult * groundHorizontal;
+        Debug.Log(horizontalVelocity);
+
+        //Decelerates horizontal velocity from jump by movement acceleration for greater control
         jumpAndGravVelocity.x = Mathf.MoveTowards(jumpAndGravVelocity.x, 0, acceleration * fixedDeltaTime);
     }
 
@@ -336,6 +356,7 @@ public class LandMovement : BaseMovementState
         Ground
     }
 
+    //Last surface type is cahed to allow coyote jumping from both walls and ground
     private LastSurfaceType lastSurfaceType = LastSurfaceType.Ground;
 
     private bool shouldApplyGravityFallof;
@@ -346,7 +367,7 @@ public class LandMovement : BaseMovementState
     private bool jumpRequested;
     private float timeJumpRequested = float.MinValue;
 
-    public float ApexPoint
+    public float ApexProximity
     {
         get
         {
@@ -362,6 +383,7 @@ public class LandMovement : BaseMovementState
     {
         if (isDashing) return;
 
+        //If jump ended early, apply gravity fallof
         if (!isGrounded && !frameInput.JumpHeld && velocity.y > 0 && isJumping) shouldApplyGravityFallof = true;
 
         if (!jumpRequested && !HasBufferedJump) return;
@@ -380,20 +402,31 @@ public class LandMovement : BaseMovementState
         coyoteUsable = false;
         timeJumpRequested = 0;
 
-        if (lastSurfaceType == LastSurfaceType.Wall)
+        switch (lastSurfaceType)
         {
-            WallJumped?.Invoke();
+            case LastSurfaceType.Wall:
+                WallJump();
+                break;
 
-            jumpAndGravVelocity = stats.wallJumpForce * Vector2.LerpUnclamped(wallNormal, Vector2.up, stats.wallJumpUpBias);
-            ApplyMomentum(stats.wallJumpMomentumIncrease);
+            case LastSurfaceType.Ground:
+                GroundJump();
+                break;
         }
-        if (lastSurfaceType == LastSurfaceType.Ground)
-        {
-            Jumped?.Invoke();
+    }
 
-            jumpAndGravVelocity = stats.jumpForce * Vector2.LerpUnclamped(groundNormal, Vector2.up, stats.jumpUpBias);
-            ApplyMomentum(stats.jumpMomentumIncrease);
-        }
+    private void WallJump()
+    {
+        WallJumped?.Invoke();
+
+        jumpAndGravVelocity = stats.wallJumpVelocity * Vector2.LerpUnclamped(wallNormal, Vector2.up, stats.wallJumpUpBias);
+        ApplyMomentum(stats.wallJumpMomentumIncrease);
+    }
+    private void GroundJump()
+    {
+        Jumped?.Invoke();
+
+        jumpAndGravVelocity = stats.jumpVelocity * Vector2.LerpUnclamped(groundNormal, Vector2.up, stats.jumpUpBias);
+        ApplyMomentum(stats.jumpMomentumIncrease);
     }
 
     #endregion
@@ -401,29 +434,29 @@ public class LandMovement : BaseMovementState
     #region Gravity
 
     public bool IsInAir => !isGrounded && !isOnWall;
-
     private void HandleGravity()
     {
-        if (isGrounded && !isJumping) jumpAndGravVelocity = Vector2.zero;
-        if (!isGrounded)
+        if (isGrounded) return;
+
+        float downwardAcceleration;
+
+        if (isOnWall && !isJumping) downwardAcceleration = stats.onWallGravity;
+        else
         {
-            float apexAntiGravity = Mathf.Lerp(0, -stats.apexAntigravity, ApexPoint);
-            float downwardAcceleration;
+            float apexAntiGravity = Mathf.Lerp(0, -stats.apexAntigravity, ApexProximity);
+            float gravFallof = shouldApplyGravityFallof && jumpAndGravVelocity.y > 0 || jumpAndGravVelocity.y < stats.jumpVelocityFallof
+                ? stats.gravAfterFalloffMultiplier
+                : 1;
 
-            if (isOnWall && !isJumping) downwardAcceleration = stats.onWallGravity;
-            else
-            {
-                downwardAcceleration = stats.gravity;
-                downwardAcceleration += apexAntiGravity;
-
-                if (shouldApplyGravityFallof && jumpAndGravVelocity.y > 0 || jumpAndGravVelocity.y < stats.jumpVelocityFallof) downwardAcceleration *= stats.gravAfterFalloffMultiplier;
-            }
-
-            jumpAndGravVelocity.y = Mathf.MoveTowards(jumpAndGravVelocity.y, -stats.maxDownVelocity, downwardAcceleration * fixedDeltaTime * dashGravMult);
+            downwardAcceleration = (stats.gravity + apexAntiGravity) * gravFallof;
         }
+
+        jumpAndGravVelocity.y = Mathf.MoveTowards(jumpAndGravVelocity.y, -stats.maxDownVelocity, downwardAcceleration * fixedDeltaTime * dashGravMult);
     }
 
     #endregion
+
+    #region Dash
 
     private bool dashRequested;
     private bool isDashing;
@@ -432,57 +465,67 @@ public class LandMovement : BaseMovementState
     private float dashGravMult;
 
     private float timeDashed = float.MinValue;
-    private bool dashInterrupted;
+    private bool dashPrevented;
     private Vector2 dashVelocity;
     private Vector2 targetDashVelocity;
 
     private void HandleDash()
     {
-        if(dashRequested && !isDashing && !isOnWall) ExecuteDash();
+        bool canDash = !isDashing && !dashPrevented;
+
+        if (dashRequested && canDash) ExecuteDash();
 
         dashVelocity = Vector2.zero;
         dashSpeedMult = 1;
         dashGravMult = 1;
         dashRequested = false;
 
-        float timePercent = (time - timeDashed) / stats.dashDuration;
-
-        if (dashInterrupted || !isDashing)
+        if (dashPrevented || !isDashing)
         {
             ResetDash();
             return; 
         }
 
-        float speedPercent = stats.dashSpeedCurve.Evaluate(timePercent);
-        dashVelocity = targetDashVelocity * speedPercent;
+        float timePercent = (time - timeDashed) / stats.dashDuration;
 
         dashSpeedMult = stats.dashHorizontalCurve.Evaluate(timePercent);
         dashGravMult = stats.dashVerticalCurve.Evaluate(timePercent);
+
+        float speedPercent = stats.dashSpeedCurve.Evaluate(timePercent);
+        dashVelocity = targetDashVelocity * speedPercent;
     }
 
     private void ResetDash()
     {
         isDashing = false;
-        dashInterrupted = false;
+        dashPrevented = false;
     }
 
     private void ExecuteDash()
     {
         isDashing = true; 
         timeDashed = time;
-        dashInterrupted = false;
+        dashPrevented = false;
 
-        jumpAndGravVelocity = Vector2.zero;
+        //To prevent floaty dash if jump and dash are executed at the same time
+        shouldApplyGravityFallof = true;
 
-        targetDashVelocity = stats.targetDashVelocity;
-        targetDashVelocity.x *= facingDirection;
+        float verticalMult = frameInput.JumpHeld ? stats.dashInputUpMultiplier: 1;
+        targetDashVelocity = new Vector2(stats.targetDashVelocity.x * FacingDirection, stats.targetDashVelocity.y * verticalMult);
+
+        //Keeps upwards velocity but nullifies it if falling to prevent downwards dashes
+        jumpAndGravVelocity.y = 0;
+
+        //Prevents horizontal velocity opposite dash velocity when doing sudden turn dashes
+        horizontalVelocity.x = FacingDirection * Mathf.Max(horizontalVelocity.x * FacingDirection, 0);
     }
 
+    #endregion
 
     private void ApplyMovement()
     {
         if (isGrounded && !isJumping && !isDashing) jumpAndGravVelocity.y = stats.groundingPush;
-        velocity = jumpAndGravVelocity + horizontalVelocity * dashSpeedMult + dashVelocity;
+        velocity = jumpAndGravVelocity + horizontalVelocity + dashVelocity;
 
         playerRB.position = position;
         playerRB.linearVelocity = velocity;

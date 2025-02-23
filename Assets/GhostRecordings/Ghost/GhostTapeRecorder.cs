@@ -33,7 +33,7 @@ public class GhostTapeRecorder : MonoBehaviour
 
     private void OnDestroy()
     {
-        if(enabled) SaveTape();
+        if (enabled) { SaveTape(); }
     }
 
     public void SaveTape()

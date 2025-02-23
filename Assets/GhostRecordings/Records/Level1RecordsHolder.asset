@@ -12,3 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a19b5630371a51946be2815e962c95e2, type: 3}
   m_Name: Level1RecordsHolder
   m_EditorClassIdentifier: 
+  listCount: 3

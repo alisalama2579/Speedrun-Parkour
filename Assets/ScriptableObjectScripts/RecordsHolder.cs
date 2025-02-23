@@ -1,10 +1,16 @@
 using UnityEngine;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using System;
 
 [CreateAssetMenu(fileName = "RecordsHolder", menuName = "RecordsHolder")]
 public class RecordsHolder : ScriptableObject
 {
+    [Serializable]
+    private class LevelRecord
+    {
+        public List<RecordFrameValues> recordFrameValues;
+    }
+
     public struct RecordFrameValues
     {
         public Vector3 position;
@@ -14,22 +20,25 @@ public class RecordsHolder : ScriptableObject
         public Vector2 velocity;
     }
 
-    public List<RecordFrameValues>[] levelRecords = new List<RecordFrameValues>[3];
+    [SerializeField] LevelRecord[] levelRecords = new LevelRecord[3];
+    public float listCount;
 
     public void SetRecord(List<RecordFrameValues> frameRecords, int index)
     {
         if (index >= levelRecords.Length) return;
 
-        levelRecords[index] = new();
+        listCount++;
+
+        levelRecords[index].recordFrameValues = new();
         for (int i = 0; i < frameRecords.Count; i++)
         {
-            levelRecords[index].Add(frameRecords[i]);
+            levelRecords[index].recordFrameValues.Add(frameRecords[i]);
         }
     }
 
     public List<RecordFrameValues> GetRecord(int index)
     {
         if (index >= levelRecords.Length) return new List<RecordFrameValues>();
-        return levelRecords[index];
+        return levelRecords[index].recordFrameValues;
     }
 }
