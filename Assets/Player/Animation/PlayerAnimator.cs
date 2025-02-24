@@ -1,6 +1,10 @@
 using UnityEngine;
 using static UnityEngine.Mathf;
 
+
+/// <summary>
+///  Temporary, will be replaced later with a sprite-based animation system
+/// </summary>
 public class PlayerAnimator : MonoBehaviour
 {
     #region AnimationStatesAndValues

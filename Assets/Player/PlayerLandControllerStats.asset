@@ -39,9 +39,9 @@ MonoBehaviour:
   horizontalJumpVelocityDeceleration: 50
   jumpApexRange: 5
   gravAfterFalloffMultiplier: 3
-  targetDashVelocity: {x: 200, y: 10}
+  targetDashVelocity: {x: 120, y: 1}
   dashDuration: 0.7
-  dashInputUpMultiplier: 10
+  dashInputUpMultiplier: 100
   dashSpeedCurve:
     serializedVersion: 2
     m_Curve:
@@ -70,22 +70,22 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.0045732856
-      value: 0.33198312
-      inSlope: 4.3972387
-      outSlope: 4.3972387
+      time: 0
+      value: 0.48632812
+      inSlope: 2
+      outSlope: 2
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0.0831228
+      outWeight: 0
     - serializedVersion: 3
-      time: 0.70977783
-      value: 1.0013657
-      inSlope: 1.5700419
-      outSlope: 1.5700419
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.27514705
+      inWeight: 0
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -103,8 +103,8 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 1.0248442
-      value: 1.4868573
+      time: 0.99756145
+      value: 0.99726
       inSlope: 0
       outSlope: 0
       tangentMode: 0

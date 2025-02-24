@@ -11,10 +11,10 @@ GameObject:
   - component: {fileID: 2682860390978987309}
   - component: {fileID: 6465844569207375775}
   - component: {fileID: 3333169259649138400}
-  - component: {fileID: -5148770987976814812}
+  - component: {fileID: -3791805266681898352}
   m_Layer: 7
-  m_Name: WallGrabbable
-  m_TagString: WallGrabbable
+  m_Name: Ground
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -27,13 +27,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5528141547080680403}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -24.1216, y: -8.2934, z: 0}
   m_LocalScale: {x: 10, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6465844569207375775
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -79,7 +79,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -135,7 +135,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &-5148770987976814812
+--- !u!114 &-3791805266681898352
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -144,8 +144,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5528141547080680403}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ba62dc0501a0e0a4886c233855c1845d, type: 3}
+  m_Script: {fileID: 11500000, guid: 3827ea63290a5054db729e6705ce082e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isSlippery: 0
-  isWall: 1
+  stats: {fileID: 11400000, guid: 05c1c87f60cd42748bd31dfc4b501643, type: 2}

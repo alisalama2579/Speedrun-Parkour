@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Serialization;
 
-[CreateAssetMenu(fileName = "PlayerLandControllerStats", menuName = "PlayerControllerStats")]
+[CreateAssetMenu(fileName = "PlayerLandControllerStats", menuName = "PlayerLandControllerStats")]
 public class PlayerLandControllerStats : ScriptableObject
 {
     #region Horizontal
