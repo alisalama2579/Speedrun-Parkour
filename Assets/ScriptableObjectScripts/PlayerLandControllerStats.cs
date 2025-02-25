@@ -64,6 +64,8 @@ public class PlayerLandControllerStats : ScriptableObject
     public float dashDuration;
     public float dashInputUpMultiplier;
 
+    public float dashOpposingMovementFriction;
+
     public AnimationCurve dashSpeedCurve;
     public AnimationCurve dashHorizontalCurve;
     public AnimationCurve dashVerticalCurve;

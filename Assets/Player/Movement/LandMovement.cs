@@ -337,7 +337,7 @@ public class LandMovement : BaseMovementState
     private float acceleration;
 
     //How strongly the desired input opposes with the current velocity
-    public float OpposingMovementStrength => 1 - (playerRB.linearVelocity.normalized.x + HorizontalInput);
+    public float OpposingMovementStrength => Mathf.Clamp01( 1 - Mathf.Abs(playerRB.linearVelocity.normalized.x + FacingDirection));
 
     private void HandleHorizontalMovement()
     {
@@ -520,6 +520,9 @@ public class LandMovement : BaseMovementState
 
         float speedPercent = stats.dashSpeedCurve.Evaluate(timePercent);
         dashVelocity = targetDashVelocity * speedPercent;
+
+        //Applies friction if player is trying to oppose dash velocity for greater control
+        dashVelocity.x = Mathf.MoveTowards(dashVelocity.x, 0, OpposingMovementStrength * stats.dashOpposingMovementFriction * Mathf.Abs(dashVelocity.x));
     }
 
     private void ResetDash()
@@ -534,13 +537,13 @@ public class LandMovement : BaseMovementState
         timeDashed = time;
         dashPrevented = false;
 
-        //To prevent floaty dash if jump and dash are executed at the same time
-        shouldApplyGravityFallof = true;
+        shouldApplyGravityFallof = true; //To prevent floaty dash if jump and dash are executed at the same time
+        jumpAndGravVelocity.y = 0;
 
         float verticalMult = frameInput.JumpHeld ? stats.dashInputUpMultiplier : 1;
-        targetDashVelocity = new Vector2(stats.targetDashVelocity.x * FacingDirection, stats.targetDashVelocity.y * verticalMult);
-        Debug.Log(targetDashVelocity.x);
-        jumpAndGravVelocity.y = 0;
+
+        //Clamp magnitude for equal dash strength in both horizontal and diagonal directions
+        targetDashVelocity = Vector2.ClampMagnitude(new Vector2(stats.targetDashVelocity.x * FacingDirection, stats.targetDashVelocity.y * verticalMult), stats.targetDashVelocity.x);
 
         //Prevents horizontal velocity opposite dash velocity when doing sudden turn dashes
         horizontalVelocity.x = FacingDirection * Mathf.Max(horizontalVelocity.x * FacingDirection, 0);

@@ -6,7 +6,6 @@ public class EventsManager : ScriptableObject
 {
     public void OnValidate()
     {
-        if (Instance != this && Instance != null) Debug.LogError("Cannot have multiple event handlers");
         Instance = this;
     }
 
