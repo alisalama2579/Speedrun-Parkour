@@ -14,6 +14,7 @@ public class PlayerLandControllerStats : ScriptableObject
     [Range(1, 100)] public float minDeceleration;
     [Range(1, 200)] public float maxDeceleration;
     public float turningAccelerationMultiplier;
+    public float additionalHorizontalMovementDeceleration;
 
     [Range(0, 5)] public float airAccelerationMultiplier;
     [Range(0, 5)] public float airSpeedMultiplier;
@@ -29,6 +30,7 @@ public class PlayerLandControllerStats : ScriptableObject
 
     public float wallJumpMomentumIncrease;
     public float jumpMomentumIncrease;
+    public float hurtMomentumLoss;
     [Range(0, 1)] public float momentumGainSpeed;
     [Range(0, 1)] public float momentumLossSpeed;
     public float momentumGainThreshold;
@@ -49,7 +51,6 @@ public class PlayerLandControllerStats : ScriptableObject
 
     public LayerMask collisionLayerMask;
     public float jumpVelocity;
-    public float horizontalJumpVelocityDeceleration;
     public float jumpApexRange;
     public float gravAfterFalloffMultiplier;
 
@@ -120,8 +121,9 @@ public class PlayerLandControllerStats : ScriptableObject
 
     [Space(5)]
 
-    #region Miscalleneous
-    [Header("Miscalleneous")]
+    #region LevelMechanics
+    [Header("Level Mechanics")]
     public float slipStrength;
+    public float slowStrength;
     #endregion
 }

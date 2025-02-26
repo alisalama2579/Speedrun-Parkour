@@ -19,11 +19,13 @@ MonoBehaviour:
   minDeceleration: 90
   maxDeceleration: 75
   turningAccelerationMultiplier: 2
+  additionalHorizontalMovementDeceleration: 500
   airAccelerationMultiplier: 0.9
   airSpeedMultiplier: 0.9
   apexSpeedIncrease: 5
   wallJumpMomentumIncrease: 0.07
   jumpMomentumIncrease: 0.55
+  hurtMomentumLoss: 0
   momentumGainSpeed: 0.2
   momentumLossSpeed: 0.4
   momentumGainThreshold: 0
@@ -36,10 +38,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   jumpVelocity: 55
-  horizontalJumpVelocityDeceleration: 50
   jumpApexRange: 5
   gravAfterFalloffMultiplier: 3
-  targetDashVelocity: {x: 100, y: 1}
+  targetDashVelocity: {x: 80, y: 1}
   dashDuration: 0.3
   dashInputUpMultiplier: 100
   dashOpposingMovementFriction: 300
@@ -120,7 +121,7 @@ MonoBehaviour:
   ceilingHitPush: 0
   groundingPush: 0
   maxCeilNormal: -1
-  minGroundNormal: 0.5
+  minGroundNormal: 0.1
   skinWidth: 0.05
   groundedDistance: 0.12
   groundSnapDistance: 0.2
@@ -132,6 +133,7 @@ MonoBehaviour:
   timeToFullSpeedFromWall: 0.17
   maxYVelocityForWallGrab: 5
   onWallGravity: 70
-  wallJumpVelocity: 125
+  wallJumpVelocity: 120
   wallJumpUpBias: 0.65
   slipStrength: 2
+  hurtVelocityStrength: 50
