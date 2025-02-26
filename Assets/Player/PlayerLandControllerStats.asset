@@ -136,4 +136,4 @@ MonoBehaviour:
   wallJumpVelocity: 120
   wallJumpUpBias: 0.65
   slipStrength: 2
-  hurtVelocityStrength: 50
+  slowAreaDrag: 30

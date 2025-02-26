@@ -105,13 +105,15 @@ public class Player : PlayerStateMachine
         //Triggers
         if (trigger != null)
         {
-            MovementState.CollisionEnter(trigger: trigger);
+            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) collisionListener.OnPlayerEnter();
+            MovementState.TriggerEnter(trigger);
         }
 
         //Colliders
         else if (collision != null)
         {
-            MovementState.CollisionEnter(collision: collision);
+            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) collisionListener.OnPlayerEnter();
+            MovementState.CollisionEnter(collision);
         }
     }
     private void ProcessExitCollisions(Collider2D trigger = null, Collision2D collision = null)
@@ -119,13 +121,17 @@ public class Player : PlayerStateMachine
         //Triggers
         if (trigger != null)
         {
-            MovementState.CollisionExit(trigger: trigger);
+            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) collisionListener.OnPlayerExit();
+
+            MovementState.TriggerExit(trigger);
         }
 
         //Colliders
         else if (collision != null)
         {
-            MovementState.CollisionExit(collision: collision);
+            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) collisionListener.OnPlayerExit();
+
+            MovementState.CollisionExit(collision);
         }
     }
 }

@@ -69,47 +69,13 @@ public class LandMovement : BaseMovementState
         HandleMomentum();
         HandleHorizontalMovement();
         HandleDash();
+        HandleFinalVelocity();
 
         ApplyMovement();
     }
 
-    public override void CollisionEnter(Collision2D collision = null, Collider2D trigger = null)
-    {
-        //Triggers
-        if (trigger != null)
-        {
-            if(trigger.TryGetComponent(out SlowingArea slowingArea))
-            {
-
-            }
-        }
-
-        //Colliders
-        else if (collision != null)
-        {
-
-        } 
-    }
-    public override void CollisionExit(Collision2D collision = null, Collider2D trigger = null)
-    {
-        //Triggers
-        if (trigger != null)
-        {
-            if (trigger.TryGetComponent(out SlowingArea slowingArea))
-            {
-
-            }
-        }
-
-        //Colliders
-        else if (collision != null)
-        {
-
-        }
-    }
-
     private Vector2 position;
-    public Vector2 velocity { get; private set; }
+    public Vector2 velocity;
 
     private Vector2 groundNormal = Vector2.up;
     private Vector2 groundHorizontal = Vector2.right;
@@ -127,7 +93,10 @@ public class LandMovement : BaseMovementState
     private bool isFacingRight;
     private int FacingDirection => isFacingRight ? 1 : -1;
     private float SlipMultiplier => wasOnSlipperyGround ? 1 / stats.slipStrength : 1;
-    //private float ExternalDrag => 
+
+    private bool isBeingSlowed;
+    private float SlowAreaDrag => isBeingSlowed ? stats.slowAreaDrag : 1;
+
 
     #region TerrainCollisions
     private float PlayerHalfWidth => playerCol.bounds.extents.x;
@@ -588,16 +557,44 @@ public class LandMovement : BaseMovementState
 
     #endregion
 
+    private void HandleFinalVelocity()
+    {
+        if (isGrounded && !isJumping && !isDashing) verticalvelocity = stats.groundingPush;
+        velocity = Vector2.up * verticalvelocity + Vector2.right * (horizontalMovement * dashSpeedMult) + dashVelocity;
+
+        ApplyVelocityModifiers();
+    }
+
+    private void ApplyVelocityModifiers()
+    {
+        float drag = SlowAreaDrag;
+
+        velocity.x = Mathf.MoveTowards(velocity.x, 0, drag * fixedDeltaTime * Mathf.Abs(velocity.x));
+        velocity.y = Mathf.MoveTowards(velocity.y, 0, drag * fixedDeltaTime * Mathf.Abs(velocity.y));
+
+        nonZeroVelocityDirection = new Vector2(
+            velocity.x != 0 ? velocity.x : nonZeroVelocityDirection.x, 
+            velocity.y != 0 ? velocity.y : nonZeroVelocityDirection.y)
+            .normalized;
+    }
 
     private void ApplyMovement()
     {
-        if (isGrounded && !isJumping && !isDashing) verticalvelocity = stats.groundingPush;
-        velocity = Vector2.up * verticalvelocity + Vector2.right * (horizontalMovement * dashSpeedMult)  + dashVelocity;
-        
-
-        nonZeroVelocityDirection = new Vector2(velocity.x != 0 ? velocity.x : nonZeroVelocityDirection.x, velocity.y != 0 ? velocity.y : nonZeroVelocityDirection.y).normalized;
-
         playerRB.position = position;
         playerRB.linearVelocity = velocity;
+    }
+
+
+    public override void TriggerEnter(IPlayerCollisionInteractor collisionListener)
+    {
+            if (collisionListener == null) return;
+
+            if (collisionListener is SlowingArea) isBeingSlowed = false;
+    }
+    public override void TriggerExit(IPlayerCollisionInteractor collisionListener)
+    {
+        if (collisionListener == null) return;
+
+        if (collisionListener is SlowingArea) isBeingSlowed = false;
     }
 }

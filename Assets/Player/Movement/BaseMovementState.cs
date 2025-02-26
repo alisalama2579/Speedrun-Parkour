@@ -17,7 +17,17 @@ public class BaseMovementState
     public virtual void UpdateMovement() {}
 
     public virtual void SwitchState(BaseMovementState nextState) { }
-    public virtual void CollisionEnter(Collision2D collision = null, Collider2D trigger = null) { }
-    public virtual void CollisionExit(Collision2D collision = null, Collider2D trigger = null) { }
+
     public virtual void PlayerTakeDamage() { }
+
+
+    public virtual void CollisionEnter(Collision2D collision) { }
+    public virtual void CollisionExit(Collision2D collision) { }
+    public virtual void TriggerEnter(Collider2D trigger) { }
+    public virtual void TriggerExit(Collider2D trigger) { }
+
+    public virtual void CollisionEnter(IPlayerCollisionInteractor collisionListener) { }
+    public virtual void CollisionExit(IPlayerCollisionInteractor collisionListener) { }
+    public virtual void TriggerEnter(IPlayerCollisionInteractor collisionListener) { }
+    public virtual void TriggerExit(IPlayerCollisionInteractor collisionListener) { }
 }

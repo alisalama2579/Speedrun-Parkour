@@ -124,6 +124,6 @@ public class PlayerLandControllerStats : ScriptableObject
     #region LevelMechanics
     [Header("Level Mechanics")]
     public float slipStrength;
-    public float slowStrength;
+    public float slowAreaDrag;
     #endregion
 }

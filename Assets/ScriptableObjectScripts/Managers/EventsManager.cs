@@ -4,7 +4,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "EventsManager", menuName = "EventsManager")]
 public class EventsManager : ScriptableObject
 {
-    public void OnAwake()
+    public void OnEnable()
     {
         Instance = this;
     }
