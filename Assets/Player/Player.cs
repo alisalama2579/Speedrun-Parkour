@@ -105,14 +105,22 @@ public class Player : PlayerStateMachine
         //Triggers
         if (trigger != null)
         {
-            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) collisionListener.OnPlayerEnter();
+            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) 
+            { 
+                collisionListener.OnPlayerEnter();
+                MovementState.TriggerEnter(collisionListener);
+            }
             MovementState.TriggerEnter(trigger);
         }
 
         //Colliders
         else if (collision != null)
         {
-            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) collisionListener.OnPlayerEnter();
+            if (collision.transform.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) 
+            { 
+                collisionListener.OnPlayerEnter();
+                MovementState.CollisionEnter(collisionListener);
+            }
             MovementState.CollisionEnter(collision);
         }
     }
@@ -121,16 +129,22 @@ public class Player : PlayerStateMachine
         //Triggers
         if (trigger != null)
         {
-            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) collisionListener.OnPlayerExit();
-
+            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener))
+            { 
+                collisionListener.OnPlayerExit();
+                MovementState.TriggerExit(collisionListener);
+            }
             MovementState.TriggerExit(trigger);
         }
 
         //Colliders
         else if (collision != null)
         {
-            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) collisionListener.OnPlayerExit();
-
+            if (collision.transform.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) 
+            { 
+                collisionListener.OnPlayerExit();
+                MovementState.CollisionExit(collisionListener);
+            }
             MovementState.CollisionExit(collision);
         }
     }

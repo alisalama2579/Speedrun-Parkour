@@ -19,7 +19,7 @@ MonoBehaviour:
   minDeceleration: 90
   maxDeceleration: 75
   turningAccelerationMultiplier: 2
-  additionalHorizontalMovementDeceleration: 500
+  additionalHorizontalMovementDeceleration: 15
   airAccelerationMultiplier: 0.9
   airSpeedMultiplier: 0.9
   apexSpeedIncrease: 5
@@ -135,5 +135,6 @@ MonoBehaviour:
   onWallGravity: 70
   wallJumpVelocity: 120
   wallJumpUpBias: 0.65
-  slipStrength: 2
-  slowAreaDrag: 30
+  slipStrength: 1.8
+  slowAreaDrag: {x: 15, y: 9}
+  slowAreaMomentumLoss: 0

@@ -10,5 +10,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21a80fb4f3694e8458bad567c929d1b7, type: 3}
-  m_Name: EventsManager
+  m_Name: EventsManager 1
   m_EditorClassIdentifier: 
