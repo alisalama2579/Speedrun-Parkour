@@ -7,12 +7,15 @@ public class LandMovement : BaseMovementState
     {
         this.player = player;
         this.controls = controls;
-        this.playerCol = col;
+        this.col = col;
 
         stats = (PlayerLandControllerStats)movementStats;
         playerRB = rb;
+
+        momentum = stats.startingMomentum;
     }
 
+    //TODO: change to private and refactor animator
     public struct Input
     {
         public bool DashDown;
@@ -55,6 +58,7 @@ public class LandMovement : BaseMovementState
             timeJumpRequested = time;
         }
     }
+
     public override void UpdateMovement()
     {
         fixedDeltaTime = Time.fixedDeltaTime;
@@ -76,9 +80,6 @@ public class LandMovement : BaseMovementState
     private Vector2 position;
     public Vector2 velocity;
 
-    private Vector2 groundNormal = Vector2.up;
-    private Vector2 groundHorizontal = Vector2.right;
-
     private Vector2 nonZeroVelocityDirection;
 
     private float additionalHorizontalMovement;
@@ -91,6 +92,12 @@ public class LandMovement : BaseMovementState
 
     private bool isFacingRight;
     private int FacingDirection => isFacingRight ? 1 : -1;
+
+    //Between 0 and 1, how strongly the desired input opposes with the  velocity
+    private float VelocityOpposingMoveStrength(Vector2 vel) => Mathf.Clamp01(1 - Mathf.Abs(vel.normalized.x + FacingDirection));
+
+
+    #region External Effectors
     private float SlipMultiplier => wasOnSlipperyGround ? 1 / stats.slipStrength : 1;
 
     private bool isBeingSlowed;
@@ -104,12 +111,13 @@ public class LandMovement : BaseMovementState
         }
     }
 
+    #endregion
 
-    #region TerrainCollisions
+    #region Terrain Collisions
 
-
-    private float PlayerHalfWidth => playerCol.bounds.extents.x;
-    private float PlayerHalfHeight => playerCol.bounds.extents.y;
+    private float PlayerHalfWidth => col.bounds.extents.x;
+    private float PlayerHalfHeight => col.bounds.extents.y;
+    private TraversableTerrain terrainOn;
 
     /// <summary>
     /// Returns true if hit transform has component TraversableTerrain and changes terrain refrence accordingly
@@ -120,6 +128,16 @@ public class LandMovement : BaseMovementState
         return hit ? hit.transform.TryGetComponent(out terrain) : false;
     }
 
+    private void OnChangeTerrain(TraversableTerrain newTerrain)
+    {
+        terrainOn = newTerrain;
+        if (terrainOn == null) return;
+
+
+        wasOnSlipperyGround = terrainOn is SlipperyGround;
+        if (terrainOn is not DisappearingSandPlatform) EventsManager.Instance.InvokePlayerLandOnStableGround();
+        terrainOn.OnPlayerEnterTerrain(this);
+    }
 
     private void HandleCollisionInteractions()
     {
@@ -192,23 +210,25 @@ public class LandMovement : BaseMovementState
             else if (topHit) hit = topHit;
 
             newWallNormal = hit.normal;
-            bool wallGrabbable = NormalInWallRange(newWallNormal) && HitWall(hit);
 
-            if (wallGrabbable && canGrabWall)
+            if (hit && NormalInWallRange(newWallNormal))
             {
-                newIsOnWall = true;
-
-                TryGetHitTerrain(hit, out newTerrain);
-                lastSurfaceType = LastSurfaceType.Wall;
-
                 additionalHorizontalMovement = 0;
                 horizontalMovement = 0;
 
-                wallNormal = newWallNormal;
+                if (HitWall(hit) && canGrabWall) 
+                {
+                    newIsOnWall = true;
+
+                    TryGetHitTerrain(hit, out newTerrain);
+                    lastSurfaceType = LastSurfaceType.Wall;
+
+                    wallNormal = newWallNormal;
+                }
             }
         }
-
-        if (newIsOnWall ^ isOnWall) OnChangeWall(newIsOnWall, newTerrain);
+        if (newIsOnWall ^ isOnWall) OnChangeWall(newIsOnWall);
+        if (newTerrain ^ terrainOn) OnChangeTerrain(newTerrain);
 
         HandleLedgeGrab();
         void HandleLedgeGrab()
@@ -244,7 +264,7 @@ public class LandMovement : BaseMovementState
     }
 
 
-    private void OnChangeWall(bool newWall, TraversableTerrain newTerrain)
+    private void OnChangeWall(bool newWall)
     {
         isOnWall = newWall;
 
@@ -256,8 +276,7 @@ public class LandMovement : BaseMovementState
             shouldApplyGravityFallof = false;
             isGrounded = false;
             dashPrevented = true;
-
-            newTerrain.OnPlayerEnterTerrain(this);
+            wasOnSlipperyGround = false;
         }
         else
         {
@@ -281,29 +300,29 @@ public class LandMovement : BaseMovementState
         bool newGrounded = false;
         RaycastHit2D hit = new();
 
-        //Priotity is middle then right then left
+        //Priority is middle then right then left
         if (bottomMiddleHit) hit = bottomMiddleHit;
         else if (bottomRightHit) hit = bottomRightHit;
         else if (bottomLeftHit) hit = bottomLeftHit;
 
-        Vector2 newGroundNormal = hit.normal;
+        Vector2 groundNormal = hit.normal;
 
         if (hit)
         {
-            if (newGroundNormal.y > stats.minGroundNormal && TryGetHitTerrain(hit, out newTerrain))
+            if (groundNormal.y > stats.minGroundNormal && TryGetHitTerrain(hit, out newTerrain))
             {
                 newGrounded = true;
-                groundNormal = newGroundNormal;
                 lastSurfaceType = LastSurfaceType.Ground;
             }
         }
-        if (isGrounded ^ newGrounded) OnChangeGrounded(newGrounded, newTerrain);
+        if (isGrounded ^ newGrounded) OnChangeGrounded(newGrounded);
+        if (newTerrain ^ terrainOn) OnChangeTerrain(newTerrain);
 
         dashPrevented = newGrounded || dashPrevented;
     }
 
 
-    private void OnChangeGrounded(bool newGrounded, TraversableTerrain newTerrain)
+    private void OnChangeGrounded(bool newGrounded)
     {
         isGrounded = newGrounded;
 
@@ -313,11 +332,6 @@ public class LandMovement : BaseMovementState
             coyoteUsable = true;
             bufferedJumpUsable = true;
             shouldApplyGravityFallof = false;
-
-            wasOnSlipperyGround = newTerrain is SlipperyGround;
-            if (newTerrain is not SandPlatform) EventsManager.Instance.InvokePlayerLandOnStableGround();
-
-            newTerrain.OnPlayerEnterTerrain(this);
         }
         else
         {
@@ -353,14 +367,11 @@ public class LandMovement : BaseMovementState
     private float targetSpeed;
     private float acceleration;
 
-    //Between 0 and 1, how strongly the desired input opposes with the current velocity
-    public float OpposingMovementStrength => Mathf.Clamp01(1 - Mathf.Abs(playerRB.linearVelocity.normalized.x + FacingDirection));
-
     private void HandleHorizontalMovement()
     {
         float moveInput = HorizontalInput;
 
-        float turningMult = Mathf.Lerp(1, stats.turningAccelerationMultiplier * SlipMultiplier, OpposingMovementStrength);
+        float turningMult = Mathf.Lerp(1, stats.turningAccelerationMultiplier * SlipMultiplier, VelocityOpposingMoveStrength(velocity));
         float apexBonus = moveInput * stats.apexSpeedIncrease * ApexProximity;
 
         //used for slower exit from wall
@@ -377,9 +388,9 @@ public class LandMovement : BaseMovementState
         if (IsInAir)
         {
             targetSpeed = targetSpeed * stats.airSpeedMultiplier + additionalHorizontalMovement + apexBonus;
-            acceleration *= stats.airAccelerationMultiplier;
+            acceleration *= stats.airAccelerationMultiplier * dashHorizontalMovementMult;
         }
-        else acceleration *= SlipMultiplier;   //For faster aceleration in air when slippery
+        else acceleration *= SlipMultiplier;   //For slower acceleration on ground when slippery
 
         float desiredSpeed = Mathf.MoveTowards(horizontalMovement, targetSpeed, acceleration * fixedDeltaTime);
         horizontalMovement = desiredSpeed * wallExitMult + additionalHorizontalMovement;
@@ -429,7 +440,7 @@ public class LandMovement : BaseMovementState
 
         if (!jumpRequested && !HasBufferedJump) return;
 
-        if (isGrounded || isOnWall || CanUseCoyote) ExecuteJump();
+        if (!IsInAir || CanUseCoyote) ExecuteJump();
 
         jumpRequested = false;
     }
@@ -476,6 +487,72 @@ public class LandMovement : BaseMovementState
 
     #endregion
 
+    #region Dash
+
+    private bool dashRequested;
+    private bool isDashing;
+
+    private float dashHorizontalMovementMult;
+    private float dashGravMult;
+
+    private float timeDashed = float.MinValue;
+    private bool dashPrevented;
+    private Vector2 dashVelocity;
+    private Vector2 targetDashVelocity;
+
+    private void HandleDash()
+    {
+        bool canDash = !isDashing && !dashPrevented;
+
+        if (dashRequested && canDash) ExecuteDash();
+
+        dashVelocity = Vector2.zero;
+        dashHorizontalMovementMult = 1;
+        dashGravMult = 1;
+        dashRequested = false;
+
+        if (dashPrevented || !isDashing)
+        {
+            ResetDash();
+            return;
+        }
+
+        float timePercent = (time - timeDashed) / stats.dashDuration;
+
+        dashHorizontalMovementMult = stats.dashHorizontalCurve.Evaluate(timePercent);
+        dashGravMult = stats.dashVerticalCurve.Evaluate(timePercent);
+
+        float speedPercent = stats.dashSpeedCurve.Evaluate(timePercent);
+        dashVelocity = targetDashVelocity * speedPercent;
+
+        //Applies friction if player is trying to oppose dash velocity for greater control
+        dashVelocity.x = Mathf.MoveTowards(dashVelocity.x, 0, VelocityOpposingMoveStrength(dashVelocity) * fixedDeltaTime * stats.dashOpposingMovementFriction * Mathf.Abs(dashVelocity.x));
+    }
+
+    private void ResetDash()
+    {
+        isDashing = false;
+        dashPrevented = false;
+    }
+
+    private void ExecuteDash()
+    {
+        isDashing = true;
+        timeDashed = time;
+        dashPrevented = false;
+
+        shouldApplyGravityFallof = true; //To prevent floaty dash if jump and dash are executed at the same time
+        verticalVelocity = 0;
+
+        targetDashVelocity = frameInput.JumpHeld ? stats.verticalDashVelocity : stats.horizontalDashVelocity;
+        targetDashVelocity.x *= FacingDirection;
+
+        //Prevents horizontal velocity opposite dash velocity when doing sudden turn dashes
+        horizontalMovement = FacingDirection * Mathf.Max(horizontalMovement * FacingDirection, 0);
+    }
+
+    #endregion
+
     #region Gravity
 
     public bool IsInAir => !isGrounded && !isOnWall;
@@ -499,85 +576,16 @@ public class LandMovement : BaseMovementState
 
     #endregion
 
-    #region Dash
-
-    private bool dashRequested;
-    private bool isDashing;
-
-    private float dashSpeedMult;
-    private float dashGravMult;
-
-    private float timeDashed = float.MinValue;
-    private bool dashPrevented;
-    private Vector2 dashVelocity;
-    private Vector2 targetDashVelocity;
-
-    private void HandleDash()
-    {
-        bool canDash = !isDashing && !dashPrevented;
-
-        if (dashRequested && canDash) ExecuteDash();
-
-        dashVelocity = Vector2.zero;
-        dashSpeedMult = 1;
-        dashGravMult = 1;
-        dashRequested = false;
-
-        if (dashPrevented || !isDashing)
-        {
-            ResetDash();
-            return;
-        }
-
-        float timePercent = (time - timeDashed) / stats.dashDuration;
-
-        dashSpeedMult = stats.dashHorizontalCurve.Evaluate(timePercent);
-        dashGravMult = stats.dashVerticalCurve.Evaluate(timePercent);
-
-        float speedPercent = stats.dashSpeedCurve.Evaluate(timePercent);
-        dashVelocity = targetDashVelocity * speedPercent;
-
-        //Applies friction if player is trying to oppose dash velocity for greater control
-        dashVelocity.x = Mathf.MoveTowards(dashVelocity.x, 0, OpposingMovementStrength * fixedDeltaTime * stats.dashOpposingMovementFriction * Mathf.Abs(dashVelocity.x));
-    }
-
-    private void ResetDash()
-    {
-        isDashing = false;
-        dashPrevented = false;
-    }
-
-    private void ExecuteDash()
-    {
-        isDashing = true;
-        timeDashed = time;
-        dashPrevented = false;
-
-        shouldApplyGravityFallof = true; //To prevent floaty dash if jump and dash are executed at the same time
-        verticalVelocity = 0;
-
-        float verticalMult = frameInput.JumpHeld ? stats.dashInputUpMultiplier : 1;
-
-        //Clamp magnitude for equal dash strength in both horizontal and diagonal directions
-        targetDashVelocity = Vector2.ClampMagnitude(new Vector2(stats.targetDashVelocity.x * FacingDirection, stats.targetDashVelocity.y * verticalMult), stats.targetDashVelocity.x);
-
-        //Prevents horizontal velocity opposite dash velocity when doing sudden turn dashes
-        horizontalMovement = FacingDirection * Mathf.Max(horizontalMovement * FacingDirection, 0);
-    }
-
-    #endregion
-
     private void HandleVelocity()
     {
         Vector2 drag = SlowAreaDrag;
 
         horizontalMovement = Mathf.MoveTowards(horizontalMovement, 0, drag.x * fixedDeltaTime * Mathf.Abs(horizontalMovement));
         verticalVelocity = Mathf.MoveTowards(verticalVelocity, 0, drag.y * fixedDeltaTime * Mathf.Abs(verticalVelocity));
-
         if (isBeingSlowed) dashPrevented = true;
 
-        if (isGrounded && !isJumping && !isDashing) verticalVelocity = stats.groundingPush;
-        velocity = Vector2.up * verticalVelocity + Vector2.right * (horizontalMovement * dashSpeedMult) + dashVelocity;
+        if (isGrounded) verticalVelocity = stats.groundingPush;
+        velocity = Vector2.up * verticalVelocity + Vector2.right * (horizontalMovement * dashHorizontalMovementMult) + dashVelocity;
 
         nonZeroVelocityDirection = new Vector2(
             velocity.x != 0 ? velocity.x : nonZeroVelocityDirection.x,
@@ -591,6 +599,8 @@ public class LandMovement : BaseMovementState
         playerRB.linearVelocity = velocity;
     }
 
+
+    #region Triggers
     public override void TriggerEnter(IPlayerCollisionInteractor collisionListener)
     {
         if (collisionListener == null) return;
@@ -606,4 +616,5 @@ public class LandMovement : BaseMovementState
         if (collisionListener == null) return;
         if (collisionListener is SlowingArea) isBeingSlowed = false;
     }
+    #endregion
 }

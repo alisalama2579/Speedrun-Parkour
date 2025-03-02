@@ -1,5 +1,4 @@
 using System.Collections;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -10,24 +9,25 @@ public class Player : PlayerStateMachine
     private PlayerControls controls;
 
     [SerializeField] private PlayerLandControllerStats landMovementStats;
+    [SerializeField] private PlayerBurrowMovementStats burrowMovementStats;
     [SerializeField] private PlayerAnimator animator;
     public LandMovement landState { get; private set; }
+    public BurrowMovement burrowState { get; private set; }
 
     private void Awake()
     {
-        currentHealth = maxHealth;
-
         controls = new PlayerControls();
         controls.Enable();
 
         col = GetComponent<Collider2D>();
         rb = GetComponent<Rigidbody2D>();
 
-        //Initializes land movement state
+        //Initializes movement states
         landState = new LandMovement(this, landMovementStats, controls, rb, col);
-        InitializeMovementState(landState);
+        burrowState = new BurrowMovement(this, burrowMovementStats, controls, rb, col);
+        InitializeMovementState(burrowState);
 
-        animator.InitializeAnimator();
+        if(animator != null)animator.InitializeAnimator();
     }
 
     //Nulls for faster GC
@@ -36,13 +36,14 @@ public class Player : PlayerStateMachine
         controls.Disable();
 
         landState = null;
+        burrowState = null;
         controls = null;
     }
 
     private void Update()
     {
         MovementState.Update();
-        animator.UpdateAnimator(
+        if(animator != null) animator.UpdateAnimator(
             new PlayerAnimator.AnimationValues
             {
                 isGrounded = landState.IsGrounded,
@@ -60,35 +61,6 @@ public class Player : PlayerStateMachine
 
 
     //Damage
-    [SerializeField] private int maxHealth;
-    private int currentHealth;
-    public bool isTakingDamage { get; private set; }
-    public float hurtDuration;
-    public struct HurtValues
-    {
-        public Vector2 collisionNormal;
-    }
-
-    private void OnDamageDealt(HurtValues hurtValues)
-    {
-        if (isTakingDamage) return;
-
-        currentHealth--;
-
-        if (currentHealth <= 0) OnDeath();
-        else StartCoroutine(OnHurt(hurtValues));
-    }
-
-    private IEnumerator OnHurt(HurtValues hurtValues)
-    {
-        EventsManager.Instance.InvokePlayerHurt(hurtValues);
-        isTakingDamage = true;
-        MovementState.PlayerTakeDamage();
-
-        yield return new WaitForSeconds(hurtDuration); //TODO: Play hurt animation here
-        isTakingDamage = false;
-    }
-
     private void OnDeath()
     {
         EventsManager.Instance.InvokePlayerDeath();
@@ -106,7 +78,9 @@ public class Player : PlayerStateMachine
         if (trigger != null)
         {
             if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) 
-            { 
+            {
+                if (collisionListener is DamageDealer) OnDeath();
+
                 collisionListener.OnPlayerEnter();
                 MovementState.TriggerEnter(collisionListener);
             }
@@ -117,7 +91,9 @@ public class Player : PlayerStateMachine
         else if (collision != null)
         {
             if (collision.transform.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) 
-            { 
+            {
+                if (collisionListener is DamageDealer) OnDeath();
+
                 collisionListener.OnPlayerEnter();
                 MovementState.CollisionEnter(collisionListener);
             }

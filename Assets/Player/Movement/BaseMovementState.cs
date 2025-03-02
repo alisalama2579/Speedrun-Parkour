@@ -5,7 +5,7 @@ public class BaseMovementState
     protected Player player;
     protected Rigidbody2D playerRB;
     protected PlayerControls controls;
-    protected Collider2D playerCol;
+    protected Collider2D col;
 
     public BaseMovementState(Player player, ScriptableObject movementStats, PlayerControls controls, Rigidbody2D rb, Collider2D col){}
 
@@ -17,9 +17,6 @@ public class BaseMovementState
     public virtual void UpdateMovement() {}
 
     public virtual void SwitchState(BaseMovementState nextState) { }
-
-    public virtual void PlayerTakeDamage() { }
-
 
     public virtual void CollisionEnter(Collision2D collision) { }
     public virtual void CollisionExit(Collision2D collision) { }

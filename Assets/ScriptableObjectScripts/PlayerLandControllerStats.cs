@@ -33,6 +33,7 @@ public class PlayerLandControllerStats : ScriptableObject
     public float hurtMomentumLoss;
     [Range(0, 1)] public float momentumGainSpeed;
     [Range(0, 1)] public float momentumLossSpeed;
+    public float startingMomentum;
     public float momentumGainThreshold;
 
     #endregion
@@ -61,7 +62,8 @@ public class PlayerLandControllerStats : ScriptableObject
 
     [Header("Dash")]
 
-    public Vector2 targetDashVelocity;
+    public Vector2 horizontalDashVelocity;
+    public Vector2 verticalDashVelocity;
     public float dashDuration;
     public float dashInputUpMultiplier;
 

@@ -4,18 +4,16 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "EventsManager", menuName = "EventsManager")]
 public class EventsManager : ScriptableObject
 {
-    public void OnEnable()
+    private void OnEnable()
     {
-        Instance = this;
+        if (Instance == null) Instance = this;
+        else Destroy(this);
     }
 
     public static EventsManager Instance;
 
     public event Action OnPlayerLandOnStableGround;
     public void InvokePlayerLandOnStableGround() => OnPlayerLandOnStableGround?.Invoke();
-
-    public event Action<Player.HurtValues> OnPlayerHurt;
-    public void InvokePlayerHurt(Player.HurtValues hurtValues) => OnPlayerHurt?.Invoke(hurtValues);
 
     public event Action OnPlayerDeath;
     public void InvokePlayerDeath() => OnPlayerDeath?.Invoke();
@@ -25,5 +23,4 @@ public class EventsManager : ScriptableObject
 
     public event Action OnRaceEnd;
     public void InvokeRaceEnd() => OnRaceEnd?.Invoke();
-
 }

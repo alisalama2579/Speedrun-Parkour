@@ -12,22 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
-  maxLandSpeed: 70
-  minLandSpeed: 40
+  maxLandSpeed: 80
+  minLandSpeed: 50
   minAcceleration: 100
   maxAcceleration: 200
   minDeceleration: 90
   maxDeceleration: 75
   turningAccelerationMultiplier: 2
-  additionalHorizontalMovementDeceleration: 15
+  additionalHorizontalMovementDeceleration: 20
   airAccelerationMultiplier: 0.9
   airSpeedMultiplier: 0.9
   apexSpeedIncrease: 5
   wallJumpMomentumIncrease: 0.07
-  jumpMomentumIncrease: 0.55
+  jumpMomentumIncrease: 0.2
   hurtMomentumLoss: 0
   momentumGainSpeed: 0.2
-  momentumLossSpeed: 0.4
+  momentumLossSpeed: 0
+  startingMomentum: 1
   momentumGainThreshold: 0
   apexAntigravity: 30
   jumpVelocityFallof: 15
@@ -36,13 +37,14 @@ MonoBehaviour:
   jumpBuffer: 0.2
   collisionLayerMask:
     serializedVersion: 2
-    m_Bits: 128
-  jumpVelocity: 55
+    m_Bits: 384
+  jumpVelocity: 90
   jumpApexRange: 5
   gravAfterFalloffMultiplier: 3
-  targetDashVelocity: {x: 80, y: 1}
-  dashDuration: 0.3
-  dashInputUpMultiplier: 100
+  horizontalDashVelocity: {x: 100, y: 10}
+  verticalDashVelocity: {x: 65, y: 70}
+  dashDuration: 0.2
+  dashInputUpMultiplier: 80
   dashOpposingMovementFriction: 300
   dashSpeedCurve:
     serializedVersion: 2
@@ -72,8 +74,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
-      value: 0.48632812
+      time: -0.010986328
+      value: 0.40100098
       inSlope: 2
       outSlope: 2
       tangentMode: 0
@@ -81,8 +83,8 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 1
-      value: 1
+      time: 0.9939575
+      value: 0.9006462
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -96,8 +98,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.2536432
-      value: 0.49318752
+      time: 0.007953823
+      value: 0.20128688
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -117,7 +119,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   maxDownVelocity: 100
-  gravity: 130
+  gravity: 250
   ceilingHitPush: 0
   groundingPush: 0
   maxCeilNormal: -1
@@ -128,13 +130,13 @@ MonoBehaviour:
   ceilingDistance: 0.12
   ledgeGrabDistance: 0.1
   wallTag: WallGrabbable
-  wallDetectionDistance: 0.12
+  wallDetectionDistance: 0.15
   wallNormalRange: 0.1
-  timeToFullSpeedFromWall: 0.17
-  maxYVelocityForWallGrab: 5
+  timeToFullSpeedFromWall: 0.1
+  maxYVelocityForWallGrab: 0
   onWallGravity: 70
-  wallJumpVelocity: 120
+  wallJumpVelocity: 150
   wallJumpUpBias: 0.65
   slipStrength: 1.8
-  slowAreaDrag: {x: 15, y: 9}
-  slowAreaMomentumLoss: 0
+  slowAreaDrag: {x: 5, y: 5}
+  slowAreaMomentumLoss: 0.5
