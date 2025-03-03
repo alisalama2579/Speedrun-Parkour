@@ -64,7 +64,7 @@ public class LandMovement : BaseMovementState
         fixedDeltaTime = Time.fixedDeltaTime;
 
         position = playerRB.position;
-        velocity = playerRB.linearVelocity;
+        vel = playerRB.linearVelocity;
 
         HandleCollisionInteractions();
         HandleJump();
@@ -72,19 +72,19 @@ public class LandMovement : BaseMovementState
         HandleMomentum();
         HandleHorizontalMovement();
         HandleDash();
-        HandleVelocity();
+        HandleDrag();
 
         ApplyMovement();
     }
 
     private Vector2 position;
-    public Vector2 velocity;
+    public Vector2 vel;
 
-    private Vector2 nonZeroVelocityDirection;
+    private Vector2 nonZeroVelDir;
 
-    private float additionalHorizontalMovement;
-    private float horizontalMovement;
-    private float verticalVelocity;
+    private float wallJumpHorizontalVel;
+    private float horizontalVel;
+    private float verticalVel;
 
     public event Action Jumped;
     public event Action WallJumped;
@@ -98,7 +98,7 @@ public class LandMovement : BaseMovementState
 
 
     #region External Effectors
-    private float SlipMultiplier => wasOnSlipperyGround ? 1 / stats.slipStrength : 1;
+    private float SlipMult => wasOnSlipperyGround ? 1 / stats.slipStrength : 1;
 
     private bool isBeingSlowed;
     private Vector2 SlowAreaDrag
@@ -106,7 +106,7 @@ public class LandMovement : BaseMovementState
         get
         {
             Vector2 drag = isBeingSlowed ? stats.slowAreaDrag : Vector2.zero;
-            drag.y *= Mathf.Sign(verticalVelocity) == 1 ? 0.5f : 1; //Greater while falling, lower when rising so player can escape slow areas by jumping
+            drag.y *= Mathf.Sign(verticalVel) == 1 ? 0.5f : 1; //Greater while falling, lower when rising so player can escape slow areas by jumping
             return drag;
         }
     }
@@ -132,7 +132,6 @@ public class LandMovement : BaseMovementState
     {
         terrainOn = newTerrain;
         if (terrainOn == null) return;
-
 
         wasOnSlipperyGround = terrainOn is SlipperyGround;
         if (terrainOn is not DisappearingSandPlatform) EventsManager.Instance.InvokePlayerLandOnStableGround();
@@ -168,29 +167,34 @@ public class LandMovement : BaseMovementState
         Vector2 ceilingNudgeDir = Vector2.zero;
         Vector2 averageCeilNormal = (topLeftHit.normal + topMiddleHit.normal + topRightHit.normal).normalized;
 
-        if (((!topRightHit && topLeftHit) || (!topLeftHit && topRightHit)) && averageCeilNormal.y < stats.maxCeilNormal && topMiddleHit)
+        //CeilingNudge
+        if(topLeftHit || topMiddleHit || topRightHit)
         {
-            if (topLeftHit) ceilingNudgeDir = (topLeftHit.point - position).normalized;
-            if (topRightHit) ceilingNudgeDir = (topRightHit.point - position).normalized;
+            if (((!topRightHit && topLeftHit) || (!topLeftHit && topRightHit)) && averageCeilNormal.y < stats.maxCeilNormal && topMiddleHit)
+            {
+                if (topLeftHit) ceilingNudgeDir = (topLeftHit.point - position).normalized;
+                if (topRightHit) ceilingNudgeDir = (topRightHit.point - position).normalized;
 
-            position += ceilingNudgeDir * frameInput.Move;
+                position += ceilingNudgeDir * frameInput.Move;
+            }
         }
-        else if (topLeftHit || topMiddleHit || topRightHit)
+
+        //Ceiling hit
+        else
         {
-            verticalVelocity = Mathf.Min(averageCeilNormal.y * stats.ceilingHitPush, verticalVelocity);
-            shouldApplyGravityFallof = true;
+            verticalVel = Mathf.Min(averageCeilNormal.y * stats.ceilingHitPush, verticalVel);
+            shouldApplyGravFallof = true;
         }
     }
 
     #endregion
 
     #region Wall
-    public bool isOnWall { get; private set; }
+    private bool isOnWall;
+    public bool IsOnWall => isOnWall;
     private Vector2 wallNormal;
 
-    private bool NormalInWallRange(Vector2 normal) =>
-        Mathf.Abs(normal.y) >= 0
-        && Mathf.Abs(normal.y) <= stats.wallNormalRange;
+    private bool NormalInWallRange(Vector2 normal) => Mathf.Abs(normal.y) >= 0 && Mathf.Abs(normal.y) <= stats.wallNormalRange;
     private bool HitWall(RaycastHit2D hit) => hit && hit.transform.GetComponent<WallGrabbableTerrain>() != null;
 
     private void HandleWallDetection(RaycastHit2D topRightHit, RaycastHit2D middleRightHit, RaycastHit2D bottomRightHit, RaycastHit2D topLeftHit, RaycastHit2D middleLeftHit, RaycastHit2D bottomLeftHit)
@@ -198,7 +202,7 @@ public class LandMovement : BaseMovementState
         TraversableTerrain newTerrain = null;
         Vector2 newWallNormal;
         bool newIsOnWall = false;
-        bool canGrabWall = !isGrounded && velocity.y < stats.maxYVelocityForWallGrab;
+        bool canGrabWall = !isGrounded && vel.y < stats.maxYVelForWallGrab;
 
         HandleWallGrab(topRightHit, middleRightHit);
         HandleWallGrab(topLeftHit, middleLeftHit);
@@ -213,8 +217,7 @@ public class LandMovement : BaseMovementState
 
             if (hit && NormalInWallRange(newWallNormal))
             {
-                additionalHorizontalMovement = 0;
-                horizontalMovement = 0;
+                ResetAllHorizontalVel();
 
                 if (HitWall(hit) && canGrabWall) 
                 {
@@ -247,7 +250,7 @@ public class LandMovement : BaseMovementState
 
                     if (dist < stats.ledgeGrabDistance && NormalInWallRange(ledgeNormal))
                     {
-                        verticalVelocity = Mathf.Max(0, verticalVelocity);
+                        verticalVel = Mathf.Max(0, verticalVel);
 
                         Vector2 ledgeGrabDir = (position - bottomRightHit.point).normalized;
                         ledgeGrabDir.x *= -dir;
@@ -273,7 +276,7 @@ public class LandMovement : BaseMovementState
             isJumping = false;
             coyoteUsable = true;
             bufferedJumpUsable = true;
-            shouldApplyGravityFallof = false;
+            shouldApplyGravFallof = false;
             isGrounded = false;
             dashPrevented = true;
             wasOnSlipperyGround = false;
@@ -281,7 +284,7 @@ public class LandMovement : BaseMovementState
         else
         {
             leftSurfaceTime = time;
-            if (!isJumping) shouldApplyGravityFallof = true;
+            if (!isJumping) shouldApplyGravFallof = true;
         }
     }
 
@@ -331,14 +334,14 @@ public class LandMovement : BaseMovementState
             isJumping = false;
             coyoteUsable = true;
             bufferedJumpUsable = true;
-            shouldApplyGravityFallof = false;
+            shouldApplyGravFallof = false;
         }
         else
         {
             leftSurfaceTime = time;
 
             //Applies gravity fallof if not jumping, such as walking off a ledge
-            if (!isJumping) shouldApplyGravityFallof = true;
+            if (!isJumping) shouldApplyGravFallof = true;
         }
     }
 
@@ -351,7 +354,7 @@ public class LandMovement : BaseMovementState
 
     private void HandleMomentum()
     {
-        if ((Mathf.Abs(horizontalMovement) > stats.momentumGainThreshold || Mathf.Abs(verticalVelocity) > stats.momentumGainThreshold))
+        if ((Mathf.Abs(horizontalVel) > stats.momentumGainThreshold || Mathf.Abs(verticalVel) > stats.momentumGainThreshold))
         { momentum += stats.momentumGainSpeed * fixedDeltaTime; }
         else { momentum -= stats.momentumLossSpeed * fixedDeltaTime; }
 
@@ -365,13 +368,13 @@ public class LandMovement : BaseMovementState
     #region HorizontalMovement
 
     private float targetSpeed;
-    private float acceleration;
+    private float horizontalAccel;
 
     private void HandleHorizontalMovement()
     {
         float moveInput = HorizontalInput;
 
-        float turningMult = Mathf.Lerp(1, stats.turningAccelerationMultiplier * SlipMultiplier, VelocityOpposingMoveStrength(velocity));
+        float turningMult = Mathf.Lerp(1, stats.turningAccelerationMultiplier * SlipMult, VelocityOpposingMoveStrength(vel));
         float apexBonus = moveInput * stats.apexSpeedIncrease * ApexProximity;
 
         //used for slower exit from wall
@@ -379,29 +382,35 @@ public class LandMovement : BaseMovementState
             ? Mathf.Clamp01((time - leftSurfaceTime) / stats.timeToFullSpeedFromWall)
             : 1;
 
-        acceleration = Mathf.Abs(moveInput) > 0
+        horizontalAccel = Mathf.Abs(moveInput) > 0
             ? Mathf.Lerp(stats.minAcceleration, stats.maxAcceleration, momentum) * turningMult   //acceleration
             : Mathf.Lerp(stats.minDeceleration, stats.maxDeceleration, momentum);                //deceleration
 
-        targetSpeed = moveInput * 1 / SlipMultiplier * Mathf.Lerp(stats.minLandSpeed, stats.maxLandSpeed, momentum);
+        targetSpeed = moveInput * 1 / SlipMult * Mathf.Lerp(stats.minLandSpeed, stats.maxLandSpeed, momentum);
 
         if (IsInAir)
         {
-            targetSpeed = targetSpeed * stats.airSpeedMultiplier + additionalHorizontalMovement + apexBonus;
-            acceleration *= stats.airAccelerationMultiplier * dashHorizontalMovementMult;
+            targetSpeed = targetSpeed * stats.airSpeedMultiplier + wallJumpHorizontalVel + apexBonus;
+            horizontalAccel *= stats.airAccelerationMultiplier * horizontalVelMult;
         }
-        else acceleration *= SlipMultiplier;   //For slower acceleration on ground when slippery
+        else horizontalAccel *= SlipMult;   //For slower acceleration on ground when slippery
 
-        float desiredSpeed = Mathf.MoveTowards(horizontalMovement, targetSpeed, acceleration * fixedDeltaTime);
-        horizontalMovement = desiredSpeed * wallExitMult + additionalHorizontalMovement;
+        float desiredSpeed = Mathf.MoveTowards(horizontalVel, targetSpeed, horizontalAccel * fixedDeltaTime);
+        horizontalVel = desiredSpeed * wallExitMult + wallJumpHorizontalVel;
 
-        additionalHorizontalMovement = Mathf.MoveTowards(additionalHorizontalMovement, 0, Mathf.Abs(horizontalMovement) * stats.additionalHorizontalMovementDeceleration * fixedDeltaTime);
+        wallJumpHorizontalVel = Mathf.MoveTowards(wallJumpHorizontalVel, 0, Mathf.Abs(horizontalVel) * stats.additionalHorizontalMovementDeceleration * fixedDeltaTime);
     }
+
+    private void ResetAllHorizontalVel()
+    {
+        horizontalVel = 0;
+        wallJumpHorizontalVel = 0;
+    }
+
 
     #endregion
 
     #region Jump
-
     private enum LastSurfaceType
     {
         Wall,
@@ -411,7 +420,7 @@ public class LandMovement : BaseMovementState
     //Last surface type is cahed to allow coyote jumping from both walls and ground
     private LastSurfaceType lastSurfaceType = LastSurfaceType.Ground;
 
-    private bool shouldApplyGravityFallof;
+    private bool shouldApplyGravFallof;
     private bool coyoteUsable;
     private bool bufferedJumpUsable;
     private float leftSurfaceTime = float.MinValue;
@@ -423,7 +432,7 @@ public class LandMovement : BaseMovementState
     {
         get
         {
-            if (isJumping) return Mathf.InverseLerp(stats.jumpApexRange, 0, Mathf.Abs(velocity.y));
+            if (isJumping) return Mathf.InverseLerp(stats.jumpApexRange, 0, Mathf.Abs(vel.y));
             else return 0;
         }
     }
@@ -436,7 +445,7 @@ public class LandMovement : BaseMovementState
         if (isDashing) return;
 
         //If jump ended early, apply gravity fallof
-        if (!isGrounded && !frameInput.JumpHeld && velocity.y > 0 && isJumping) shouldApplyGravityFallof = true;
+        if (!isGrounded && !frameInput.JumpHeld && verticalVel > 0 && isJumping) shouldApplyGravFallof = true;
 
         if (!jumpRequested && !HasBufferedJump) return;
 
@@ -449,7 +458,7 @@ public class LandMovement : BaseMovementState
     {
         isJumping = true;
         jumpRequested = false;
-        shouldApplyGravityFallof = false;
+        shouldApplyGravFallof = false;
         bufferedJumpUsable = false;
         coyoteUsable = false;
         timeJumpRequested = 0;
@@ -470,10 +479,10 @@ public class LandMovement : BaseMovementState
     {
         WallJumped?.Invoke();
 
-        Vector2 jumpVel = stats.wallJumpVelocity * Vector2.LerpUnclamped(wallNormal, Vector2.up, stats.wallJumpUpBias);
+        Vector2 jumpVel = stats.wallJumpVel * Vector2.LerpUnclamped(wallNormal, Vector2.up, stats.wallJumpUpBias);
 
-        verticalVelocity = jumpVel.y;
-        additionalHorizontalMovement = jumpVel.x;
+        verticalVel = jumpVel.y;
+        wallJumpHorizontalVel = jumpVel.x;
 
         ApplyMomentum(stats.wallJumpMomentumIncrease);
     }
@@ -481,7 +490,7 @@ public class LandMovement : BaseMovementState
     {
         Jumped?.Invoke();
 
-        verticalVelocity = stats.jumpVelocity;
+        verticalVel = stats.jumpVelocity;
         ApplyMomentum(stats.jumpMomentumIncrease);
     }
 
@@ -492,13 +501,13 @@ public class LandMovement : BaseMovementState
     private bool dashRequested;
     private bool isDashing;
 
-    private float dashHorizontalMovementMult;
-    private float dashGravMult;
+    private float horizontalVelMult;
+    private float verticalVelMult;
 
     private float timeDashed = float.MinValue;
     private bool dashPrevented;
-    private Vector2 dashVelocity;
-    private Vector2 targetDashVelocity;
+    private Vector2 dashVel;
+    private Vector2 targetDashVel;
 
     private void HandleDash()
     {
@@ -506,9 +515,9 @@ public class LandMovement : BaseMovementState
 
         if (dashRequested && canDash) ExecuteDash();
 
-        dashVelocity = Vector2.zero;
-        dashHorizontalMovementMult = 1;
-        dashGravMult = 1;
+        dashVel = Vector2.zero;
+        horizontalVelMult = 1;
+        verticalVelMult = 1;
         dashRequested = false;
 
         if (dashPrevented || !isDashing)
@@ -519,14 +528,14 @@ public class LandMovement : BaseMovementState
 
         float timePercent = (time - timeDashed) / stats.dashDuration;
 
-        dashHorizontalMovementMult = stats.dashHorizontalCurve.Evaluate(timePercent);
-        dashGravMult = stats.dashVerticalCurve.Evaluate(timePercent);
+        horizontalVelMult = stats.dashHorizontalVelMult.Evaluate(timePercent);
+        verticalVelMult = stats.dashVerticalVelMult.Evaluate(timePercent);
 
         float speedPercent = stats.dashSpeedCurve.Evaluate(timePercent);
-        dashVelocity = targetDashVelocity * speedPercent;
+        dashVel = targetDashVel * speedPercent;
 
         //Applies friction if player is trying to oppose dash velocity for greater control
-        dashVelocity.x = Mathf.MoveTowards(dashVelocity.x, 0, VelocityOpposingMoveStrength(dashVelocity) * fixedDeltaTime * stats.dashOpposingMovementFriction * Mathf.Abs(dashVelocity.x));
+        dashVel.x = Mathf.MoveTowards(dashVel.x, 0, VelocityOpposingMoveStrength(dashVel) * fixedDeltaTime * stats.dashOpposingMovementFriction * Mathf.Abs(dashVel.x));
     }
 
     private void ResetDash()
@@ -541,14 +550,14 @@ public class LandMovement : BaseMovementState
         timeDashed = time;
         dashPrevented = false;
 
-        shouldApplyGravityFallof = true; //To prevent floaty dash if jump and dash are executed at the same time
-        verticalVelocity = 0;
+        shouldApplyGravFallof = true; //To prevent floaty dash if jump and dash are executed at the same time
+        verticalVel = 0;
 
-        targetDashVelocity = frameInput.JumpHeld ? stats.verticalDashVelocity : stats.horizontalDashVelocity;
-        targetDashVelocity.x *= FacingDirection;
+        targetDashVel = frameInput.JumpHeld ? stats.diagonalDashVel : stats.horizontalDashVel;
+        targetDashVel.x *= FacingDirection;
 
         //Prevents horizontal velocity opposite dash velocity when doing sudden turn dashes
-        horizontalMovement = FacingDirection * Mathf.Max(horizontalMovement * FacingDirection, 0);
+        horizontalVel = FacingDirection * Mathf.Max(horizontalVel * FacingDirection, 0);
     }
 
     #endregion
@@ -564,39 +573,40 @@ public class LandMovement : BaseMovementState
         else
         {
             float apexAntiGravity = Mathf.Lerp(0, -stats.apexAntigravity, ApexProximity);
-            float gravFallof = shouldApplyGravityFallof && verticalVelocity > 0 || verticalVelocity < stats.jumpVelocityFallof
+            float gravFallof = shouldApplyGravFallof && verticalVel > 0 || verticalVel < stats.jumpVelocityFallof
                 ? stats.gravAfterFalloffMultiplier
                 : 1;
 
             currentGravity = (stats.gravity + apexAntiGravity) * gravFallof;
         }
 
-        verticalVelocity = Mathf.MoveTowards(verticalVelocity, -stats.maxDownVelocity, currentGravity * fixedDeltaTime * dashGravMult);
+        verticalVel = Mathf.MoveTowards(verticalVel, -stats.maxDownVel, currentGravity * fixedDeltaTime * verticalVelMult);
     }
 
     #endregion
 
-    private void HandleVelocity()
+    private void HandleDrag()
     {
         Vector2 drag = SlowAreaDrag;
 
-        horizontalMovement = Mathf.MoveTowards(horizontalMovement, 0, drag.x * fixedDeltaTime * Mathf.Abs(horizontalMovement));
-        verticalVelocity = Mathf.MoveTowards(verticalVelocity, 0, drag.y * fixedDeltaTime * Mathf.Abs(verticalVelocity));
+        horizontalVel = Mathf.MoveTowards(horizontalVel, 0, drag.x * fixedDeltaTime * Mathf.Abs(horizontalVel));
+        verticalVel = Mathf.MoveTowards(verticalVel, 0, drag.y * fixedDeltaTime * Mathf.Abs(verticalVel));
         if (isBeingSlowed) dashPrevented = true;
 
-        if (isGrounded) verticalVelocity = stats.groundingPush;
-        velocity = Vector2.up * verticalVelocity + Vector2.right * (horizontalMovement * dashHorizontalMovementMult) + dashVelocity;
-
-        nonZeroVelocityDirection = new Vector2(
-            velocity.x != 0 ? velocity.x : nonZeroVelocityDirection.x,
-            velocity.y != 0 ? velocity.y : nonZeroVelocityDirection.y)
-            .normalized;
+        if (isGrounded) verticalVel = stats.groundingPush;
     }
 
     private void ApplyMovement()
     {
         playerRB.position = position;
-        playerRB.linearVelocity = velocity;
+        playerRB.linearVelocity = vel;
+
+        vel = Vector2.up * verticalVel + Vector2.right * (horizontalVel * horizontalVelMult) + dashVel;
+
+        nonZeroVelDir = new Vector2(
+            vel.x != 0 ? vel.x : nonZeroVelDir.x,
+            vel.y != 0 ? vel.y : nonZeroVelDir.y)
+            .normalized;
     }
 
 

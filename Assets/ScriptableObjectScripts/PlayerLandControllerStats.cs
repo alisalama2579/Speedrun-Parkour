@@ -62,16 +62,20 @@ public class PlayerLandControllerStats : ScriptableObject
 
     [Header("Dash")]
 
-    public Vector2 horizontalDashVelocity;
-    public Vector2 verticalDashVelocity;
+    [FormerlySerializedAs("horizontalDashVelocity")]
+    public Vector2 horizontalDashVel;
+    [FormerlySerializedAs("verticalDashVelocity")]
+    public Vector2 diagonalDashVel;
     public float dashDuration;
     public float dashInputUpMultiplier;
 
     public float dashOpposingMovementFriction;
 
     public AnimationCurve dashSpeedCurve;
-    public AnimationCurve dashHorizontalCurve;
-    public AnimationCurve dashVerticalCurve;
+    [FormerlySerializedAs("dashHorizontalCurve")]
+    public AnimationCurve dashHorizontalVelMult;
+    [FormerlySerializedAs("dashVerticalCurve")]
+    public AnimationCurve dashVerticalVelMult;
 
     #endregion
 
@@ -80,7 +84,8 @@ public class PlayerLandControllerStats : ScriptableObject
     #region Grav and down velocity
 
     [Header("Gravity and down velocity")]
-    public float maxDownVelocity;
+    [FormerlySerializedAs("maxDownVelocity")]
+    public float maxDownVel;
     public float gravity;
 
     #endregion
@@ -113,10 +118,12 @@ public class PlayerLandControllerStats : ScriptableObject
     public float wallNormalRange;
 
     public float timeToFullSpeedFromWall;
-    public float maxYVelocityForWallGrab;
+    [FormerlySerializedAs("maxYVelocityForWallGrab")]
+    public float maxYVelForWallGrab;
 
     public float onWallGravity;
-    public float wallJumpVelocity;
+    [FormerlySerializedAs("wallJumpVelocity")]
+    public float wallJumpVel;
     [Range(0, 1)] public float wallJumpUpBias;
 
     #endregion

@@ -15,8 +15,70 @@ MonoBehaviour:
   collisionLayerMask:
     serializedVersion: 2
     m_Bits: 128
-  collisionDetectionDistance: 0.5
-  speed: 4000
-  rotationSpeed: 600
-  wallBounceStrength: 10
-  wallBounceDeceleration: 0.05
+  collisionDetectionDistance: 1
+  speed: 3000
+  rotationSpeed: 10
+  bounceVel: 100
+  bounceDuration: 0.2
+  bounceDeceleration: 5.5
+  bounceNormalBias: 0.5
+  dashSpeedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: -0.0033111572
+      value: 0.24127197
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.3265317
+      value: 0.99089134
+      inSlope: 0.028646763
+      outSlope: 0.028646763
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 1
+    - serializedVersion: 3
+      time: 1.0111247
+      value: -0.006856486
+      inSlope: -4.822083
+      outSlope: -4.822083
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.13444005
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  dashVel: 130
+  dashControlCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  dashControlMult: 1.5
+  dashDuration: 0.2

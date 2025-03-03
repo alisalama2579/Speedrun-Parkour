@@ -1,8 +1,11 @@
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class BurrowMovement : BaseMovementState
 {
-    private struct Input { public Vector2 Move; }
+    private struct Input { public Vector2 Move; public bool DashHeld; }
+    private readonly PlayerBurrowMovementStats stats;
+    private Input frameInput;
 
     public BurrowMovement(Player player, ScriptableObject movementStats, PlayerControls controls, Rigidbody2D rb, Collider2D col) : base(player, movementStats, controls, rb, col)
     {
@@ -19,13 +22,18 @@ public class BurrowMovement : BaseMovementState
 
     protected override void HandleInput()
     {
-        frameInput = new Input{  Move = controls.PlayerBurrow.Move.ReadValue<Vector2>()};
-        if (frameInput.Move != Vector2.zero && !IsBouncing) targetDirection = frameInput.Move;
+        frameInput = new Input
+        {
+            Move = controls.PlayerBurrow.Move.ReadValue<Vector2>(),
+            DashHeld = controls.PlayerBurrow.Dash.WasPressedThisFrame()
+        };
+
+        nonZeroMoveInput = frameInput.Move == Vector2.zero ? nonZeroMoveInput : frameInput.Move;
+        dashRequested = frameInput.DashHeld || dashRequested;
     }
 
-    private readonly PlayerBurrowMovementStats stats;
-    private Input frameInput;
-    private float fixedDeltaTime;
+
+    private float deltaTime;
     private float time;
 
     public override void Update()
@@ -34,71 +42,128 @@ public class BurrowMovement : BaseMovementState
         HandleInput();
     }
 
-    private Vector2 targetDirection;
-    private Vector2 velocity;
-    private float GetVector2Angle(Vector2 dir) => Mathf.Rad2Deg * Mathf.Atan2(dir.y, dir.x);
-    private Vector2 GetAngleVector2(float angle) => new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)).normalized;
-
     public override void UpdateMovement()
     {
-        fixedDeltaTime = Time.fixedDeltaTime;
+        deltaTime = Time.deltaTime;
 
-        HandleWallBounce();
+        HandleDash();
+        HandleBounce();
         HandleBurrowMovement();
 
         ApplyMovement();
     }
 
+
+    private Vector2 wishDir;
+    private Vector2 vel;
+    private Vector2 nonZeroMoveInput;
+    private float GetVector2Angle(Vector2 dir) => Mathf.Rad2Deg * Mathf.Atan2(dir.y, dir.x);
+
     #region Bounce
 
-    private Vector2 bounceVelocity;
-    private float timeBounced;
-    private bool IsBouncing => time - timeBounced <= stats.wallBounceDuration;
-    private void HandleWallBounce()
+    private Vector2 bounceVel;
+    private float timeBounced = float.MinValue;
+    private bool IsBouncing => time - timeBounced <= stats.bounceDuration;
+    private void HandleBounce()
     {
         RaycastHit2D hit = Physics2D.BoxCast(
             playerRB.position,
             col.bounds.size,
-            currentAngle,
-            velocity.normalized,
+            GetVector2Angle(currentDir),
+            currentDir,
             stats.collisionDetectionDistance,
             stats.collisionLayerMask);
 
-        bounceVelocity = Vector2.Lerp(bounceVelocity, Vector2.zero, (time - timeBounced) / stats.wallBounceDuration);
+        bounceVel = Vector2.Lerp(bounceVel, Vector2.zero, stats.bounceDeceleration * deltaTime);
 
-        if (IsBouncing || !hit || !hit.transform.TryGetComponent(out TraversableTerrain _)) return;
+        if (!hit
+            || !hit.transform.TryGetComponent(out TraversableTerrain _)
+            || time - timeBounced < stats.BOUNCE_COOL_DOWN + stats.bounceDuration)
+        { return; }
 
-        Vector2 reflectedVel = Vector2.Reflect(velocity.normalized, hit.normal);
-        Debug.DrawLine(playerRB.position, playerRB.position + reflectedVel * 10, Color.green, 0.1f);
+        ExecuteBounce(hit.normal);
+    }
 
-        currentAngle = GetVector2Angle(reflectedVel);
-        targetDirection = reflectedVel;
-        bounceVelocity = reflectedVel * stats.wallBounceStrength;
+    private void ExecuteBounce(Vector2 hitNormal)
+    {
+        Vector2 reflectedVel = Vector2.Reflect(moveVel.normalized, hitNormal);
+
+        currentDir = reflectedVel;
+        bounceVel =  Vector2.Lerp(hitNormal, reflectedVel, stats.bounceNormalBias) * stats.bounceVel;
+        Debug.Log(dashVel);
+        dashPrevented = true;
         timeBounced = time;
     }
 
     #endregion
 
+
     #region Input Movement
 
-    private float currentAngle;
+    private Vector2 currentDir = Vector2.right;
+    private Vector2 moveVel;
     private void HandleBurrowMovement()
     {
-        if (frameInput.Move != Vector2.zero && !IsBouncing) targetDirection = frameInput.Move;
+        wishDir = IsBouncing ? wishDir : nonZeroMoveInput;
+        currentDir = Utility.Vector2Slerp(currentDir, wishDir, stats.rotationSpeed * dashControlMult * deltaTime);
 
-        float targetAngle = GetVector2Angle(targetDirection);
-        currentAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle, stats.rotationSpeed * fixedDeltaTime);
-
-        velocity = stats.speed * fixedDeltaTime * GetAngleVector2(currentAngle);
+        moveVel = stats.speed * deltaTime * currentDir;
     }
 
     #endregion
 
+
+    #region Dash
+
+    private bool dashRequested;
+    private bool IsDashing => time - timeDashed <= stats.dashDuration;
+    private float dashControlMult;
+
+    private float timeDashed = float.MinValue;
+    private bool dashPrevented;
+    private Vector2 dashVel;
+    private Vector2 targetDashVel;
+
+    private void HandleDash()
+    {
+        bool canDash = !IsDashing && !dashPrevented;
+
+        if (dashRequested && canDash) ExecuteDash();
+
+        dashVel = Vector2.zero;
+        dashControlMult = 1;
+        dashRequested = false;
+
+        if (dashPrevented || !IsDashing)
+        {
+            dashPrevented = false;
+            return;
+        }
+
+        float timePercent = (time - timeDashed) / stats.dashDuration;
+
+        float speedPercent = stats.dashSpeedCurve.Evaluate(timePercent);
+        dashVel = targetDashVel * speedPercent;
+
+        float controlPercent = stats.dashControlCurve.Evaluate(timePercent);
+        dashControlMult = stats.dashControlMult * controlPercent;
+    }
+
+    private void ExecuteDash()
+    {
+        timeDashed = time;
+        dashPrevented = false;
+
+        targetDashVel = stats.dashVel * currentDir;
+    }
+
+    #endregion
     private void ApplyMovement()
     {
-        player.transform.eulerAngles = new Vector3(player.transform.eulerAngles.x, player.transform.eulerAngles.y, currentAngle + 90);
+        vel = moveVel + bounceVel + dashVel;
+        playerRB.linearVelocity = vel;
 
-        playerRB.linearVelocity = velocity + bounceVelocity;
+        player.transform.eulerAngles = new Vector3(player.transform.eulerAngles.x, player.transform.eulerAngles.y, GetVector2Angle(currentDir) + 90);
     }
 
 

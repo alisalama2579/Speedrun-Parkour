@@ -47,9 +47,9 @@ public class Player : PlayerStateMachine
             new PlayerAnimator.AnimationValues
             {
                 isGrounded = landState.IsGrounded,
-                isOnWall = landState.isOnWall,
+                isOnWall = landState.IsOnWall,
                 moveInput = landState.frameInput.Move,
-                velocity = landState.velocity,
+                velocity = landState.vel,
             }
             );
     }
