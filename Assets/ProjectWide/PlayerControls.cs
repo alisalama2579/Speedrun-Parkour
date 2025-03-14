@@ -62,6 +62,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Move"",
+                    ""type"": ""Value"",
+                    ""id"": ""55cd72f1-a7cd-4788-bd6b-3aea86c0aafe"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -207,36 +216,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Down"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
-                }
-            ]
-        },
-        {
-            ""name"": ""PlayerBurrow"",
-            ""id"": ""2e23e973-8e1c-43e1-972f-4a2d6f34d7bc"",
-            ""actions"": [
-                {
-                    ""name"": ""Move"",
-                    ""type"": ""Value"",
-                    ""id"": ""479f4fd6-b4ee-4760-ba34-b3ba81a00dbc"",
-                    ""expectedControlType"": ""Vector2"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Dash"",
-                    ""type"": ""Button"",
-                    ""id"": ""31238197-5a2b-4ac5-ba25-18f736eec463"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                }
-            ],
-            ""bindings"": [
-                {
                     ""name"": ""2D Vector"",
-                    ""id"": ""ef0d2608-743d-42d6-a6ab-e623735062d8"",
+                    ""id"": ""c11dd1aa-cf57-4f99-a58d-1f15606e6ed7"",
                     ""path"": ""2DVector"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -247,7 +230,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""up"",
-                    ""id"": ""d7701b02-c216-4852-8e14-990dd9b2ca9f"",
+                    ""id"": ""55eb17f5-44f0-4e93-80b5-2b8ae5587fe8"",
                     ""path"": ""<Keyboard>/upArrow"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -258,7 +241,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""down"",
-                    ""id"": ""69ee0680-7343-4e0e-b4a7-7a6039fcb5da"",
+                    ""id"": ""c34c3d4c-39b5-49a0-b491-162fe7aa2747"",
                     ""path"": ""<Keyboard>/downArrow"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -269,7 +252,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""left"",
-                    ""id"": ""cfbb9a52-5045-4540-900f-b592e1290087"",
+                    ""id"": ""fc326e87-0b07-4b7a-ad35-4d08c1415e51"",
                     ""path"": ""<Keyboard>/leftArrow"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -280,7 +263,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""right"",
-                    ""id"": ""b6a082eb-d52a-4be4-8162-5a9844d80cee"",
+                    ""id"": ""d4cf9b4d-c2c9-438e-bd56-3ba74f22cfd6"",
                     ""path"": ""<Keyboard>/rightArrow"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -291,7 +274,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""2D Vector"",
-                    ""id"": ""e7220f42-a882-484d-bda5-5d97cd4d62af"",
+                    ""id"": ""79c12828-636f-4313-bf76-c813ada37af2"",
                     ""path"": ""2DVector"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -302,7 +285,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""up"",
-                    ""id"": ""5328d899-6af8-4d55-b329-83b29ff71ebf"",
+                    ""id"": ""88d20d88-ec56-40d3-9a60-17a7c7b47d66"",
                     ""path"": ""<Keyboard>/w"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -313,7 +296,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""down"",
-                    ""id"": ""780eff1f-a22c-415e-8223-641e7ecf4c15"",
+                    ""id"": ""341a9fe0-f073-45c2-9821-4067695b4f9a"",
                     ""path"": ""<Keyboard>/s"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -324,7 +307,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""left"",
-                    ""id"": ""367d5bff-ab02-4498-93af-bc33ec2564e2"",
+                    ""id"": ""43c4691e-1cfa-4872-a63e-a3276b96208c"",
                     ""path"": ""<Keyboard>/a"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -335,7 +318,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""right"",
-                    ""id"": ""c609fa1c-2fa1-4c5c-a336-ed4ba0e88f1f"",
+                    ""id"": ""63270cfd-e8d1-47af-ac2c-bc5c2a6bf77c"",
                     ""path"": ""<Keyboard>/d"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -343,28 +326,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""b8e608c0-71b0-40b7-9e56-712f2c432f1a"",
-                    ""path"": ""<Keyboard>/f"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Dash"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""b0fefee1-7bef-4bea-b87b-90089d5c2948"",
-                    ""path"": ""<Keyboard>/shift"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Dash"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -404,16 +365,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_PlayerLand_Jump = m_PlayerLand.FindAction("Jump", throwIfNotFound: true);
         m_PlayerLand_Dash = m_PlayerLand.FindAction("Dash", throwIfNotFound: true);
         m_PlayerLand_Down = m_PlayerLand.FindAction("Down", throwIfNotFound: true);
-        // PlayerBurrow
-        m_PlayerBurrow = asset.FindActionMap("PlayerBurrow", throwIfNotFound: true);
-        m_PlayerBurrow_Move = m_PlayerBurrow.FindAction("Move", throwIfNotFound: true);
-        m_PlayerBurrow_Dash = m_PlayerBurrow.FindAction("Dash", throwIfNotFound: true);
+        m_PlayerLand_Move = m_PlayerLand.FindAction("Move", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
     {
         UnityEngine.Debug.Assert(!m_PlayerLand.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerLand.Disable() has not been called.");
-        UnityEngine.Debug.Assert(!m_PlayerBurrow.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerBurrow.Disable() has not been called.");
     }
 
     public void Dispose()
@@ -479,6 +436,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerLand_Jump;
     private readonly InputAction m_PlayerLand_Dash;
     private readonly InputAction m_PlayerLand_Down;
+    private readonly InputAction m_PlayerLand_Move;
     public struct PlayerLandActions
     {
         private @PlayerControls m_Wrapper;
@@ -487,6 +445,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @Jump => m_Wrapper.m_PlayerLand_Jump;
         public InputAction @Dash => m_Wrapper.m_PlayerLand_Dash;
         public InputAction @Down => m_Wrapper.m_PlayerLand_Down;
+        public InputAction @Move => m_Wrapper.m_PlayerLand_Move;
         public InputActionMap Get() { return m_Wrapper.m_PlayerLand; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -508,6 +467,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Down.started += instance.OnDown;
             @Down.performed += instance.OnDown;
             @Down.canceled += instance.OnDown;
+            @Move.started += instance.OnMove;
+            @Move.performed += instance.OnMove;
+            @Move.canceled += instance.OnMove;
         }
 
         private void UnregisterCallbacks(IPlayerLandActions instance)
@@ -524,6 +486,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Down.started -= instance.OnDown;
             @Down.performed -= instance.OnDown;
             @Down.canceled -= instance.OnDown;
+            @Move.started -= instance.OnMove;
+            @Move.performed -= instance.OnMove;
+            @Move.canceled -= instance.OnMove;
         }
 
         public void RemoveCallbacks(IPlayerLandActions instance)
@@ -540,61 +505,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             AddCallbacks(instance);
         }
     }
-    public PlayerLandActions @PlayerLand => new PlayerLandActions(this);
-
-    // PlayerBurrow
-    private readonly InputActionMap m_PlayerBurrow;
-    private List<IPlayerBurrowActions> m_PlayerBurrowActionsCallbackInterfaces = new List<IPlayerBurrowActions>();
-    private readonly InputAction m_PlayerBurrow_Move;
-    private readonly InputAction m_PlayerBurrow_Dash;
-    public struct PlayerBurrowActions
-    {
-        private @PlayerControls m_Wrapper;
-        public PlayerBurrowActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
-        public InputAction @Move => m_Wrapper.m_PlayerBurrow_Move;
-        public InputAction @Dash => m_Wrapper.m_PlayerBurrow_Dash;
-        public InputActionMap Get() { return m_Wrapper.m_PlayerBurrow; }
-        public void Enable() { Get().Enable(); }
-        public void Disable() { Get().Disable(); }
-        public bool enabled => Get().enabled;
-        public static implicit operator InputActionMap(PlayerBurrowActions set) { return set.Get(); }
-        public void AddCallbacks(IPlayerBurrowActions instance)
-        {
-            if (instance == null || m_Wrapper.m_PlayerBurrowActionsCallbackInterfaces.Contains(instance)) return;
-            m_Wrapper.m_PlayerBurrowActionsCallbackInterfaces.Add(instance);
-            @Move.started += instance.OnMove;
-            @Move.performed += instance.OnMove;
-            @Move.canceled += instance.OnMove;
-            @Dash.started += instance.OnDash;
-            @Dash.performed += instance.OnDash;
-            @Dash.canceled += instance.OnDash;
-        }
-
-        private void UnregisterCallbacks(IPlayerBurrowActions instance)
-        {
-            @Move.started -= instance.OnMove;
-            @Move.performed -= instance.OnMove;
-            @Move.canceled -= instance.OnMove;
-            @Dash.started -= instance.OnDash;
-            @Dash.performed -= instance.OnDash;
-            @Dash.canceled -= instance.OnDash;
-        }
-
-        public void RemoveCallbacks(IPlayerBurrowActions instance)
-        {
-            if (m_Wrapper.m_PlayerBurrowActionsCallbackInterfaces.Remove(instance))
-                UnregisterCallbacks(instance);
-        }
-
-        public void SetCallbacks(IPlayerBurrowActions instance)
-        {
-            foreach (var item in m_Wrapper.m_PlayerBurrowActionsCallbackInterfaces)
-                UnregisterCallbacks(item);
-            m_Wrapper.m_PlayerBurrowActionsCallbackInterfaces.Clear();
-            AddCallbacks(instance);
-        }
-    }
-    public PlayerBurrowActions @PlayerBurrow => new PlayerBurrowActions(this);
+    public PlayerLandActions PlayerMovement => new PlayerLandActions(this);
     private int m_DefaultSchemeSchemeIndex = -1;
     public InputControlScheme DefaultSchemeScheme
     {
@@ -610,10 +521,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnJump(InputAction.CallbackContext context);
         void OnDash(InputAction.CallbackContext context);
         void OnDown(InputAction.CallbackContext context);
-    }
-    public interface IPlayerBurrowActions
-    {
         void OnMove(InputAction.CallbackContext context);
-        void OnDash(InputAction.CallbackContext context);
     }
 }

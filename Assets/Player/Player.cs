@@ -2,17 +2,16 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class Player : PlayerStateMachine
+public class Player : MonoBehaviour
 {
     private Rigidbody2D rb;
     private Collider2D col;
     private PlayerControls controls;
+    private MovementStateMachine movementMachine;
 
-    [SerializeField] private PlayerLandControllerStats landMovementStats;
-    [SerializeField] private PlayerBurrowMovementStats burrowMovementStats;
     [SerializeField] private PlayerAnimator animator;
-    public LandMovement landState { get; private set; }
-    public BurrowMovement burrowState { get; private set; }
+    [SerializeField] private MovementStatsHolder movementStats;
+    [SerializeField] private bool startInSand;
 
     private void Awake()
     {
@@ -22,41 +21,51 @@ public class Player : PlayerStateMachine
         col = GetComponent<Collider2D>();
         rb = GetComponent<Rigidbody2D>();
 
-        //Initializes movement states
-        landState = new LandMovement(this, landMovementStats, controls, rb, col);
-        burrowState = new BurrowMovement(this, burrowMovementStats, controls, rb, col);
-        InitializeMovementState(burrowState);
+        movementMachine = new MovementStateMachine(startInSand ? typeof(BurrowMovement) : typeof(LandMovement), movementStats, controls, rb, col);
 
-        if(animator != null)animator.InitializeAnimator();
     }
 
-    //Nulls for faster GC
+    public struct Input
+    {
+        public bool DashDown;
+        public bool JumpPressed;
+        public bool JumpHeld;
+        public float HorizontalMove;
+        public Vector2 Move;
+    }
+
+    private Input frameInput;
+
+    private void HandleInput()
+    {
+        frameInput = new Input
+        {
+            JumpPressed = controls.PlayerMovement.Jump.WasPressedThisFrame(),
+            JumpHeld = controls.PlayerMovement.Jump.IsPressed(),
+            HorizontalMove = controls.PlayerMovement.HorizontalMove.ReadValue<float>(),
+            DashDown = controls.PlayerMovement.Dash.WasPressedThisFrame(),
+            Move = controls.PlayerMovement.Move.ReadValue<Vector2>(),
+        };
+    }
+
     private void OnDisable()
     {
         controls.Disable();
 
-        landState = null;
-        burrowState = null;
+        //Nulls for faster GC
+        movementMachine = null;
         controls = null;
     }
 
     private void Update()
     {
-        MovementState.Update();
-        if(animator != null) animator.UpdateAnimator(
-            new PlayerAnimator.AnimationValues
-            {
-                isGrounded = landState.IsGrounded,
-                isOnWall = landState.IsOnWall,
-                moveInput = landState.frameInput.Move,
-                velocity = landState.vel,
-            }
-            );
+        HandleInput();
+        movementMachine?.Update(frameInput);
     }
 
     private void FixedUpdate()
     {
-        MovementState.UpdateMovement();
+        movementMachine?.FixedUpdate();
     }
 
 
@@ -82,9 +91,9 @@ public class Player : PlayerStateMachine
                 if (collisionListener is DamageDealer) OnDeath();
 
                 collisionListener.OnPlayerEnter();
-                MovementState.TriggerEnter(collisionListener);
+                movementMachine?.TriggerEnter(collisionListener);
             }
-            MovementState.TriggerEnter(trigger);
+            movementMachine?.TriggerEnter(trigger);
         }
 
         //Colliders
@@ -95,9 +104,9 @@ public class Player : PlayerStateMachine
                 if (collisionListener is DamageDealer) OnDeath();
 
                 collisionListener.OnPlayerEnter();
-                MovementState.CollisionEnter(collisionListener);
+                movementMachine?.CollisionEnter(collisionListener);
             }
-            MovementState.CollisionEnter(collision);
+            movementMachine?.CollisionEnter(collision);
         }
     }
     private void ProcessExitCollisions(Collider2D trigger = null, Collision2D collision = null)
@@ -108,9 +117,9 @@ public class Player : PlayerStateMachine
             if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener))
             { 
                 collisionListener.OnPlayerExit();
-                MovementState.TriggerExit(collisionListener);
+                movementMachine?.TriggerExit(collisionListener);
             }
-            MovementState.TriggerExit(trigger);
+            movementMachine?.TriggerExit(trigger);
         }
 
         //Colliders
@@ -119,9 +128,9 @@ public class Player : PlayerStateMachine
             if (collision.transform.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) 
             { 
                 collisionListener.OnPlayerExit();
-                MovementState.CollisionExit(collisionListener);
+                movementMachine?.CollisionExit(collisionListener);
             }
-            MovementState.CollisionExit(collision);
+            movementMachine?.CollisionExit(collision);
         }
     }
 }

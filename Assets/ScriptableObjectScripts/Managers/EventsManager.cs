@@ -7,7 +7,7 @@ public class EventsManager : ScriptableObject
     private void OnEnable()
     {
         if (Instance == null) Instance = this;
-        else Destroy(this);
+        else DestroyImmediate(this);
     }
 
     public static EventsManager Instance;

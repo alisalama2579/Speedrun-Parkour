@@ -1,22 +1,15 @@
 using UnityEngine;
+using static TransitionLibrary;
 
-public class BaseMovementState
+public interface IState
 {
-    protected Player player;
-    protected Rigidbody2D playerRB;
-    protected PlayerControls controls;
-    protected Collider2D col;
+    public abstract void EnterState(IStateSpecificTransitionData lastStateData);
+    public abstract void ExitState();
 
-    public BaseMovementState(Player player, ScriptableObject movementStats, PlayerControls controls, Rigidbody2D rb, Collider2D col){}
-
-    public virtual void EnterState(){ }
-    public virtual void ExitState() { }
-
-    public virtual void Update() { }
-    protected virtual void HandleInput() { }
-    public virtual void UpdateMovement() {}
-
-    public virtual void SwitchState(BaseMovementState nextState) { }
+    public void InitializeTransitions(MovementStateMachine controller);
+    public abstract void Update(Player.Input frameInput);
+    public abstract void HandleInput(Player.Input frameInput);
+    public abstract void UpdateMovement();
 
     public virtual void CollisionEnter(Collision2D collision) { }
     public virtual void CollisionExit(Collision2D collision) { }

@@ -12,6 +12,83 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
+  sandDetectionDistance: 40
+  launchOpposingMovementFriction: 2
+  launchDuration: 0.75
+  launchVel: 130
+  weakLaunchVel: 90
+  launchSpeedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.003326416
+      value: 0.9962311
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.99668884
+      value: -0.0018920898
+      inSlope: -0.008771498
+      outSlope: -0.008771498
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.80633223
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  launchGravCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  launchControlCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: -0.0033111572
+      value: 0.99905396
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   maxLandSpeed: 80
   minLandSpeed: 50
   minAcceleration: 100
@@ -35,17 +112,14 @@ MonoBehaviour:
   jumpUpBias: 0.7
   coyoteTime: 0.2
   jumpBuffer: 0.2
-  collisionLayerMask:
-    serializedVersion: 2
-    m_Bits: 384
   jumpVelocity: 90
   jumpApexRange: 5
   gravAfterFalloffMultiplier: 3
-  horizontalDashVelocity: {x: 100, y: 10}
-  verticalDashVelocity: {x: 65, y: 70}
+  horizontalDashVel: {x: 160, y: 10}
+  diagonalDashVel: {x: 75, y: 100}
   dashDuration: 0.2
   dashInputUpMultiplier: 80
-  dashOpposingMovementFriction: 300
+  dashOpposingMovementFriction: 50
   dashSpeedCurve:
     serializedVersion: 2
     m_Curve:
@@ -70,7 +144,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  dashHorizontalCurve:
+  dashHorizontalVelMult:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
@@ -94,7 +168,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  dashVerticalCurve:
+  dashGravMult:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
@@ -118,14 +192,14 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  maxDownVelocity: 100
+  maxDownVel: 100
   gravity: 250
   ceilingHitPush: 0
   groundingPush: 0
   maxCeilNormal: -1
   minGroundNormal: 0.1
   skinWidth: 0.05
-  groundedDistance: 0.12
+  groundedDistance: 0.09
   groundSnapDistance: 0.2
   ceilingDistance: 0.12
   ledgeGrabDistance: 0.1
@@ -133,10 +207,10 @@ MonoBehaviour:
   wallDetectionDistance: 0.15
   wallNormalRange: 0.1
   timeToFullSpeedFromWall: 0.1
-  maxYVelocityForWallGrab: 0
+  maxYVelForWallGrab: 0
   onWallGravity: 70
-  wallJumpVelocity: 150
-  wallJumpUpBias: 0.65
-  slipStrength: 1.8
+  wallJumpVel: 170
+  wallJumpUpBias: 0.6
+  slipStrength: 2
   slowAreaDrag: {x: 5, y: 5}
   slowAreaMomentumLoss: 0.5

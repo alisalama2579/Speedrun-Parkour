@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class DisappearingSandPlatform : WallGrabbableTerrain
+public class UnstableSand : WallGrabbableTerrain
 {
     private Collider2D col;
     private Color originalColor;

@@ -2,8 +2,19 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "PlayerLandControllerStats", menuName = "PlayerLandControllerStats")]
-public class PlayerLandControllerStats : ScriptableObject
+public class LandMovementStats : ScriptableObject
 {
+    public float sandDetectionDistance;
+
+    public float launchOpposingMovementFriction;
+    public float launchDuration;
+    public float launchVel;
+    public float weakLaunchVel;
+    public AnimationCurve launchSpeedCurve;
+    public AnimationCurve launchGravCurve;
+    public AnimationCurve launchControlCurve;
+
+
     #region Horizontal
 
     [Header("Horizontal acceleration, speed and momentum")]
@@ -50,7 +61,6 @@ public class PlayerLandControllerStats : ScriptableObject
     [Range(0, 1)] public float coyoteTime;
     [Range(0, 1)] public float jumpBuffer;
 
-    public LayerMask collisionLayerMask;
     public float jumpVelocity;
     public float jumpApexRange;
     public float gravAfterFalloffMultiplier;
@@ -74,8 +84,8 @@ public class PlayerLandControllerStats : ScriptableObject
     public AnimationCurve dashSpeedCurve;
     [FormerlySerializedAs("dashHorizontalCurve")]
     public AnimationCurve dashHorizontalVelMult;
-    [FormerlySerializedAs("dashVerticalCurve")]
-    public AnimationCurve dashVerticalVelMult;
+    [FormerlySerializedAs("dashVerticalVelMult")]
+    public AnimationCurve dashGravMult;
 
     #endregion
 

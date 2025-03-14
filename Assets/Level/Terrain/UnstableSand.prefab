@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 2682860390978987309}
   - component: {fileID: 6465844569207375775}
   - component: {fileID: 3333169259649138400}
-  - component: {fileID: 3410239836751537280}
+  - component: {fileID: 1510441757501390295}
   m_Layer: 7
-  m_Name: Platform
+  m_Name: UnstableSand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -77,9 +77,9 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0.91928166, b: 0.47358483, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -135,7 +135,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &3410239836751537280
+--- !u!114 &1510441757501390295
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -144,7 +144,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5528141547080680403}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81858fead329f144486f0ee00476c7aa, type: 3}
+  m_Script: {fileID: 11500000, guid: 92c1d16403352544187b3aab398d66a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   stats: {fileID: 11400000, guid: 05c1c87f60cd42748bd31dfc4b501643, type: 2}
