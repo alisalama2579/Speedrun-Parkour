@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class UnstableSand : WallGrabbableTerrain
+public class UnstableSand : TraversableTerrain, IWallGrabbable, ISand
 {
     private Collider2D col;
     private Color originalColor;

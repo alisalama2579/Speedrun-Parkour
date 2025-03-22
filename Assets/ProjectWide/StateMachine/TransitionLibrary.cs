@@ -18,7 +18,7 @@ public static class TransitionLibrary
             Func = func;
         }
     }
-    public static IStateSpecificTransitionData AnyTransitionFunc() => new AnyTransitionData();
+    public static IStateSpecificTransitionData AnyTransitionFunc() => new SuccesfulTransitionData();
 
 
     public interface IStateSpecificTransitionData{  public bool ConditionMet { get; }  }
@@ -27,8 +27,8 @@ public static class TransitionLibrary
     public class FailedTransitionData : IStateSpecificTransitionData {  public bool ConditionMet => false; }
 
 
-    public static readonly AnyTransitionData anyData = new();
-    public class AnyTransitionData : IStateSpecificTransitionData { public bool ConditionMet => true; }
+    public static readonly SuccesfulTransitionData anyData = new();
+    public class SuccesfulTransitionData : IStateSpecificTransitionData { public bool ConditionMet => true; }
 }
 
 

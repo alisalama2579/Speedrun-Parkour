@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   collisionDetectionDistance: 0.1
   acceleration: 1000
-  maxSpeed: 80
-  rotationSpeed: 25
+  maxSpeed: 90
+  rotationSpeed: 20
   oppositeTurnControl: 1
   bounceDuration: 0.2
   bounceSpeed: 130
@@ -25,15 +25,15 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0.0099487305
       value: 1.0037689
-      inSlope: 0
-      outSlope: 0
+      inSlope: -1.4105724
+      outSlope: -1.4105724
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0
+      outWeight: 0.086092696
     - serializedVersion: 3
-      time: 0.62710536
-      value: 0.0019018147
+      time: 1.0283917
+      value: 0.47887245
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -47,8 +47,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.00009918213
-      value: 0.9985962
+      time: 0.019964758
+      value: 0.5045892
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -137,4 +137,4 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   dashControlMult: 2
-  dashDuration: 0.35
+  dashDuration: 0.25

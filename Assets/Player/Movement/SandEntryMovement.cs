@@ -3,40 +3,48 @@ using UnityEngine;
 using static TransitionLibrary;
 
 
-public class InterStateDashMovement : IState
+public class SandEntryMovement : IState
 {
-    private readonly BurrowMovementStats stats;
+    private readonly SandEntryMovementStats stats;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
 
-    public InterStateDashMovement(PlayerControls controls, Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
+    public SandEntryMovement(PlayerControls controls, Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
     {
         this.col = col;
-        this.stats = stats.burrowStats;
+        this.stats = stats.interStateDashStats;
         this.rb = rb;
+
     }
 
-    public class InterStateDashData : AnyTransitionData
+    public class SandEntryData : SuccesfulTransitionData
     {
-        public Vector2 ExitPos { get; }
-        public InterStateDashData(Vector2 exitPos) => ExitPos = exitPos;
+        public Vector2 EntryPos { get; }
+        public ISand EntrySand { get; }
+        public SandEntryData(Vector2 entryPos, ISand sand) 
+        {
+            EntryPos = entryPos;
+            EntrySand = sand;
+        } 
     }
 
     public void InitializeTransitions(MovementStateMachine controller)
     {
         controller.AddTransition(GetType(), typeof(BurrowMovement), TransitionToBurrow);
+        controller.AddTransition(GetType(), typeof(LandMovement), TransitionToLand);
     }
 
     public void EnterState(IStateSpecificTransitionData lastStateData)
     {
-        if (lastStateData is InterStateDashData transitionData)
+        if (lastStateData is SandEntryData transitionData)
         {
+            entrySand = transitionData.EntrySand;
             entryPoint = rb.position;
-            exitPoint = transitionData.ExitPos;
+            exitPoint = transitionData.EntryPos;
             Vector2 diff = exitPoint - rb.position;
             dir = diff.normalized;
             dist = diff.magnitude;
-            duration = dist / speed;
+            duration = dist / stats.entrySpeed;
         }
     }
 
@@ -48,8 +56,8 @@ public class InterStateDashMovement : IState
     private Vector2 exitPoint;
     private Vector2 entryPoint;
     private Vector2 dir;
+    private ISand entrySand;
     float dist;
-    float speed = 150;
     float duration;
 
     public void Update(Player.Input _)
@@ -70,10 +78,17 @@ public class InterStateDashMovement : IState
         col.transform.position = new Vector3(pos.x, pos.y, col.transform.position.z);
     }
 
-
     public IStateSpecificTransitionData TransitionToBurrow()
     {
-        if(t >= duration) return new BurrowMovement.BurrowMovementTransitionData(dir, exitPoint);
+        if(t >= duration && entrySand is BurrowSand)
+            return new BurrowMovement.BurrowMovementTransitionData(dir, exitPoint);
+        return failedData;
+    }
+
+    public IStateSpecificTransitionData TransitionToLand()
+    {
+        if (t >= duration && entrySand is not BurrowSand)
+            return new LandMovement.LandMovementTransition(dir, true);
         return failedData;
     }
 }

@@ -9,3 +9,4 @@ public class TraversableTerrain : MonoBehaviour
 
     protected virtual void OnDisable() { }
 }
+

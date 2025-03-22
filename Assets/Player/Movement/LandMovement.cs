@@ -25,7 +25,7 @@ public class LandMovement : IState
     public void InitializeTransitions(MovementStateMachine controller)
     {
         controller.AddTransition(GetType(), typeof(BurrowMovement), TransitionToSandEntry);
-        controller.AddTransition(GetType(), typeof(InterStateDashMovement), TransitionToInterStateDash);
+        controller.AddTransition(GetType(), typeof(SandEntryMovement), TransitionToSandEntryDash);
     }
 
     public void EnterState(IStateSpecificTransitionData lastStateData)
@@ -35,7 +35,7 @@ public class LandMovement : IState
         if (lastStateData is LandMovementTransition transitionData)
         {
             firstFrameOfTransition = true;
-            ExecuteEntryLaunch(transitionData.WasDashing, transitionData.EntryDir);
+            ExecuteEntryLaunch(transitionData.ShouldEnterWithLaunch, transitionData.EntryDir);
             col.transform.rotation = Quaternion.Euler(transitionData.EntryDir);
         }
     }
@@ -69,7 +69,7 @@ public class LandMovement : IState
         if (HorizontalInput == -1) isFacingRight = false;
 
         //Only changes dash requested if DashDown
-        dashRequested = frameInput.DashDown || dashRequested;
+        if(frameInput.DashDown) dashRequested = true;
 
         if (frameInput.JumpPressed)
         {
@@ -464,7 +464,7 @@ public class LandMovement : IState
     private void HandleHorizontalMovement()
     {
         float moveInput = HorizontalInput;
-        if (isPushingWall) 
+        if (isPushingWall && !isJumping) 
             ResetHorizontalVel();
 
         float turningMult = Mathf.Lerp(1, stats.turningAccelerationMultiplier * SlipMultiplier, VelocityOpposingMovementStrength(vel));
@@ -479,11 +479,11 @@ public class LandMovement : IState
             ? Mathf.Lerp(stats.minAcceleration, stats.maxAcceleration, momentum) * turningMult   //acceleration
             : Mathf.Lerp(stats.minDeceleration, stats.maxDeceleration, momentum);                //deceleration
 
-        targetSpeed = moveInput * 1 / SlipMultiplier * Mathf.Lerp(stats.minLandSpeed, stats.maxLandSpeed, momentum);
+        targetSpeed = moveInput * 1 / SlipMultiplier * Mathf.Lerp(stats.minLandSpeed, stats.maxLandSpeed, momentum) + wallJumpHorizontalVel;
 
         if (IsInAir)
         {
-            targetSpeed = targetSpeed * stats.airSpeedMultiplier + wallJumpHorizontalVel + apexBonus;
+            targetSpeed = targetSpeed * stats.airSpeedMultiplier + apexBonus;
             acceleration *= stats.airAccelerationMultiplier;
         }
         else acceleration *= SlipMultiplier;   //For faster aceleration in air when slippery
@@ -496,7 +496,7 @@ public class LandMovement : IState
 
     private void ResetHorizontalVel()
     {
-        wallJumpHorizontalVel = 0;
+       // wallJumpHorizontalVel = 0;
         horizontalVel = 0;
     }
 
@@ -628,6 +628,7 @@ public class LandMovement : IState
 
     private bool dashRequested;
     private bool isDashing;
+    private bool dashUsed;
 
     private float dashSpeedMult = 1;
     private float dashGravMult = 1;
@@ -640,13 +641,15 @@ public class LandMovement : IState
     private void HandleDash()
     {
         float timePercent = Mathf.Clamp01((time - timeDashed) / stats.dashDuration);
+
         if (isBeingSlowed 
             || (timePercent == 1 && isDashing) || isOnWall 
             || isPushingWall || isGrounded) dashInterrupted = true;
 
         if (timePercent == 1) isDashing = false;
+        if (isGrounded || isOnWall) dashUsed = false;
 
-        bool canDash = !isDashing && !dashInterrupted;
+        bool canDash = !isDashing && !dashInterrupted && !dashUsed;
         if (dashRequested && canDash) ExecuteDash();
         dashRequested = false;
 
@@ -670,6 +673,7 @@ public class LandMovement : IState
         ExitDash();
         dashInterrupted = false;
         dashRequested = false;
+        dashUsed = false;
         timeDashed = float.MinValue;
     }
 
@@ -686,6 +690,8 @@ public class LandMovement : IState
     {
         isDashing = true;
         timeDashed = time;
+
+        dashUsed = true;
 
         shouldApplyGravFallof = true; //To prevent floaty dash if jump and dash are executed at the same time
         verticalVel = 0;
@@ -749,28 +755,28 @@ public class LandMovement : IState
 
     #region Transitions
 
-    public class LandMovementTransition : AnyTransitionData
+    public class LandMovementTransition : SuccesfulTransitionData
     {
-        public bool WasDashing { get; }
+        public bool ShouldEnterWithLaunch { get; }
         public Vector2 EntryDir { get; }
 
-        public LandMovementTransition(Vector2 entryDir, bool wasDashing) 
+        public LandMovementTransition(Vector2 entryDir, bool shouldEnterWithLaunch) 
         {
             EntryDir = entryDir;
-            WasDashing = wasDashing;
+            ShouldEnterWithLaunch = shouldEnterWithLaunch;
         }
     }
 
-    private IStateSpecificTransitionData TransitionToInterStateDash()
+    private IStateSpecificTransitionData TransitionToSandEntryDash()
     {
         Collider2D closestSand = Physics2D.OverlapCircle(position, stats.sandDetectionDistance, sharedStats.sandLayerMask);
 
-        if (closestSand != null && closestSand.transform.TryGetComponent(out HardSand _))
+        if (closestSand != null && closestSand.transform.TryGetComponent(out ISand sand))
         {
-            Vector2 closestPoint = closestSand.ClosestPoint(position);
+            Vector2 closestPoint = closestSand.ClosestPoint(position + FacingDirection * stats.sandOvershoot * Vector2.right);
             Vector2 diff = (closestPoint - position);
-            Vector2 dir = diff.normalized;
             float dist = diff.magnitude;
+            Vector2 dir = diff/dist;
 
             RaycastHit2D hit = Physics2D.Raycast(
                 position, dir,
@@ -785,7 +791,7 @@ public class LandMovement : IState
                 if (frameInput.DashDown)
                 {
                     Vector2 entryPoint = closestPoint + dir * (PlayerHalfHeight + 0.5f);
-                    return new InterStateDashMovement.InterStateDashData(entryPoint);
+                    return new SandEntryMovement.SandEntryData(entryPoint, sand);
                 }
             }
         }
@@ -800,7 +806,7 @@ public class LandMovement : IState
         RaycastHit2D sandHit = Physics2D.BoxCast(position, col.bounds.size, 0, 
             dir, stats.groundedDistance, sharedStats.collisionLayerMask);
 
-        if(sandHit && sandHit.transform.TryGetComponent(out HardSand _))
+        if(sandHit && sandHit.transform.TryGetComponent(out BurrowSand _))
         {
             if (sandHit && frameInput.DashDown)
             {

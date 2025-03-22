@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 public class LandMovementStats : ScriptableObject
 {
     public float sandDetectionDistance;
+    public float sandOvershoot;
 
     public float launchOpposingMovementFriction;
     public float launchDuration;

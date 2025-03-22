@@ -10,5 +10,6 @@ public class MovementStatsHolder : ScriptableObject
 
     public LandMovementStats landStats;
     public BurrowMovementStats burrowStats;
+    public SandEntryMovementStats interStateDashStats;
 
 }

@@ -44,7 +44,7 @@ public class MovementStateMachine
     {
         AddNode(typeof(LandMovement), new LandMovement(controls, rb, col, statsHolder));
         AddNode(typeof(BurrowMovement), new BurrowMovement(controls, rb, col, statsHolder));
-        AddNode(typeof(InterStateDashMovement), new InterStateDashMovement(controls, rb, col, statsHolder));
+        AddNode(typeof(SandEntryMovement), new SandEntryMovement(controls, rb, col, statsHolder));
         InitializeStateTransitions();
 
         SetStartingState(startingType);

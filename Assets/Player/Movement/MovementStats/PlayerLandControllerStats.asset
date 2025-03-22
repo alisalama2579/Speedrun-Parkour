@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
   sandDetectionDistance: 40
+  sandOvershoot: 4
   launchOpposingMovementFriction: 2
   launchDuration: 0.75
-  launchVel: 130
-  weakLaunchVel: 90
+  launchVel: 170
+  weakLaunchVel: 50
   launchSpeedCurve:
     serializedVersion: 2
     m_Curve:
@@ -96,7 +97,7 @@ MonoBehaviour:
   minDeceleration: 90
   maxDeceleration: 75
   turningAccelerationMultiplier: 2
-  additionalHorizontalMovementDeceleration: 20
+  additionalHorizontalMovementDeceleration: 15
   airAccelerationMultiplier: 0.9
   airSpeedMultiplier: 0.9
   apexSpeedIncrease: 5
@@ -116,7 +117,7 @@ MonoBehaviour:
   jumpApexRange: 5
   gravAfterFalloffMultiplier: 3
   horizontalDashVel: {x: 160, y: 10}
-  diagonalDashVel: {x: 75, y: 100}
+  diagonalDashVel: {x: 90, y: 100}
   dashDuration: 0.2
   dashInputUpMultiplier: 80
   dashOpposingMovementFriction: 50
@@ -126,20 +127,20 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 0.0033340454
       value: 1.0005951
-      inSlope: -0.15914956
-      outSlope: -0.15914956
+      inSlope: -0.9102911
+      outSlope: -0.9102911
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0.37748343
+      outWeight: 0.1125828
     - serializedVersion: 3
       time: 1
       value: 0.066352844
-      inSlope: -2.7919729
-      outSlope: -2.7919729
+      inSlope: -2.2678835
+      outSlope: -2.2678835
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.09271521
+      inWeight: 0.059602614
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2

@@ -29,14 +29,13 @@ public class BurrowMovement : IState
 
     public void EnterState(IStateSpecificTransitionData lastStateData) 
     {
-        dashRequested = true;
-
         if (lastStateData is BurrowMovementTransitionData transitionData)
         {
-            moveDir = transitionData.EntryDir;
-            wishDir = frameInput.Move == Vector2.zero ? moveDir : frameInput.Move;
+            wishDir = moveDir = transitionData.EntryDir;
+            //wishDir = frameInput.Move == Vector2.zero ? moveDir : frameInput.Move;
             rb.position = transitionData.EntryPos;
         }
+        ExecuteDash();
     }
 
     public void ExitState() 
@@ -227,7 +226,7 @@ public class BurrowMovement : IState
 
     #region SandExit
 
-    public class BurrowMovementTransitionData : AnyTransitionData
+    public class BurrowMovementTransitionData : SuccesfulTransitionData
     {
         public Vector2 EntryDir { get; }
         public Vector2 EntryPos { get; }
@@ -249,7 +248,7 @@ public class BurrowMovement : IState
         RaycastHit2D hit = Physics2D.Raycast(origin, -dir, distance, sharedStats.collisionLayerMask);
         bool canExit = hit
             && hit.transform.TryGetComponent(out TraversableTerrain terrain)
-            && terrain is HardSand;
+            && terrain is BurrowSand;
 
         Debug.DrawLine(origin, origin - dir * distance, canExit ? Color.green : Color.red);
 
