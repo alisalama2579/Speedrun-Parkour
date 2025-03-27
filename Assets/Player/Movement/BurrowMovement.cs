@@ -32,7 +32,6 @@ public class BurrowMovement : IState
         if (lastStateData is BurrowMovementTransitionData transitionData)
         {
             wishDir = moveDir = transitionData.EntryDir;
-            //wishDir = frameInput.Move == Vector2.zero ? moveDir : frameInput.Move;
             rb.position = transitionData.EntryPos;
         }
         ExecuteDash();
@@ -61,7 +60,7 @@ public class BurrowMovement : IState
     public void HandleInput(Player.Input frameInput)
     {
         this.frameInput = frameInput;
-        if (frameInput.DashDown) dashRequested = true;
+        if (frameInput.SandDashDown) dashRequested = true;
     }
 
     public void UpdateMovement()
@@ -142,7 +141,7 @@ public class BurrowMovement : IState
         Vector2 bounceDir = Vector2.Lerp(hitNormal, reflectedVel, stats.bounceNormalBias);
 
         targetBounceVel = bounceDir * stats.bounceSpeed;
-        wishDir = moveDir;
+        wishDir = bounceDir;
         moveDir = bounceDir;
     }
 
@@ -224,7 +223,7 @@ public class BurrowMovement : IState
     #endregion
 
 
-    #region SandExit
+    #region Transitions
 
     public class BurrowMovementTransitionData : SuccesfulTransitionData
     {
@@ -245,15 +244,20 @@ public class BurrowMovement : IState
         Vector2 origin = rb.position + FrameDisplacement + dir * PlayerHalfHeight;
         float distance = FrameDisplacement.magnitude;
 
+        TraversableTerrain terrain = null;
         RaycastHit2D hit = Physics2D.Raycast(origin, -dir, distance, sharedStats.collisionLayerMask);
+
         bool canExit = hit
-            && hit.transform.TryGetComponent(out TraversableTerrain terrain)
+            && hit.transform.TryGetComponent(out terrain)
             && terrain is BurrowSand;
 
         Debug.DrawLine(origin, origin - dir * distance, canExit ? Color.green : Color.red);
 
         if (canExit)
         {
+            ISand sand = terrain as ISand;
+            sand?.OnSandBurrowExit(vel);
+
             rb.position = hit.point + dir * PlayerHalfHeight;
             return new LandMovement.LandMovementTransition(dir, isDashing);
         }

@@ -12,33 +12,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
-  sandDetectionDistance: 40
-  sandOvershoot: 4
+  sandBurrowVisualiser: {fileID: 6339237471549936851, guid: 6381b0c5d31b5174bb2bf6713c4ff1cc, type: 3}
+  burrowDetectionDistance: 40
+  sandDetectionDistance: 20
+  sandOvershoot: 10
   launchOpposingMovementFriction: 2
-  launchDuration: 0.75
-  launchVel: 170
+  launchDuration: 1
+  launchVel: 200
   weakLaunchVel: 50
   launchSpeedCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.003326416
-      value: 0.9962311
-      inSlope: 0
-      outSlope: 0
+      time: 0.010406494
+      value: 0.998085
+      inSlope: -2.275524
+      outSlope: -2.275524
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0
-      outWeight: 0
+      inWeight: 0.33333334
+      outWeight: 0.062913865
     - serializedVersion: 3
-      time: 0.99668884
-      value: -0.0018920898
-      inSlope: -0.008771498
-      outSlope: -0.008771498
+      time: 0.96167374
+      value: 0.073272705
+      inSlope: 0.331813
+      outSlope: 0.331813
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.80633223
-      outWeight: 0
+      inWeight: 0.8774835
+      outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
@@ -46,22 +48,22 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
-      value: 1
+      time: 0.013244629
+      value: 0.9915161
       inSlope: 0
       outSlope: 0
-      tangentMode: 34
+      tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 34
+      time: 0.9966891
+      value: -0.0047133863
+      inSlope: -0.661594
+      outSlope: -0.661594
+      tangentMode: 0
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.12585068
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -70,10 +72,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: -0.0033111572
-      value: 0.99905396
-      inSlope: 0
-      outSlope: 0
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -125,14 +127,14 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.0033340454
-      value: 1.0005951
-      inSlope: -0.9102911
-      outSlope: -0.9102911
+      time: -0.03627014
+      value: 0.7963104
+      inSlope: 1.3721607
+      outSlope: 1.3721607
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0.1125828
+      outWeight: 0.13375928
     - serializedVersion: 3
       time: 1
       value: 0.066352844
@@ -210,8 +212,8 @@ MonoBehaviour:
   timeToFullSpeedFromWall: 0.1
   maxYVelForWallGrab: 0
   onWallGravity: 70
-  wallJumpVel: 170
-  wallJumpUpBias: 0.6
+  wallJumpVel: 140
+  wallJumpUpBias: 0.7
   slipStrength: 2
   slowAreaDrag: {x: 5, y: 5}
   slowAreaMomentumLoss: 0.5

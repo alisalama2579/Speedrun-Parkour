@@ -1,6 +1,5 @@
 using UnityEngine;
 
-public class WallGrabbableTerrain : TraversableTerrain
+public class WallGrabbableTerrain : TraversableTerrain, IWallGrabbable
 {
-  
 }

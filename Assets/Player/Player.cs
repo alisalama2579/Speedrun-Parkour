@@ -28,6 +28,7 @@ public class Player : MonoBehaviour
     public struct Input
     {
         public bool DashDown;
+        public bool SandDashDown;
         public bool JumpPressed;
         public bool JumpHeld;
         public float HorizontalMove;
@@ -44,7 +45,8 @@ public class Player : MonoBehaviour
             JumpHeld = controls.PlayerMovement.Jump.IsPressed(),
             HorizontalMove = controls.PlayerMovement.HorizontalMove.ReadValue<float>(),
             DashDown = controls.PlayerMovement.Dash.WasPressedThisFrame(),
-            Move = controls.PlayerMovement.Move.ReadValue<Vector2>(),
+            SandDashDown = controls.PlayerMovement.SandDash.WasPressedThisFrame(),
+            Move = controls.PlayerMovement.Move.ReadValue<Vector2>()
         };
     }
 
@@ -72,7 +74,7 @@ public class Player : MonoBehaviour
     //Damage
     private void OnDeath()
     {
-        EventsManager.Instance.InvokePlayerDeath();
+        EventsManager.InvokePlayerDeath();
     }
 
     //Collisions

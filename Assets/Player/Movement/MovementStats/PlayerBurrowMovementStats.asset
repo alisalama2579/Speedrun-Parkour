@@ -13,32 +13,32 @@ MonoBehaviour:
   m_Name: PlayerBurrowMovementStats
   m_EditorClassIdentifier: 
   collisionDetectionDistance: 0.1
-  acceleration: 1000
-  maxSpeed: 90
-  rotationSpeed: 20
+  acceleration: 700
+  maxSpeed: 80
+  rotationSpeed: 15
   oppositeTurnControl: 1
   bounceDuration: 0.2
-  bounceSpeed: 130
+  bounceSpeed: 120
   bounceSpeedCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0.0099487305
-      value: 1.0037689
-      inSlope: -1.4105724
-      outSlope: -1.4105724
-      tangentMode: 0
+      value: 0.98944855
+      inSlope: -1.0024476
+      outSlope: -1.0024476
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
-      outWeight: 0.086092696
+      outWeight: 0.33333334
     - serializedVersion: 3
-      time: 1.0283917
-      value: 0.47887245
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
+      time: 1.0011826
+      value: -0.004211426
+      inSlope: -1.0024476
+      outSlope: -1.0024476
+      tangentMode: 34
       weightedMode: 0
-      inWeight: 0
+      inWeight: 0.33333334
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -47,8 +47,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.019964758
-      value: 0.5045892
+      time: 0
+      value: 0
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -56,19 +56,10 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.6183019
-      value: 0.49789095
-      inSlope: 0.4502789
-      outSlope: 0.4502789
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 0
-      outSlope: 0
+      inSlope: 2
+      outSlope: 2
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -111,7 +102,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  dashSpeed: 130
+  dashSpeed: 80
   dashControlCurve:
     serializedVersion: 2
     m_Curve:
@@ -136,5 +127,5 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  dashControlMult: 2
-  dashDuration: 0.25
+  dashControlMult: 3
+  dashDuration: 0.3

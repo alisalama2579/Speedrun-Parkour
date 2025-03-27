@@ -1,5 +1,6 @@
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.XR;
 using static TransitionLibrary;
 
 
@@ -19,11 +20,11 @@ public class SandEntryMovement : IState
 
     public class SandEntryData : SuccesfulTransitionData
     {
-        public Vector2 EntryPos { get; }
+        public Vector2 TargetPos { get; }
         public ISand EntrySand { get; }
-        public SandEntryData(Vector2 entryPos, ISand sand) 
+        public SandEntryData(Vector2 targetPos,  ISand sand) 
         {
-            EntryPos = entryPos;
+            TargetPos = targetPos;
             EntrySand = sand;
         } 
     }
@@ -39,12 +40,13 @@ public class SandEntryMovement : IState
         if (lastStateData is SandEntryData transitionData)
         {
             entrySand = transitionData.EntrySand;
-            entryPoint = rb.position;
-            exitPoint = transitionData.EntryPos;
+            entrySand.OnSandTargetForBurrow(dir * stats.entrySpeed);
+
+            startingPoint = rb.position;
+            exitPoint = transitionData.TargetPos;
             Vector2 diff = exitPoint - rb.position;
             dir = diff.normalized;
-            dist = diff.magnitude;
-            duration = dist / stats.entrySpeed;
+            duration = diff.magnitude / stats.entrySpeed;
         }
     }
 
@@ -54,41 +56,41 @@ public class SandEntryMovement : IState
     }
 
     private Vector2 exitPoint;
-    private Vector2 entryPoint;
+    private Vector2 startingPoint;
     private Vector2 dir;
     private ISand entrySand;
-    float dist;
     float duration;
 
-    public void Update(Player.Input _)
-    {
-    }
-
-    public void HandleInput(Player.Input _)
-    {
-    }
-
+    public void Update(Player.Input _) { }
+    public void HandleInput(Player.Input _) { }
     float t;
+
     public void UpdateMovement()
     {
         rb.linearVelocity = Vector2.zero;
         t += Time.deltaTime;
 
-        Vector2 pos = Vector2.Lerp(entryPoint, exitPoint, t/duration);
+        Vector2 pos = Vector2.Lerp(startingPoint, exitPoint, t/duration);
         col.transform.position = new Vector3(pos.x, pos.y, col.transform.position.z);
     }
 
     public IStateSpecificTransitionData TransitionToBurrow()
     {
-        if(t >= duration && entrySand is BurrowSand)
+        if(t >= duration * 0.9f && entrySand is BurrowSand)
+        {
+            entrySand.OnSandBurrowExit(dir * stats.entrySpeed);
             return new BurrowMovement.BurrowMovementTransitionData(dir, exitPoint);
+        }
         return failedData;
     }
 
     public IStateSpecificTransitionData TransitionToLand()
     {
-        if (t >= duration && entrySand is not BurrowSand)
+        if (t >= duration * 0.9f && entrySand is not BurrowSand)
+        {
+            entrySand.OnSandBurrowExit(dir * stats.entrySpeed);
             return new LandMovement.LandMovementTransition(dir, true);
+        }
         return failedData;
     }
 }

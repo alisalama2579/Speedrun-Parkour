@@ -71,6 +71,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""SandDash"",
+                    ""type"": ""Button"",
+                    ""id"": ""f63024e7-a6e7-4abf-920e-6796b7801ebd"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -326,6 +335,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b20e6264-caac-427c-b7ed-4aae178a0ced"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SandDash"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -366,6 +386,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_PlayerLand_Dash = m_PlayerLand.FindAction("Dash", throwIfNotFound: true);
         m_PlayerLand_Down = m_PlayerLand.FindAction("Down", throwIfNotFound: true);
         m_PlayerLand_Move = m_PlayerLand.FindAction("Move", throwIfNotFound: true);
+        m_PlayerLand_SandDash = m_PlayerLand.FindAction("SandDash", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -437,6 +458,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_PlayerLand_Dash;
     private readonly InputAction m_PlayerLand_Down;
     private readonly InputAction m_PlayerLand_Move;
+    private readonly InputAction m_PlayerLand_SandDash;
     public struct PlayerLandActions
     {
         private @PlayerControls m_Wrapper;
@@ -446,6 +468,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @Dash => m_Wrapper.m_PlayerLand_Dash;
         public InputAction @Down => m_Wrapper.m_PlayerLand_Down;
         public InputAction @Move => m_Wrapper.m_PlayerLand_Move;
+        public InputAction @SandDash => m_Wrapper.m_PlayerLand_SandDash;
         public InputActionMap Get() { return m_Wrapper.m_PlayerLand; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -470,6 +493,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Move.started += instance.OnMove;
             @Move.performed += instance.OnMove;
             @Move.canceled += instance.OnMove;
+            @SandDash.started += instance.OnSandDash;
+            @SandDash.performed += instance.OnSandDash;
+            @SandDash.canceled += instance.OnSandDash;
         }
 
         private void UnregisterCallbacks(IPlayerLandActions instance)
@@ -489,6 +515,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Move.started -= instance.OnMove;
             @Move.performed -= instance.OnMove;
             @Move.canceled -= instance.OnMove;
+            @SandDash.started -= instance.OnSandDash;
+            @SandDash.performed -= instance.OnSandDash;
+            @SandDash.canceled -= instance.OnSandDash;
         }
 
         public void RemoveCallbacks(IPlayerLandActions instance)
@@ -522,5 +551,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnDash(InputAction.CallbackContext context);
         void OnDown(InputAction.CallbackContext context);
         void OnMove(InputAction.CallbackContext context);
+        void OnSandDash(InputAction.CallbackContext context);
     }
 }

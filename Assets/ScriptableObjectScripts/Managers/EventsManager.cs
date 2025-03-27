@@ -4,23 +4,15 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "EventsManager", menuName = "EventsManager")]
 public class EventsManager : ScriptableObject
 {
-    private void OnEnable()
-    {
-        if (Instance == null) Instance = this;
-        else DestroyImmediate(this);
-    }
+    public static event Action OnPlayerLandOnStableGround;
+    public static void InvokePlayerLandOnStableGround() => OnPlayerLandOnStableGround?.Invoke();
 
-    public static EventsManager Instance;
+    public static event Action OnPlayerDeath;
+    public static void InvokePlayerDeath() => OnPlayerDeath?.Invoke();
 
-    public event Action OnPlayerLandOnStableGround;
-    public void InvokePlayerLandOnStableGround() => OnPlayerLandOnStableGround?.Invoke();
+    public static event Action OnRaceStart;
+    public static void InvokeRaceStart() => OnRaceStart?.Invoke();
 
-    public event Action OnPlayerDeath;
-    public void InvokePlayerDeath() => OnPlayerDeath?.Invoke();
-
-    public event Action OnRaceStart;
-    public void InvokeRaceStart() => OnRaceStart?.Invoke();
-
-    public event Action OnRaceEnd;
-    public void InvokeRaceEnd() => OnRaceEnd?.Invoke();
+    public static event Action OnRaceEnd;
+    public static void InvokeRaceEnd() => OnRaceEnd?.Invoke();
 }

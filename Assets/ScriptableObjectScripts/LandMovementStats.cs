@@ -4,6 +4,9 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(fileName = "PlayerLandControllerStats", menuName = "PlayerLandControllerStats")]
 public class LandMovementStats : ScriptableObject
 {
+    public GameObject sandBurrowVisualiser;
+
+    public float burrowDetectionDistance;
     public float sandDetectionDistance;
     public float sandOvershoot;
 
