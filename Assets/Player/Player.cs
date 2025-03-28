@@ -11,7 +11,6 @@ public class Player : MonoBehaviour
 
     [SerializeField] private PlayerAnimator animator;
     [SerializeField] private MovementStatsHolder movementStats;
-    [SerializeField] private bool startInSand;
 
     private void Awake()
     {
@@ -21,7 +20,7 @@ public class Player : MonoBehaviour
         col = GetComponent<Collider2D>();
         rb = GetComponent<Rigidbody2D>();
 
-        movementMachine = new MovementStateMachine(startInSand ? typeof(BurrowMovement) : typeof(LandMovement), movementStats, controls, rb, col);
+        movementMachine = new MovementStateMachine(typeof(LandMovement), movementStats, controls, rb, col);
 
     }
 
@@ -29,6 +28,7 @@ public class Player : MonoBehaviour
     {
         public bool DashDown;
         public bool SandDashDown;
+        public bool SandDashHeld;
         public bool JumpPressed;
         public bool JumpHeld;
         public float HorizontalMove;
@@ -46,8 +46,11 @@ public class Player : MonoBehaviour
             HorizontalMove = controls.PlayerMovement.HorizontalMove.ReadValue<float>(),
             DashDown = controls.PlayerMovement.Dash.WasPressedThisFrame(),
             SandDashDown = controls.PlayerMovement.SandDash.WasPressedThisFrame(),
+            SandDashHeld = controls.PlayerMovement.SandDash.IsPressed(),
             Move = controls.PlayerMovement.Move.ReadValue<Vector2>()
         };
+
+        if (frameInput.HorizontalMove != 0) frameInput.HorizontalMove = Mathf.Sign(frameInput.HorizontalMove);
     }
 
     private void OnDisable()
@@ -71,10 +74,9 @@ public class Player : MonoBehaviour
     }
 
 
-    //Damage
     private void OnDeath()
     {
-        EventsManager.InvokePlayerDeath();
+        EventsHolder.InvokePlayerDeath();
     }
 
     //Collisions

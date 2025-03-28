@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9eb8436b9837a0e488dcffe37c86e363, type: 3}
   m_Name: InterStateDashMovementStats
   m_EditorClassIdentifier: 
-  entrySpeed: 300
+  entrySpeed: 200

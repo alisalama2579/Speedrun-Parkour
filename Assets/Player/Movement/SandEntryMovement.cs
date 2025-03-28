@@ -1,7 +1,6 @@
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.XR;
 using static TransitionLibrary;
+using static UnityEditor.PlayerSettings;
 
 
 public class SandEntryMovement : IState
@@ -40,25 +39,34 @@ public class SandEntryMovement : IState
         if (lastStateData is SandEntryData transitionData)
         {
             entrySand = transitionData.EntrySand;
-            entrySand.OnSandTargetForBurrow(dir * stats.entrySpeed);
 
             startingPoint = rb.position;
             exitPoint = transitionData.TargetPos;
             Vector2 diff = exitPoint - rb.position;
             dir = diff.normalized;
             duration = diff.magnitude / stats.entrySpeed;
+
+            entrySand.OnSandTargetForBurrow(dir * stats.entrySpeed);
+            if (entrySand is SandBall ball)
+                durationToSandTouch = (exitPoint - 2 * ball.GetComponent<CircleCollider2D>().radius * dir).magnitude / stats.entrySpeed;
+            else
+                durationToSandTouch = 0.9f * duration;
         }
     }
 
     public void ExitState()
     {
         t = 0;
+        sandTouched = false;
     }
 
     private Vector2 exitPoint;
     private Vector2 startingPoint;
     private Vector2 dir;
+    private Vector2 pos;
     private ISand entrySand;
+    float durationToSandTouch;
+    bool sandTouched;
     float duration;
 
     public void Update(Player.Input _) { }
@@ -70,15 +78,21 @@ public class SandEntryMovement : IState
         rb.linearVelocity = Vector2.zero;
         t += Time.deltaTime;
 
-        Vector2 pos = Vector2.Lerp(startingPoint, exitPoint, t/duration);
+        pos = Vector2.Lerp(startingPoint, exitPoint, t/duration);
         col.transform.position = new Vector3(pos.x, pos.y, col.transform.position.z);
+
+        if(!sandTouched && t >= durationToSandTouch)
+        {
+            sandTouched = true;
+            entrySand.OnSandBurrowEnter(dir * stats.entrySpeed, pos);
+        }
     }
 
     public IStateSpecificTransitionData TransitionToBurrow()
     {
-        if(t >= duration * 0.9f && entrySand is BurrowSand)
+        if(t >= duration && entrySand is BurrowSand)
         {
-            entrySand.OnSandBurrowExit(dir * stats.entrySpeed);
+            entrySand.OnSandBurrowExit(dir * stats.entrySpeed, pos);
             return new BurrowMovement.BurrowMovementTransitionData(dir, exitPoint);
         }
         return failedData;
@@ -86,9 +100,9 @@ public class SandEntryMovement : IState
 
     public IStateSpecificTransitionData TransitionToLand()
     {
-        if (t >= duration * 0.9f && entrySand is not BurrowSand)
+        if (t >= duration && entrySand is not BurrowSand)
         {
-            entrySand.OnSandBurrowExit(dir * stats.entrySpeed);
+            entrySand.OnSandBurrowExit(dir * stats.entrySpeed, pos);
             return new LandMovement.LandMovementTransition(dir, true);
         }
         return failedData;

@@ -14,7 +14,7 @@ public class UnstableSand : TraversableTerrain, IWallGrabbable, ISand
         col = GetComponent<Collider2D>();
         originalColor = sprite.color;
 
-        EventsManager.OnPlayerLandOnStableGround += ResetSand;
+        EventsHolder.OnPlayerLandOnStableGround += ResetSand;
     }
 
     private void Update()
@@ -38,8 +38,9 @@ public class UnstableSand : TraversableTerrain, IWallGrabbable, ISand
 
     public override void OnEnterTerrain() => isFading = true;
     public void OnSandTargetForBurrow(Vector2 _) { }
-    public void OnSandBurrowEnter(Vector2 _) { }
-    public void OnSandBurrowExit(Vector2 _) { }
+    public void OnSandBurrowEnter(Vector2 _, Vector2 pos) { }
+    public void OnSandBurrowExit(Vector2 _, Vector2 pos) { }
+
 
     private void ResetSand()
     {
@@ -53,6 +54,6 @@ public class UnstableSand : TraversableTerrain, IWallGrabbable, ISand
     protected override void OnDisable()
     {
         base.OnDisable();
-        EventsManager.OnPlayerLandOnStableGround -= ResetSand;
+        EventsHolder.OnPlayerLandOnStableGround -= ResetSand;
     }
 }

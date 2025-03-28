@@ -11,8 +11,9 @@ public class LandMovementStats : ScriptableObject
     public float sandOvershoot;
 
     public float launchOpposingMovementFriction;
+    public float maxLaunchMoveSpeed;
     public float launchDuration;
-    public float launchVel;
+    public Vector2 launchVel;
     public float weakLaunchVel;
     public AnimationCurve launchSpeedCurve;
     public AnimationCurve launchGravCurve;
@@ -76,19 +77,13 @@ public class LandMovementStats : ScriptableObject
 
     [Header("Dash")]
 
-    [FormerlySerializedAs("horizontalDashVelocity")]
     public Vector2 horizontalDashVel;
-    [FormerlySerializedAs("verticalDashVelocity")]
     public Vector2 diagonalDashVel;
     public float dashDuration;
-    public float dashInputUpMultiplier;
-
     public float dashOpposingMovementFriction;
 
     public AnimationCurve dashSpeedCurve;
-    [FormerlySerializedAs("dashHorizontalCurve")]
     public AnimationCurve dashHorizontalVelMult;
-    [FormerlySerializedAs("dashVerticalVelMult")]
     public AnimationCurve dashGravMult;
 
     #endregion

@@ -1,8 +1,7 @@
 using System;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "EventsManager", menuName = "EventsManager")]
-public class EventsManager : ScriptableObject
+public class EventsHolder
 {
     public static event Action OnPlayerLandOnStableGround;
     public static void InvokePlayerLandOnStableGround() => OnPlayerLandOnStableGround?.Invoke();

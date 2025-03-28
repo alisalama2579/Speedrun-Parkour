@@ -75,7 +75,6 @@ public class MovementStateMachine
         current.State?.Update(frameInput);
         var transition = GetTransition(out IStateSpecificTransitionData transitionData);
         if (transition != null) SwitchMovementState(transition.To, transitionData);
-
     }
 
     public void FixedUpdate() 

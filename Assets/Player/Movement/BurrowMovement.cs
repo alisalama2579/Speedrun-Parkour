@@ -1,3 +1,4 @@
+using UnityEditor.Overlays;
 using UnityEngine;
 using static TransitionLibrary;
 
@@ -68,8 +69,6 @@ public class BurrowMovement : IState
         deltaTime = Time.deltaTime;
 
         HandleBounce();
-
-        //TODO: refactor dash
         HandleDash();
         HandleBurrowMovement();
         ApplyMovement();
@@ -244,19 +243,18 @@ public class BurrowMovement : IState
         Vector2 origin = rb.position + FrameDisplacement + dir * PlayerHalfHeight;
         float distance = FrameDisplacement.magnitude;
 
-        TraversableTerrain terrain = null;
+        ISand sand = null;
         RaycastHit2D hit = Physics2D.Raycast(origin, -dir, distance, sharedStats.collisionLayerMask);
 
         bool canExit = hit
-            && hit.transform.TryGetComponent(out terrain)
-            && terrain is BurrowSand;
+            && hit.transform.TryGetComponent(out sand)
+            && sand is BurrowSand;
 
         Debug.DrawLine(origin, origin - dir * distance, canExit ? Color.green : Color.red);
 
         if (canExit)
         {
-            ISand sand = terrain as ISand;
-            sand?.OnSandBurrowExit(vel);
+            sand.OnSandBurrowExit(vel, rb.position);
 
             rb.position = hit.point + dir * PlayerHalfHeight;
             return new LandMovement.LandMovementTransition(dir, isDashing);
