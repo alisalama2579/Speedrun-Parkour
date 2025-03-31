@@ -69,7 +69,15 @@ public class SandEntryMovement : IState
     bool sandTouched;
     float duration;
 
-    public void Update(Player.Input _) { }
+    public void Update(Player.Input _) 
+    {
+        if (!sandTouched && t >= durationToSandTouch)
+        {
+            sandTouched = true;
+            entrySand.OnSandBurrowEnter(dir * stats.entrySpeed, pos);
+        }
+    }
+
     public void HandleInput(Player.Input _) { }
     float t;
 
@@ -80,12 +88,6 @@ public class SandEntryMovement : IState
 
         pos = Vector2.Lerp(startingPoint, exitPoint, t/duration);
         col.transform.position = new Vector3(pos.x, pos.y, col.transform.position.z);
-
-        if(!sandTouched && t >= durationToSandTouch)
-        {
-            sandTouched = true;
-            entrySand.OnSandBurrowEnter(dir * stats.entrySpeed, pos);
-        }
     }
 
     public IStateSpecificTransitionData TransitionToBurrow()

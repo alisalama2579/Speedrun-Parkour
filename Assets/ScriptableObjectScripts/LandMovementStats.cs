@@ -4,21 +4,32 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(fileName = "PlayerLandControllerStats", menuName = "PlayerLandControllerStats")]
 public class LandMovementStats : ScriptableObject
 {
+    #region SandDash
     public GameObject sandBurrowVisualiser;
 
     public float burrowDetectionDistance;
     public float sandDetectionDistance;
     public float sandOvershoot;
 
+    public float sandDashBuffer;
+    [Range(0, 1)] public float entryLaunchPercentToChain;
+    #endregion
+
+    [Space(5)]
+
+    #region Launch
     public float launchOpposingMovementFriction;
     public float maxLaunchMoveSpeed;
     public float launchDuration;
     public Vector2 launchVel;
-    public float weakLaunchVel;
+    [FormerlySerializedAs("weakLaunchVel")]
+    public float weakLaunchSpeed;
     public AnimationCurve launchSpeedCurve;
     public AnimationCurve launchGravCurve;
     public AnimationCurve launchControlCurve;
+    #endregion
 
+    [Space(5)]
 
     #region Horizontal
 
@@ -30,7 +41,7 @@ public class LandMovementStats : ScriptableObject
     [Range(1, 100)] public float minDeceleration;
     [Range(1, 200)] public float maxDeceleration;
     public float turningAccelerationMultiplier;
-    public float additionalHorizontalMovementDeceleration;
+    public float wallJumpHorizontalDeceleration;
 
     [Range(0, 5)] public float airAccelerationMultiplier;
     [Range(0, 5)] public float airSpeedMultiplier;
@@ -73,6 +84,7 @@ public class LandMovementStats : ScriptableObject
     #endregion
 
     [Space(5)]
+
     #region Dash
 
     [Header("Dash")]

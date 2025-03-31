@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a13ee50e2b54b141acdeb492490e8ee, type: 3}
   m_Name: PlayerBurrowMovementStats
   m_EditorClassIdentifier: 
-  collisionDetectionDistance: 0.1
+  collisionDetectionDistance: 0.2
   acceleration: 1200
   maxSpeed: 90
-  rotationSpeed: 20
-  oppositeTurnControl: 5
+  rotationSpeed: 30
+  oppositeTurnControl: 1
   bounceDuration: 0.2
   bounceSpeed: 120
   bounceSpeedCurve:

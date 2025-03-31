@@ -11,5 +11,4 @@ public class SandBall : TraversableTerrain, ISand
     public bool IsBurrowable => true;
     public void OnSandTargetForBurrow(Vector2 _) { col.enabled = false; }
     public void OnSandBurrowExit(Vector2 vel, Vector2 pos) { col.enabled = true; }
-    public void OnSandBurrowEnter(Vector2 vel, Vector2 pos) { }
 }

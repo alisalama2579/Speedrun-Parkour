@@ -34,8 +34,8 @@ public class BurrowMovement : IState
         {
             wishDir = moveDir = transitionData.EntryDir;
             rb.position = transitionData.EntryPos;
+            ExecuteDash();
         }
-        ExecuteDash();
     }
 
     public void ExitState() 
@@ -183,7 +183,7 @@ public class BurrowMovement : IState
     private void HandleDash()
     {
         float timePercent = Mathf.Clamp01((time - timeDashed) / stats.dashDuration);
-        if ((timePercent == 1 && isDashing) || isBouncing)
+        if (((timePercent == 1 || dashRequested) && isDashing) || isBouncing)
             dashInterrupted = true;
 
         bool canDash = !isDashing && !dashInterrupted;
@@ -238,13 +238,19 @@ public class BurrowMovement : IState
 
     private IStateSpecificTransitionData TransitionToLand()
     {
+        bool cachedStartInCol = Physics2D.queriesStartInColliders;
+        Physics2D.queriesStartInColliders = true;
+
+        float errorMargin = 0.1f;
+
         //Ray is cast out to in, to prevent sand exit if there is terrain beyond sand
         Vector2 dir = VelocityDir;
-        Vector2 origin = rb.position + FrameDisplacement + dir * PlayerHalfHeight;
-        float distance = FrameDisplacement.magnitude;
+        Vector2 origin = rb.position + FrameDisplacement + dir * (PlayerHalfHeight + stats.exitDetectionDistance);
+        float distance = FrameDisplacement.magnitude + stats.exitDetectionDistance + errorMargin;
 
         ISand sand = null;
         RaycastHit2D hit = Physics2D.Raycast(origin, -dir, distance, sharedStats.collisionLayerMask);
+        Physics2D.queriesStartInColliders = cachedStartInCol;
 
         bool canExit = hit
             && hit.transform.TryGetComponent(out sand)

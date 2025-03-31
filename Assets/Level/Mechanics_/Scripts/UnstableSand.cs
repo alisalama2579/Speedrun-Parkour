@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class UnstableSand : TraversableTerrain, IWallGrabbable, ISand
+public class UnstableSand : TraversableTerrain, IWallGrabbable, ISand, IUnstable
 {
     private Collider2D col;
     private Color originalColor;
@@ -38,7 +38,6 @@ public class UnstableSand : TraversableTerrain, IWallGrabbable, ISand
 
     public override void OnEnterTerrain() => isFading = true;
     public void OnSandTargetForBurrow(Vector2 _) { }
-    public void OnSandBurrowEnter(Vector2 _, Vector2 pos) { }
     public void OnSandBurrowExit(Vector2 _, Vector2 pos) { }
 
 

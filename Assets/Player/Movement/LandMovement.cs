@@ -28,6 +28,7 @@ public class LandMovement : IState
     public void InitializeTransitions(MovementStateMachine controller)
     {
         controller.AddTransition(GetType(), typeof(SandEntryMovement), TransitionToSandEntryDash);
+        controller.AddTransition(GetType(), typeof(SandEntryMovement), TransitionToDirectSandEntryDash);
         controller.AddTransition(GetType(), typeof(BurrowMovement), TransitionToSandEntry);
 
     }
@@ -51,6 +52,7 @@ public class LandMovement : IState
         ResetDash();
         ResetTerrain();
         ResetJump();
+        ResetSandEntryDash();
     }
 
     private Player.Input frameInput;
@@ -73,6 +75,11 @@ public class LandMovement : IState
 
         //Only changes dash requested if DashDown
         if (frameInput.DashDown) dashRequested = true;
+        if (frameInput.SandDashDown)
+        {
+            sandDashRequested = true;
+            timeSandDashRequested = time; 
+        }
 
         if (frameInput.JumpPressed)
         {
@@ -142,47 +149,49 @@ public class LandMovement : IState
     #region EntryLaunch
     private bool isEntryLaunching;
     private bool entryLaunchInterrupted;
+    private float entryLaunchProgress;
 
     private Vector2 entryLaunchVel;
-    private Vector2 targetLaunchVel;
+    private Vector2 wishLaunchVel;
+    private Vector2 initialLaunchVel;
 
     private float entryLaunchGravMult;
     private float entryLaunchControlMult;
 
     private void HandleEntryLaunch()
     {
-        float timePercent = Mathf.Clamp01(time / stats.launchDuration);
+        entryLaunchProgress = Mathf.Clamp01(time / stats.launchDuration);
 
         if (isBeingSlowed
-         || (timePercent == 1 && isEntryLaunching)
+         || (entryLaunchProgress == 1 && isEntryLaunching)
          || isDashing || hitCeilingThisFrame || isPushingWall)
             entryLaunchInterrupted = true;
 
         if (entryLaunchInterrupted) ExitEntryLaunch();
         else if (isEntryLaunching)
         {
-            entryLaunchGravMult = stats.launchGravCurve.Evaluate(timePercent);
-            entryLaunchControlMult = stats.launchControlCurve.Evaluate(timePercent);
+            entryLaunchGravMult = stats.launchGravCurve.Evaluate(entryLaunchProgress);
+            entryLaunchControlMult = stats.launchControlCurve.Evaluate(entryLaunchProgress);
 
-            entryLaunchVel.x = targetLaunchVel.x * stats.launchSpeedCurve.Evaluate(timePercent);
-
-            //Applies friction if player is trying to oppose dash velocity for greater control
-            float xDecel = VelocityOpposingMovementStrength(entryLaunchVel) * stats.launchOpposingMovementFriction * Mathf.Abs(entryLaunchVel.x);
-            entryLaunchVel.x = Mathf.MoveTowards(entryLaunchVel.x, 0, fixedDeltaTime * xDecel);
+            entryLaunchVel.x = wishLaunchVel.x * stats.launchSpeedCurve.Evaluate(entryLaunchProgress);
+            float sign = Mathf.Sign(wishLaunchVel.x);
+            if (sign == -Mathf.Sign(horizontalDelta) && sign == Mathf.Sign(initialLaunchVel.x) && horizontalDelta != 0)
+                wishLaunchVel.x += horizontalDelta * entryLaunchControlMult * stats.launchOpposingMovementFriction;
         }
     }
 
     private void ExecuteEntryLaunch(bool strongLaunch, Vector2 entryLaunchDir)
     {
-        targetLaunchVel = strongLaunch 
+        wishLaunchVel = strongLaunch 
             ? new Vector2(stats.launchVel.x * entryLaunchDir.x, stats.launchVel.y * entryLaunchDir.y) 
-            : stats.weakLaunchVel * entryLaunchDir;
+            : stats.weakLaunchSpeed * entryLaunchDir;
+
+        initialLaunchVel = wishLaunchVel;
 
         verticalVel = 0;
-        entryLaunchVel.y = targetLaunchVel.y;
+        entryLaunchVel.y = wishLaunchVel.y;
         shouldApplyGravFallof = true;
         isEntryLaunching = true;
-        Debug.Log("Executed entry launch with velocity " + targetLaunchVel);
     }
     private void ResetEntryLaunch()
     {
@@ -213,7 +222,7 @@ private void ExitEntryLaunch()
         terrainOn = newTerrain;
 
         wasOnSlipperyGround = newTerrain is SlipperyGround;
-        if (newTerrain is not UnstableBurrowSand) EventsHolder.InvokePlayerLandOnStableGround();
+        if (newTerrain is not IUnstable) EventsHolder.InvokePlayerLandOnStableGround();
 
         newTerrain.OnEnterTerrain();
     }
@@ -424,8 +433,6 @@ private void ExitEntryLaunch()
     private void OnChangeGrounded(bool newGrounded)
     {
         isGrounded = newGrounded;
-        if (firstFrameOfTransition) return;
-
         if (isGrounded)
         {
             isJumping = false;
@@ -468,12 +475,13 @@ private void ExitEntryLaunch()
     private float targetSpeed;
     private float currentMaxSpeed;
     private float acceleration;
+    private float horizontalDelta;
 
     private void HandleHorizontalMovement()
     {
         float moveInput = HorizontalInput;
         if (isPushingWall && !isJumping)
-            ResetHorizontalVel();
+            horizontalVel = 0;
 
         float turningMult = Mathf.Lerp(1, stats.turningAccelerationMultiplier 
             //* SlipMultiplier
@@ -490,7 +498,7 @@ private void ExitEntryLaunch()
             : Mathf.Lerp(stats.minDeceleration, stats.maxDeceleration, momentum);                //deceleration
 
         currentMaxSpeed = 1 / SlipMultiplier * Mathf.Lerp(stats.minLandSpeed, stats.maxLandSpeed, momentum);
-        targetSpeed = moveInput * currentMaxSpeed + wallJumpHorizontalVel;
+        targetSpeed = moveInput * currentMaxSpeed;
 
         if (IsInAir)
         {
@@ -499,20 +507,9 @@ private void ExitEntryLaunch()
         }
         else acceleration *= SlipMultiplier;   //For faster aceleration in air when slippery
 
-        float desiredSpeed = Mathf.MoveTowards(horizontalVel, targetSpeed, acceleration * fixedDeltaTime);
-        horizontalVel = desiredSpeed * wallExitMult + wallJumpHorizontalVel;
-
-        if(isEntryLaunching)
-            horizontalVel = Mathf.Clamp(horizontalVel * entryLaunchControlMult,
-            -stats.maxLaunchMoveSpeed, stats.maxLaunchMoveSpeed);
-
-        wallJumpHorizontalVel = Mathf.MoveTowards(wallJumpHorizontalVel, 0, Mathf.Abs(horizontalVel) * stats.additionalHorizontalMovementDeceleration * fixedDeltaTime);
-    }
-
-    private void ResetHorizontalVel()
-    {
-        wallJumpHorizontalVel = 0;
-        horizontalVel = 0;
+        float speed = Mathf.MoveTowards(horizontalVel, targetSpeed, acceleration * fixedDeltaTime) * wallExitMult;
+        horizontalDelta = speed - horizontalVel;
+        horizontalVel = speed;
     }
 
     #endregion
@@ -536,6 +533,8 @@ private void ExitEntryLaunch()
     private bool jumpRequested;
     private float timeJumpRequested = float.MinValue;
 
+    float initialHorizontalJumpVel;
+
     public float ApexProximity
     {
         get
@@ -547,9 +546,16 @@ private void ExitEntryLaunch()
 
     private bool HasBufferedJump => bufferedJumpUsable && time < timeJumpRequested + stats.jumpBuffer;
     private bool CanUseCoyote => coyoteUsable && !isGrounded && !isOnWall && time < timeLeftSurfce + stats.coyoteTime;
+    private bool IsWallJumping => isJumping && lastSurfaceType == LastSurfaceType.Wall;
 
     private void HandleJump()
     {
+        float sign = Mathf.Sign(initialHorizontalJumpVel);
+        float oppositeMovementReduction =
+            Mathf.Approximately(sign, -Mathf.Sign(horizontalDelta)) && horizontalDelta != 0
+            ? Mathf.Abs(horizontalDelta) : 0;
+        wallJumpHorizontalVel = Mathf.MoveTowards(wallJumpHorizontalVel, 0, stats.wallJumpHorizontalDeceleration * fixedDeltaTime + oppositeMovementReduction);
+
         if (isDashing || isEntryLaunching) return;
 
         //If jump ended early or is falling, apply gravity fallof
@@ -590,6 +596,7 @@ private void ExitEntryLaunch()
 
         verticalVel = jumpVel.y;
         wallJumpHorizontalVel = jumpVel.x;
+        initialHorizontalJumpVel = jumpVel.x;
 
         ApplyMomentum(stats.wallJumpMomentumIncrease);
     }
@@ -738,8 +745,13 @@ private void ExitEntryLaunch()
         if (isGrounded && !isJumping && !isEntryLaunching) verticalVel = stats.groundingPush;
 
         vel = new Vector2
-            (horizontalVel * horizontalMult + launchVel, 
+            (horizontalVel * horizontalMult + launchVel + wallJumpHorizontalVel, 
             verticalVel);
+
+        float maxHorizontalSpeed = Mathf.Abs(vel.x);
+        if (isEntryLaunching) maxHorizontalSpeed = stats.maxLaunchMoveSpeed;
+
+        vel.x = Mathf.Clamp(vel.x, -maxHorizontalSpeed, maxHorizontalSpeed);
 
         nonZeroVelocityDirection = new Vector2(
             vel.x != 0 ? vel.x : nonZeroVelocityDirection.x,
@@ -750,6 +762,7 @@ private void ExitEntryLaunch()
     private void ResetAllVelocities()
     {
         horizontalVel = 0;
+        horizontalDelta = 0;
         verticalVel = 0;
         entryLaunchVel = Vector2.zero;
         dashVel = Vector2.zero;
@@ -777,24 +790,45 @@ private void ExitEntryLaunch()
             ShouldEnterWithLaunch = shouldEnterWithLaunch;
         }
     }
+    private GameObject sandVisualiser = null;
+    private float timeSandDashRequested;
+    private bool sandDashRequested;
+    private bool HasBufferedSandDash => time < stats.sandDashBuffer + timeSandDashRequested;
 
-    GameObject sandVisualiser = null;
+    private void ResetSandEntryDash()
+    {
+        timeSandDashRequested = float.MinValue;
+        sandDashRequested = false;
+    }
+
     private IStateSpecificTransitionData TransitionToSandEntryDash()
     {
+        bool canSandDash = HasBufferedSandDash || sandDashRequested;
+        sandDashRequested = false;
+        Debug.Log("Can sand dash: " + canSandDash);
         sandVisualiser.SetActive(false);
 
-        Vector2 pos = position + FrameDisplacement;
+        Vector2 pos = position;
         float size = stats.burrowDetectionDistance;
 
         Collider2D[] overlapCols;
-        Vector2 boxDir = frameInput.Move == Vector2.zero ? FacingDirection * Vector2.right : frameInput.Move;
+        bool searching = frameInput.Move != Vector2.zero;
 
-        overlapCols = Physics2D.OverlapBoxAll(pos + 0.5f * size * boxDir, 
-            size * Vector2.one,
-            Mathf.Rad2Deg * Mathf.Atan2(boxDir.x, boxDir.y), 
-            sharedStats.sandLayerMask);
+        Vector2 boxDir = searching ? frameInput.Move : FacingDirection * Vector2.right;
 
-        for (int i = 0; i< overlapCols.Length; i++)
+        if(searching)
+            overlapCols = Physics2D.OverlapBoxAll(pos + 0.5f * size * boxDir,
+                size * Vector2.one,
+                Mathf.Rad2Deg * Mathf.Atan2(boxDir.x, boxDir.y),
+                sharedStats.sandLayerMask);
+        else
+            overlapCols = Physics2D.OverlapBoxAll(pos,
+                size * 2 * Vector2.one,
+                Mathf.Rad2Deg * Mathf.Atan2(boxDir.x, boxDir.y),
+                sharedStats.sandLayerMask);
+
+
+        for (int i = 0; i < overlapCols.Length; i++)
         {
             Collider2D col = overlapCols[i];
             if (col.transform.TryGetComponent(out ISand sand) && sand.IsBurrowable)
@@ -828,19 +862,46 @@ private void ExitEntryLaunch()
                             sandVisualiser.SetActive(true);
                             sandVisualiser.transform.position = hit.point;
 
-                            if (frameInput.SandDashDown)
+                            if (canSandDash)
                             {
                                 isFacingRight = Mathf.Sign(dir.x) == 1;
                                 Vector2 heightAdjustedEntryPoint = hit.point + -2 * PlayerHalfHeight * hit.normal;
                                 if (sand is SandBall)
-                                    heightAdjustedEntryPoint += -hit.normal * col.bounds.size;
-    
+                                    heightAdjustedEntryPoint += -hit.normal * col.bounds.size.x;
+
                                 return new SandEntryMovement.SandEntryData(heightAdjustedEntryPoint, sand);
                             }
                         }
                         else Debug.DrawLine(pos, entryPoint, Color.red);
                     }
                 }
+            }
+        }
+
+        return failedData;
+    }
+
+    private IStateSpecificTransitionData TransitionToDirectSandEntryDash()
+    {
+        if (!isEntryLaunching || entryLaunchProgress > stats.entryLaunchPercentToChain) return failedData;
+
+        Vector2 castVector = FrameDisplacement * 2;
+
+        float dist = castVector.magnitude;
+        Vector2 dir = castVector / dist;
+
+        RaycastHit2D hit = Physics2D.BoxCast
+            (position, col.bounds.size,
+            Mathf.Rad2Deg * Mathf.Atan2(dir.x, dir.y),
+            dir, dist, sharedStats.collisionLayerMask);
+        Vector2 diff = hit.point - position;
+
+        if (hit && hit.transform.TryGetComponent(out ISand sand) && sand.IsBurrowable)
+        {
+            if (Vector2.Dot(initialLaunchVel, diff / hit.distance) > 0)
+            {
+                Vector2 entryPoint = hit.point + dir * (PlayerHalfHeight + 0.5f);
+                return new SandEntryMovement.SandEntryData(entryPoint, sand);
             }
         }
 
@@ -856,13 +917,12 @@ private void ExitEntryLaunch()
 
         if (hit && hit.transform.TryGetComponent(out BurrowSand sand))
         {
-            if (hit && frameInput.SandDashDown && sand.IsBurrowable)
-            {
-                Vector2 entryPoint = hit.point + dir * (PlayerHalfHeight + 0.5f);
-                sandVisualiser.SetActive(true);
-                sandVisualiser.transform.position = entryPoint;
+            Vector2 entryPoint = hit.point + dir * (PlayerHalfHeight + 0.5f);
+            sandVisualiser.SetActive(true);
+            sandVisualiser.transform.position = entryPoint;
+
+            if (frameInput.SandDashDown && sand.IsBurrowable)
                 return new BurrowMovement.BurrowMovementTransitionData(dir, entryPoint);
-            }
         }
 
         return failedData;

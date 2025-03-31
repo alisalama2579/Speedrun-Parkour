@@ -4,6 +4,8 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(fileName = "PlayerBurrowMovementStats", menuName = "PlayerBurrowMovementStats")]
 public class BurrowMovementStats : ScriptableObject
 {
+    public float exitDetectionDistance;
+
     public float collisionDetectionDistance;
     [FormerlySerializedAs("speed")]
     public float acceleration;
