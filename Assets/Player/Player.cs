@@ -8,6 +8,8 @@ public class Player : MonoBehaviour
     private Collider2D col;
     private PlayerControls controls;
     private MovementStateMachine movementMachine;
+    public MovementStateMachine MovementMachine => movementMachine;
+
 
     [SerializeField] private PlayerAnimator animator;
     [SerializeField] private MovementStatsHolder movementStats;
@@ -20,7 +22,7 @@ public class Player : MonoBehaviour
         col = GetComponent<Collider2D>();
         rb = GetComponent<Rigidbody2D>();
 
-        movementMachine = new MovementStateMachine(typeof(LandMovement), movementStats, controls, rb, col);
+        movementMachine = new MovementStateMachine(typeof(LandMovement), movementStats, rb, col);
 
     }
 
@@ -76,7 +78,7 @@ public class Player : MonoBehaviour
 
     private void OnDeath()
     {
-        EventsHolder.InvokePlayerDeath();
+        EventsHolder.PlayerEvents.InvokePlayerDeath();
     }
 
     //Collisions
@@ -90,7 +92,7 @@ public class Player : MonoBehaviour
         //Triggers
         if (trigger != null)
         {
-            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) 
+            if (trigger.TryGetComponent(out IPlayerCollisionListener collisionListener)) 
             {
                 if (collisionListener is DamageDealer) OnDeath();
 
@@ -103,7 +105,7 @@ public class Player : MonoBehaviour
         //Colliders
         else if (collision != null)
         {
-            if (collision.transform.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) 
+            if (collision.transform.TryGetComponent(out IPlayerCollisionListener collisionListener)) 
             {
                 if (collisionListener is DamageDealer) OnDeath();
 
@@ -118,7 +120,7 @@ public class Player : MonoBehaviour
         //Triggers
         if (trigger != null)
         {
-            if (trigger.TryGetComponent(out IPlayerCollisionInteractor collisionListener))
+            if (trigger.TryGetComponent(out IPlayerCollisionListener collisionListener))
             { 
                 collisionListener.OnPlayerExit();
                 movementMachine?.TriggerExit(collisionListener);
@@ -129,7 +131,7 @@ public class Player : MonoBehaviour
         //Colliders
         else if (collision != null)
         {
-            if (collision.transform.TryGetComponent(out IPlayerCollisionInteractor collisionListener)) 
+            if (collision.transform.TryGetComponent(out IPlayerCollisionListener collisionListener)) 
             { 
                 collisionListener.OnPlayerExit();
                 movementMachine?.CollisionExit(collisionListener);

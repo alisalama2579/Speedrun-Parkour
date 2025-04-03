@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class DamageDealer : MonoBehaviour, IPlayerCollisionInteractor
+public class DamageDealer : MonoBehaviour, IPlayerCollisionListener
 {
     public void OnPlayerEnter()
     {

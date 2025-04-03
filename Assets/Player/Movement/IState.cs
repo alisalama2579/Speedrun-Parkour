@@ -16,8 +16,8 @@ public interface IState
     public virtual void TriggerEnter(Collider2D trigger) { }
     public virtual void TriggerExit(Collider2D trigger) { }
 
-    public virtual void CollisionEnter(IPlayerCollisionInteractor collisionListener) { }
-    public virtual void CollisionExit(IPlayerCollisionInteractor collisionListener) { }
-    public virtual void TriggerEnter(IPlayerCollisionInteractor collisionListener) { }
-    public virtual void TriggerExit(IPlayerCollisionInteractor collisionListener) { }
+    public virtual void CollisionEnter(IPlayerCollisionListener collisionListener) { }
+    public virtual void CollisionExit(IPlayerCollisionListener collisionListener) { }
+    public virtual void TriggerEnter(IPlayerCollisionListener collisionListener) { }
+    public virtual void TriggerExit(IPlayerCollisionListener collisionListener) { }
 }

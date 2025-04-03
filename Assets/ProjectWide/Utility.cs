@@ -1,6 +1,15 @@
 using UnityEngine;
 public static class Utility
 {
+    public enum CardinalDirections
+    {
+        Up,
+        Down, 
+        Left, 
+        Right
+    }
+
+
     public static Vector2 Vector2Slerp(Vector2 start, Vector2 end, float maxDelta)
     {
         // Dot product - the cosine of the angle between 2 vectors.

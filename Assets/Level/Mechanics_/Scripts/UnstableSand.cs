@@ -1,21 +1,11 @@
 using UnityEngine;
 
-public class UnstableSand : TraversableTerrain, IWallGrabbable, ISand, IUnstable
+public class UnstableSand : TraversableTerrain, IWallGrabbable, IUnstable
 {
     private Collider2D col;
     private Color originalColor;
     private bool isFading;
     private float fadedTime;
-    public bool IsBurrowable => false;
-
-    protected override void Awake()
-    {
-        base.Awake();
-        col = GetComponent<Collider2D>();
-        originalColor = sprite.color;
-
-        EventsHolder.OnPlayerLandOnStableGround += ResetSand;
-    }
 
     private void Update()
     {
@@ -37,9 +27,6 @@ public class UnstableSand : TraversableTerrain, IWallGrabbable, ISand, IUnstable
     }
 
     public override void OnEnterTerrain() => isFading = true;
-    public void OnSandTargetForBurrow(Vector2 _) { }
-    public void OnSandBurrowExit(Vector2 _, Vector2 pos) { }
-
 
     private void ResetSand()
     {
@@ -50,9 +37,32 @@ public class UnstableSand : TraversableTerrain, IWallGrabbable, ISand, IUnstable
         sprite.color = originalColor;
     }
 
+    protected override void Awake()
+    {
+        base.Awake();
+        col = GetComponent<Collider2D>();
+        originalColor = sprite.color;
+        EventsHolder.PlayerEvents.OnPlayerLandOnGround += OnPlayerLand;
+        EventsHolder.PlayerEvents.OnPlayerBurrow += OnPlayerBurrow;
+    }
+
+    private void OnPlayerLand(TraversableTerrain terrain)
+    {
+        if (terrain is not IUnstable) ResetSand();
+    }
+
+    private void OnPlayerBurrow(ISand sand)
+    {
+        if (sand is not UnstableBurrowSand) ResetSand();
+    }
+
+
     protected override void OnDisable()
     {
         base.OnDisable();
-        EventsHolder.OnPlayerLandOnStableGround -= ResetSand;
+
+        EventsHolder.PlayerEvents.OnPlayerLandOnGround -= OnPlayerLand;
+        EventsHolder.PlayerEvents.OnPlayerBurrow -= OnPlayerBurrow;
     }
+  
 }

@@ -6,16 +6,14 @@ public class BurrowMovement : IState
 {
     private readonly BurrowMovementStats stats;
     private readonly MovementStatsHolder sharedStats;
-    private readonly PlayerControls controls;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
 
     private float PlayerHalfWidth => col.bounds.extents.x;
     private float PlayerHalfHeight => col.bounds.extents.y;
 
-    public BurrowMovement(PlayerControls controls, Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
+    public BurrowMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
     {
-        this.controls = controls;
         this.col = col;
         sharedStats = stats;
         this.stats = stats.burrowStats;
@@ -34,6 +32,10 @@ public class BurrowMovement : IState
         {
             wishDir = moveDir = transitionData.EntryDir;
             rb.position = transitionData.EntryPos;
+
+            transitionData.EntrySand.OnSandBurrowEnter(wishDir, rb.position);
+            EventsHolder.PlayerEvents.InvokePlayerBurrow(transitionData.EntrySand);
+
             ExecuteDash();
         }
     }
@@ -228,11 +230,13 @@ public class BurrowMovement : IState
     {
         public Vector2 EntryDir { get; }
         public Vector2 EntryPos { get; }
+        public ISand EntrySand { get; }
 
-        public BurrowMovementTransitionData(Vector2 entryDir, Vector2 entryPos)
+        public BurrowMovementTransitionData(Vector2 entryDir, Vector2 entryPos, ISand entrySand)
         {
             EntryDir = entryDir;
             EntryPos = entryPos;
+            EntrySand = entrySand;
         }
     }
 
@@ -241,12 +245,10 @@ public class BurrowMovement : IState
         bool cachedStartInCol = Physics2D.queriesStartInColliders;
         Physics2D.queriesStartInColliders = true;
 
-        float errorMargin = 0.1f;
-
         //Ray is cast out to in, to prevent sand exit if there is terrain beyond sand
         Vector2 dir = VelocityDir;
-        Vector2 origin = rb.position + FrameDisplacement + dir * (PlayerHalfHeight + stats.exitDetectionDistance);
-        float distance = FrameDisplacement.magnitude + stats.exitDetectionDistance + errorMargin;
+        Vector2 origin = rb.position + FrameDisplacement + dir * PlayerHalfHeight;
+        float distance = FrameDisplacement.magnitude + stats.exitDetectionDistance;
 
         ISand sand = null;
         RaycastHit2D hit = Physics2D.Raycast(origin, -dir, distance, sharedStats.collisionLayerMask);
@@ -263,7 +265,7 @@ public class BurrowMovement : IState
             sand.OnSandBurrowExit(vel, rb.position);
 
             rb.position = hit.point + dir * PlayerHalfHeight;
-            return new LandMovement.LandMovementTransition(dir, isDashing);
+            return new LandMovement.LandMovementTransition(dir, isDashing, sand);
         }
 
         return failedData;

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph;
 using UnityEngine;
 using static TransitionLibrary;
 
@@ -14,6 +13,7 @@ public class MovementStateMachine
         => anyTransitions.Add(new Transition(GetNode(to).State, AnyTransitionFunc));
 
 
+    public IState GetStateObject(Type type) => GetNode(type).State;
     StateNode GetNode(Type type) => nodes.GetValueOrDefault(type);
     void AddNode(Type type, IState state) => nodes.Add(type, new StateNode(state));
 
@@ -40,11 +40,11 @@ public class MovementStateMachine
     Dictionary<Type, StateNode> nodes = new();
     HashSet<Transition> anyTransitions = new();
 
-    public MovementStateMachine(Type startingType, MovementStatsHolder statsHolder, PlayerControls controls, Rigidbody2D rb, Collider2D col)
+    public MovementStateMachine(Type startingType, MovementStatsHolder statsHolder, Rigidbody2D rb, Collider2D col)
     {
-        AddNode(typeof(LandMovement), new LandMovement(controls, rb, col, statsHolder));
-        AddNode(typeof(BurrowMovement), new BurrowMovement(controls, rb, col, statsHolder));
-        AddNode(typeof(SandEntryMovement), new SandEntryMovement(controls, rb, col, statsHolder));
+        AddNode(typeof(LandMovement), new LandMovement(rb, col, statsHolder));
+        AddNode(typeof(BurrowMovement), new BurrowMovement(rb, col, statsHolder));
+        AddNode(typeof(SandEntryMovement), new SandEntryMovement(rb, col, statsHolder));
         InitializeStateTransitions();
 
         SetStartingState(startingType);
@@ -72,9 +72,9 @@ public class MovementStateMachine
 
     public void Update(Player.Input frameInput)
     {
-        current.State?.Update(frameInput);
         var transition = GetTransition(out IStateSpecificTransitionData transitionData);
         if (transition != null) SwitchMovementState(transition.To, transitionData);
+        current.State?.Update(frameInput);
     }
 
     public void FixedUpdate() 
@@ -87,10 +87,10 @@ public class MovementStateMachine
     public void TriggerEnter(Collider2D trigger) => current.State?.TriggerEnter(trigger); 
     public void TriggerExit(Collider2D trigger) => current.State?.TriggerExit(trigger); 
 
-    public void CollisionEnter(IPlayerCollisionInteractor collisionListener) => current.State?.CollisionEnter(collisionListener);
-    public void CollisionExit(IPlayerCollisionInteractor collisionListener) => current.State?.CollisionExit(collisionListener);
-    public void TriggerEnter(IPlayerCollisionInteractor collisionListener) => current.State?.TriggerEnter(collisionListener);
-    public void TriggerExit(IPlayerCollisionInteractor collisionListener) => current.State?.TriggerExit(collisionListener);
+    public void CollisionEnter(IPlayerCollisionListener collisionListener) => current.State?.CollisionEnter(collisionListener);
+    public void CollisionExit(IPlayerCollisionListener collisionListener) => current.State?.CollisionExit(collisionListener);
+    public void TriggerEnter(IPlayerCollisionListener collisionListener) => current.State?.TriggerEnter(collisionListener);
+    public void TriggerExit(IPlayerCollisionListener collisionListener) => current.State?.TriggerExit(collisionListener);
 
 
     class StateNode

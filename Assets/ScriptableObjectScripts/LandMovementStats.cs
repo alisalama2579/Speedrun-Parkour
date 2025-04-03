@@ -5,8 +5,7 @@ using UnityEngine.Serialization;
 public class LandMovementStats : ScriptableObject
 {
     #region SandDash
-    public GameObject sandBurrowVisualiser;
-
+    public float sameSandTargetDelay;
     public float burrowDetectionDistance;
     public float sandDetectionDistance;
     public float sandOvershoot;
@@ -18,12 +17,10 @@ public class LandMovementStats : ScriptableObject
     [Space(5)]
 
     #region Launch
+    public float launchGroundWallDetectDelay;
     public float launchOpposingMovementFriction;
     public float maxLaunchMoveSpeed;
     public float launchDuration;
-    public Vector2 launchVel;
-    [FormerlySerializedAs("weakLaunchVel")]
-    public float weakLaunchSpeed;
     public AnimationCurve launchSpeedCurve;
     public AnimationCurve launchGravCurve;
     public AnimationCurve launchControlCurve;
@@ -88,9 +85,8 @@ public class LandMovementStats : ScriptableObject
     #region Dash
 
     [Header("Dash")]
-
-    public Vector2 horizontalDashVel;
-    public Vector2 diagonalDashVel;
+    [FormerlySerializedAs("horizontalDashVel")]
+    public Vector2 dashVel;
     public float dashDuration;
     public float dashOpposingMovementFriction;
 
@@ -141,6 +137,7 @@ public class LandMovementStats : ScriptableObject
     public float timeToFullSpeedFromWall;
     [FormerlySerializedAs("maxYVelocityForWallGrab")]
     public float maxYVelForWallGrab;
+    public float minVelForPushingWall;
 
     public float onWallGravity;
     [FormerlySerializedAs("wallJumpVelocity")]

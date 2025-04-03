@@ -2,15 +2,19 @@ using UnityEngine;
 
 public class SandEntryPointVisual : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [SerializeField] Player player;
+    private LandMovement landMovement;
+    private SpriteRenderer sprite;
+
+    private void Start()
     {
-        
+        landMovement = player.MovementMachine.GetStateObject(typeof(LandMovement)) as LandMovement;
+        sprite = GetComponent<SpriteRenderer>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+        sprite.color = landMovement.SandEntryPosValid ? Color.clear : Color.white;
+        transform.position = landMovement.TargetSandEntryPos;
     }
 }

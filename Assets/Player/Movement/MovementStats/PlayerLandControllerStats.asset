@@ -12,17 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
-  sandBurrowVisualiser: {fileID: 6072825807376278277, guid: ab47a182543a97141ba95f1c8dec4e4a, type: 3}
+  sameSandTargetDelay: 0.2
   burrowDetectionDistance: 40
   sandDetectionDistance: 40
   sandOvershoot: 10
-  sandDashBuffer: 0.2
-  entryLaunchPercentToChain: 0.54
+  sandDashBuffer: 0.1
+  entryLaunchPercentToChain: 0.213
+  launchGroundWallDetectDelay: 0.2
   launchOpposingMovementFriction: 0.5
-  maxLaunchMoveSpeed: 120
+  maxLaunchMoveSpeed: 170
   launchDuration: 2
-  launchVel: {x: 140, y: 175}
-  weakLaunchSpeed: 60
   launchSpeedCurve:
     serializedVersion: 2
     m_Curve:
@@ -76,10 +75,10 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.3829956
-      inSlope: 2
-      outSlope: 2
-      tangentMode: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -88,7 +87,7 @@ MonoBehaviour:
       value: 1
       inSlope: 0
       outSlope: 0
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0
@@ -121,8 +120,7 @@ MonoBehaviour:
   jumpVelocity: 90
   jumpApexRange: 5
   gravAfterFalloffMultiplier: 3
-  horizontalDashVel: {x: 160, y: 10}
-  diagonalDashVel: {x: 100, y: 100}
+  dashVel: {x: 140, y: 10}
   dashDuration: 0.15
   dashOpposingMovementFriction: 50
   dashSpeedCurve:
@@ -138,8 +136,8 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0.6117276
     - serializedVersion: 3
-      time: 1
-      value: 0.066352844
+      time: 1.0098877
+      value: 0.47971344
       inSlope: -2.2678835
       outSlope: -2.2678835
       tangentMode: 0
@@ -203,16 +201,17 @@ MonoBehaviour:
   groundingPush: 0
   maxCeilNormal: -1
   minGroundNormal: 0.1
-  skinWidth: 0.05
-  groundedDistance: 0.14
+  skinWidth: 0.1
+  groundedDistance: 0.19
   groundSnapDistance: 0.2
-  ceilingDistance: 0.25
-  ledgeGrabDistance: 0.1
+  ceilingDistance: 0.3
+  ledgeGrabDistance: 0.3
   wallTag: WallGrabbable
   wallDetectionDistance: 0.15
   wallNormalRange: 0.1
   timeToFullSpeedFromWall: 0.1
   maxYVelForWallGrab: 0
+  minVelForPushingWall: 0
   onWallGravity: 70
   wallJumpVel: 140
   wallJumpUpBias: 0.7

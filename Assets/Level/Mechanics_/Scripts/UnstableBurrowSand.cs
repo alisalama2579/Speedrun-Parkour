@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class UnstableBurrowSand : TraversableTerrain, IWallGrabbable, ISand, IUnstable
@@ -7,15 +8,8 @@ public class UnstableBurrowSand : TraversableTerrain, IWallGrabbable, ISand, IUn
     private bool isFading;
     private float fadedTime;
     public bool IsBurrowable => !isFading && col.enabled;
-
-    protected override void Awake()
-    {
-        base.Awake();
-        col = GetComponent<Collider2D>();
-        originalColor = sprite.color;
-
-        EventsHolder.OnPlayerLandOnStableGround += ResetSand;
-    }
+    public float LaunchSpeed => stats.sandLaunchSpeed;
+    public float WeakLaunchSpeed => LaunchSpeed;
 
     private void Update()
     {
@@ -42,7 +36,6 @@ public class UnstableBurrowSand : TraversableTerrain, IWallGrabbable, ISand, IUn
         col.enabled = false;
         isFading = true;
     }
-    public void OnSandBurrowExit(Vector2 _, Vector2 pos) { }
 
     private void ResetSand()
     {
@@ -53,9 +46,35 @@ public class UnstableBurrowSand : TraversableTerrain, IWallGrabbable, ISand, IUn
         sprite.color = originalColor;
     }
 
+
+    protected override void Awake()
+    {
+        base.Awake();
+        col = GetComponent<Collider2D>();
+        originalColor = sprite.color;
+        EventsHolder.PlayerEvents.OnPlayerLandOnGround += OnPlayerLand;
+        EventsHolder.PlayerEvents.OnPlayerBurrow += OnPlayerBurrow;
+    }
+
+    private void OnPlayerLand(TraversableTerrain terrain) 
+    {
+        if (terrain is not IUnstable) ResetSand();
+    }
+
+    private void OnPlayerBurrow(ISand sand)
+    {
+        if (sand is not UnstableBurrowSand) ResetSand();
+    }
+
+
     protected override void OnDisable()
     {
         base.OnDisable();
-        EventsHolder.OnPlayerLandOnStableGround -= ResetSand;
+
+        EventsHolder.PlayerEvents.OnPlayerLandOnGround -= OnPlayerLand;
+        EventsHolder.PlayerEvents.OnPlayerBurrow -= OnPlayerBurrow;
     }
+
+    public void OnSandBurrowExit(Vector2 _, Vector2 pos) { }
+    public void OnSandBurrowEnter(Vector2 _, Vector2 pos) { }
 }
