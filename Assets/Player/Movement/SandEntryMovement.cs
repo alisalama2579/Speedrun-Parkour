@@ -8,7 +8,7 @@ public class SandEntryMovement : IState
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
 
-    public SandEntryMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
+    public SandEntryMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats, MovementStateMachine.MovementData data)
     {
         this.col = col;
         this.stats = stats.interStateDashStats;
@@ -47,6 +47,7 @@ public class SandEntryMovement : IState
             targetIsBurrowSand = entrySand is BurrowSand;
 
             entrySand.OnSandTargetForBurrow(dir * stats.entrySpeed);
+
             if (entrySand is SandBall ball)
                 durationToSandTouch = duration - (ball.GetComponent<CircleCollider2D>().radius / stats.entrySpeed);
             else
@@ -74,6 +75,8 @@ public class SandEntryMovement : IState
 
     public void Update(Player.Input _) 
     {
+        t += Time.deltaTime;
+
         CheckSandEntryInvokation();
     }
 
@@ -82,8 +85,8 @@ public class SandEntryMovement : IState
         if (!targetIsBurrowSand && !sandTouched && t >= durationToSandTouch)
         {
             sandTouched = true;
-            entrySand.OnSandBurrowEnter(dir * stats.entrySpeed, pos);
-            EventsHolder.PlayerEvents.InvokePlayerBurrow(entrySand);
+            entrySand.OnSandExit(dir * stats.entrySpeed, pos);
+            EventsHolder.PlayerEvents.OnPlayerEnterSand?.Invoke(entrySand);
         }
     }
 
@@ -93,11 +96,11 @@ public class SandEntryMovement : IState
     public void UpdateMovement()
     {
         rb.linearVelocity = Vector2.zero;
-        t += Time.deltaTime;
 
         pos = Vector2.Lerp(startingPoint, exitPoint, t/duration);
         col.transform.position = new Vector3(pos.x, pos.y, col.transform.position.z);
     }
+
 
     public IStateSpecificTransitionData TransitionToBurrow()
     {
@@ -108,11 +111,14 @@ public class SandEntryMovement : IState
         return failedData;
     }
 
+
     public IStateSpecificTransitionData TransitionToLand()
     {
         if (t >= duration && !targetIsBurrowSand)
         {
-            entrySand.OnSandBurrowExit(dir * stats.entrySpeed, pos);
+            entrySand.OnSandEnter(dir * stats.entrySpeed, pos);
+            EventsHolder.PlayerEvents.OnPlayerExitSand?.Invoke(entrySand);
+
             return new LandMovement.LandMovementTransition(dir, true, entrySand);
         }
         return failedData;

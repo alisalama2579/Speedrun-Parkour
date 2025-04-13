@@ -18,10 +18,10 @@ MonoBehaviour:
   sandOvershoot: 10
   sandDashBuffer: 0.1
   entryLaunchPercentToChain: 0.213
-  launchGroundWallDetectDelay: 0.2
+  launchGroundWallDetectDelay: 0.3
   launchOpposingMovementFriction: 0.5
-  maxLaunchMoveSpeed: 170
-  launchDuration: 2
+  maxLaunchMoveSpeed: 140
+  launchDuration: 1
   launchSpeedCurve:
     serializedVersion: 2
     m_Curve:
@@ -94,16 +94,16 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  maxLandSpeed: 80
-  minLandSpeed: 50
+  maxLandSpeed: 100
+  minLandSpeed: 80
   minAcceleration: 100
   maxAcceleration: 200
-  minDeceleration: 90
-  maxDeceleration: 100
+  minDeceleration: 100
+  maxDeceleration: 200
   turningAccelerationMultiplier: 3
   wallJumpHorizontalDeceleration: 70
-  airAccelerationMultiplier: 0.9
-  airSpeedMultiplier: 0.9
+  airAccelerationMultiplier: 0.75
+  airSpeedMultiplier: 0.75
   apexSpeedIncrease: 5
   wallJumpMomentumIncrease: 0.07
   jumpMomentumIncrease: 0.2
@@ -122,27 +122,27 @@ MonoBehaviour:
   gravAfterFalloffMultiplier: 3
   dashVel: {x: 140, y: 10}
   dashDuration: 0.15
-  dashOpposingMovementFriction: 50
+  dashOpposingMovementFriction: 10
   dashSpeedCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0.0036780238
-      value: 0.9994778
-      inSlope: 0.0030022059
-      outSlope: 0.0030022059
+      time: -0.012980759
+      value: 0.71525234
+      inSlope: 0.61414033
+      outSlope: 0.61414033
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0.6117276
+      outWeight: 0.07284772
     - serializedVersion: 3
       time: 1.0098877
-      value: 0.47971344
-      inSlope: -2.2678835
-      outSlope: -2.2678835
+      value: 0.48072052
+      inSlope: -1.7852023
+      outSlope: -1.7852023
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.059602614
+      inWeight: 0.046357695
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2

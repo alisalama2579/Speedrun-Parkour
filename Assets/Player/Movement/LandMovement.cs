@@ -8,16 +8,18 @@ public class LandMovement : IState
     private readonly LandMovementStats stats;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
+    private readonly MovementStateMachine.MovementData data;
 
     private float PlayerHalfWidth => col.bounds.extents.x;
     private float PlayerHalfHeight => col.bounds.extents.y;
 
-    public LandMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
+    public LandMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats, MovementStateMachine.MovementData data)
     {
         this.col = col;
         sharedStats = stats;
         this.stats = stats.landStats;
         this.rb = rb;
+        this.data = data;
     }
 
     public void InitializeTransitions(MovementStateMachine controller)
@@ -26,6 +28,12 @@ public class LandMovement : IState
         controller.AddTransition(GetType(), typeof(SandEntryMovement), TransitionToDirectSandEntryDash);
         controller.AddTransition(GetType(), typeof(BurrowMovement), TransitionToSandEntry);
 
+        data.OnChangeWall = OnPlayerChangedWall;
+        data.OnChangeGround = OnPlayerChangedGround;
+        data.OnDash = OnPlayerDash;
+        data.OnJump = OnPlayerJump;
+        data.OnWallJump = OnPlayerWallJump;
+        data.OnMove = OnPlayerMove;
     }
 
     public void EnterState(IStateSpecificTransitionData lastStateData)
@@ -65,6 +73,7 @@ public class LandMovement : IState
         HandleInput(frameInput);
         UpdateSandDash();
     }
+
     public void HandleInput(Player.Input frameInput)
     {
         this.frameInput = frameInput;
@@ -113,19 +122,16 @@ public class LandMovement : IState
     private float horizontalVel;
     private float verticalVel;
 
-    public event Action Jumped;
-    public event Action WallJumped;
-    public event Action<float> Moved;
-
+    private bool isFacingRight;
+    public int FacingDirection => isFacingRight ? 1 : -1;
     private Vector2 FrameDisplacement => vel * fixedDeltaTime;
+
     /// <summary>
     /// Between 0 and 1, how strongly the desired input opposes with the current velocity
     /// </summary>
     private float VelocityOpposingMovementStrength(Vector2 vel) => Mathf.Clamp01(1 - Mathf.Abs(vel.normalized.x + FacingDirection));
 
     #region ExternalEffectors
-    private bool isFacingRight;
-    private int FacingDirection => isFacingRight ? 1 : -1;
     private float SlipMultiplier => wasOnSlipperyGround ? 1 / stats.slipStrength : 1;
 
     private bool isBeingSlowed;
@@ -226,9 +232,9 @@ private void ExitEntryLaunch()
         wasOnSlipperyGround = newTerrain is SlipperyGround;
 
         if (interactionType == TerrainInteractionType.Wall)
-            EventsHolder.PlayerEvents.InvokePlayerGrabWall(newTerrain);
+            EventsHolder.PlayerEvents.OnPlayerGrabWall?.Invoke(newTerrain);
         if (interactionType == TerrainInteractionType.Ground)
-            EventsHolder.PlayerEvents.InvokePlayerLandOnGround(newTerrain);
+            EventsHolder.PlayerEvents.OnPlayerLandOnGround?.Invoke(newTerrain);
 
         newTerrain.OnEnterTerrain();
     }
@@ -315,6 +321,9 @@ private void ExitEntryLaunch()
     #endregion
 
     #region Wall
+
+    public event Action<bool, TraversableTerrain> OnPlayerChangedWall;
+
     public bool isOnWall { get; private set; }
     private bool isPushingWall;
     private Vector2 wallNormal;
@@ -403,6 +412,7 @@ private void ExitEntryLaunch()
         if (time < stats.launchGroundWallDetectDelay) return;
 
         isOnWall = newWall;
+        OnPlayerChangedWall?.Invoke(newWall, terrainOn);
 
         if (isOnWall)
         {
@@ -425,7 +435,7 @@ private void ExitEntryLaunch()
     #region Ground
     private bool isGrounded;
     private bool wasOnSlipperyGround;
-
+    public event Action<bool, float, TraversableTerrain> OnPlayerChangedGround;
     public bool IsGrounded => isGrounded;
 
     private void HandleGround(RaycastHit2D bottomLeftHit, RaycastHit2D bottomMiddleHit, RaycastHit2D bottomRightHit)
@@ -463,6 +473,9 @@ private void ExitEntryLaunch()
         if (time < stats.launchGroundWallDetectDelay) return;
 
         isGrounded = newGrounded;
+
+        float impact = 1;
+        OnPlayerChangedGround?.Invoke(newGrounded, impact, terrainOn);
 
         if (isGrounded)
         {
@@ -503,6 +516,8 @@ private void ExitEntryLaunch()
 
     #region HorizontalMovement
 
+    public event Action<float, TraversableTerrain> OnPlayerMove;
+
     private float targetSpeed;
     private float currentMaxSpeed;
     private float acceleration;
@@ -524,7 +539,9 @@ private void ExitEntryLaunch()
             ? Mathf.Clamp01((time - timeLeftSurface) / stats.timeToFullSpeedFromWall)
             : 1;
 
-        acceleration = Mathf.Abs(moveInput) > 0
+        bool hasMoveInput = Mathf.Abs(moveInput) > 0;
+
+        acceleration = hasMoveInput
             ? Mathf.Lerp(stats.minAcceleration, stats.maxAcceleration, momentum) * turningMult   //acceleration
             : Mathf.Lerp(stats.minDeceleration, stats.maxDeceleration, momentum);                //deceleration
 
@@ -541,11 +558,16 @@ private void ExitEntryLaunch()
         float speed = Mathf.MoveTowards(horizontalVel, targetSpeed, acceleration * fixedDeltaTime) * wallExitMult;
         horizontalDelta = speed - horizontalVel;
         horizontalVel = speed;
+
+        if (hasMoveInput) OnPlayerMove?.Invoke(horizontalVel, terrainOn);
     }
 
     #endregion
 
     #region Jump
+
+    public event Action OnPlayerJump;
+    public event Action OnPlayerWallJump;
 
     private enum LastSurfaceType
     {
@@ -621,7 +643,7 @@ private void ExitEntryLaunch()
 
     private void WallJump()
     {
-        WallJumped?.Invoke();
+        OnPlayerWallJump?.Invoke();
         Vector2 jumpVel = stats.wallJumpVel * Vector2.LerpUnclamped(wallNormal, Vector2.up, stats.wallJumpUpBias);
 
         verticalVel = jumpVel.y;
@@ -632,7 +654,7 @@ private void ExitEntryLaunch()
     }
     private void GroundJump()
     {
-        Jumped?.Invoke();
+        OnPlayerJump?.Invoke();
 
         verticalVel = stats.jumpVelocity;
         ApplyMomentum(stats.jumpMomentumIncrease);
@@ -688,6 +710,8 @@ private void ExitEntryLaunch()
     private Vector2 dashVel;
     private Vector2 targetDashVel;
 
+    public event Action OnPlayerDash;
+
     private void HandleDash()
     {
         float timePercent = Mathf.Clamp01((time - timeDashed) / stats.dashDuration);
@@ -738,6 +762,8 @@ private void ExitEntryLaunch()
 
     private void ExecuteDash()
     {
+        OnPlayerDash?.Invoke();
+
         isDashing = true;
         timeDashed = time;
         dashUsed = true;
@@ -834,6 +860,7 @@ private void ExitEntryLaunch()
     {
         timeSandDashRequested = float.MinValue;
         sandDashRequested = false;
+        SandEntryPosValid = false;
     }
 
     private void UpdateSandDash()

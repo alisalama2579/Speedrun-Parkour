@@ -1,87 +1,137 @@
 using UnityEngine;
-using static UnityEngine.Mathf;
 
-
-/// <summary>
-///  Temporary, will be replaced later with a sprite-based animation system
-/// </summary>
 public class PlayerAnimator : MonoBehaviour
 {
-    #region AnimationStatesAndValues
-    public enum PlayerAnimationState
-    {
-        OnGround,
-        InAir,
-        OnWall
-    }
+    //[Header("References")]
+    //[SerializeField]
+    //private Animator animator;
+    //[SerializeField] private SpriteRenderer sprite;
+
+    //[Header("Settings")]
+    //[SerializeField, Range(1f, 3f)]
+    //private float maxIdleSpeed = 2;
+
+    //[SerializeField] private float _maxTilt = 5;
+    //[SerializeField] private float _tiltSpeed = 20;
+
+    //[Header("Particles")][SerializeField] private ParticleSystem jumpParticles;
+    //[SerializeField] private ParticleSystem _launchParticles;
+    //[SerializeField] private ParticleSystem moveParticles;
+    //[SerializeField] private ParticleSystem landParticles;
+
+    //[SerializeField] private PlayerController controller;
+    //private bool grounded;
+    //private bool onWall;
+    //private ParticleSystem.MinMaxGradient _currentGradient;
+
+    //private MovementStateMachine.MovementData movementData;
+
+    //private void Awake()
+    //{
+    //    EventsHolder.PlayerEvents.OnPlayerJump += OnJumped;
+    //    movementData = controller.MovementMachine.Data;
+
+    //    if(movementData != null) movementData.OnChangeGround += OnGroundedChanged;
+    //    moveParticles.Play();
+    //}
+
+    //private void OnDestroy()
+    //{
+    //    if (movementData != null) movementData.OnChangeGround -= OnGroundedChanged;
+
+    //    moveParticles.Stop();
+    //}
 
 
-    public struct AnimationValues
-    {
-        public float moveInput;
-        public Vector2 velocity;
-        public bool isGrounded;
-        public bool isOnWall;
-    }
+    //private float frameInputHorizontalMove;
+    //private void Update()
+    //{
+    //    if (controller == null) return;
 
-    [HideInInspector] public AnimationValues animationFrameValues;
-    [HideInInspector] public PlayerAnimationState animationState;
+    //    HandleSpriteFlip();
 
-    #endregion
+    //    HandleIdleSpeed();
 
-    [SerializeField] private PlayerAnimatorStats stats;
-    [SerializeField] public Animation[] animations;
+    //    HandleCharacterTilt();
+    //}
 
-    public float xSpeed { get; private set; }
-    public float ySpeed { get; private set; }
+    //private void HandleSpriteFlip()
+    //{
+    //    if (frameInputHorizontalMove != 0) sprite.flipX = frameInputHorizontalMove < 0;
+    //}
 
-    public void InitializeAnimator() 
-    {
-        for (int i = 0; i < animations.Length; i++)
-        {
-            animations[i].InitializeAnimation(stats, this);
-        }
-    }
+    //private void HandleIdleSpeed()
+    //{
+    //    var inputStrength = Mathf.Abs(frameInputHorizontalMove);
+    //    animator.SetFloat(IdleSpeedKey, Mathf.Lerp(1, maxIdleSpeed, inputStrength));
+    //    moveParticles.transform.localScale = Vector3.MoveTowards(moveParticles.transform.localScale, Vector3.one * inputStrength, 2 * Time.deltaTime);
+    //}
 
-    private float lastMoveInput;
-    public void UpdateAnimator(AnimationValues animationValues)
-    {
-        animationFrameValues = animationValues;
+    //private void HandleCharacterTilt()
+    //{
+    //    var runningTilt = grounded
+    //        ? Quaternion.Euler(0, 0, _maxTilt * frameInputHorizontalMove)
+    //        : Quaternion.identity;
+    //    animator.transform.up = Vector3.RotateTowards(animator.transform.up, runningTilt * Vector2.up, _tiltSpeed * Time.deltaTime, 0f);
+    //}
 
-        if (animationFrameValues.moveInput == 0) animationFrameValues.moveInput = lastMoveInput;
-        lastMoveInput = animationFrameValues.moveInput;
+    //private void OnJumped(TraversableTerrain _)
+    //{
+    //    animator.SetTrigger(JumpKey);
+    //    animator.ResetTrigger(GroundedKey);
 
-        xSpeed = Clamp01(Abs(animationFrameValues.velocity.x) / stats.maxPlayerAnimationSpeed);
-        ySpeed = Clamp01(Abs(animationFrameValues.velocity.y) / stats.maxPlayerAnimationSpeed);
+    //    if (grounded) // Avoid coyote
+    //    {
+    //        jumpParticles.Play();
+    //    }
+    //}
 
-        for (int i = 0; i < animations.Length; i++) animations[i].UpdateAnimation();
+    //private void OnGrabWall(TraversableTerrain _)
+    //{
 
-        PlayerAnimationState newAnimationState;
-        if (animationFrameValues.isGrounded) newAnimationState = PlayerAnimationState.OnGround;
-        else if (animationFrameValues.isOnWall) newAnimationState = PlayerAnimationState.OnWall;
-        else newAnimationState = PlayerAnimationState.InAir;
+    //}
 
-        if (animationState != newAnimationState)
-        {
-            for (int i = 0; i < animations.Length; i++) animations[i].HandleStateTransition(newAnimationState);
-            animationState = newAnimationState;
-            return;
-        }
+    //private void OnGroundedChanged(bool newGrounded, float impact, TraversableTerrain _)
+    //{
+    //    grounded = newGrounded;
 
-        animationState = newAnimationState;
-        switch (animationState)
-        {
-            case PlayerAnimationState.OnWall:
-                for (int i = 0; i < animations.Length; i++) animations[i].HandleWall();
-                break;   
-            
-            case PlayerAnimationState.InAir:
-                for (int i = 0; i < animations.Length; i++) animations[i].HandleAir();
-                break;
+    //    if (newGrounded)
+    //    {
+    //        animator.SetTrigger(GroundedKey);
+    //        //source.PlayOneShot(footsteps[Random.Range(0, footsteps.Length)]);
+    //        moveParticles.Play();
 
-            case PlayerAnimationState.OnGround:
-                for (int i = 0; i < animations.Length; i++) animations[i].HandleGround();
-                break;
-        }
-    }
+    //        landParticles.transform.localScale = Vector3.one * Mathf.InverseLerp(0, 40, impact);
+    //        landParticles.Play();
+    //    }
+    //    else
+    //    {
+    //        moveParticles.Stop();
+    //    }
+    //}
+
+    //private void OnWallChanged(bool newIsOnWall, float grabPoint)
+    //{
+    //    onWall = newIsOnWall;
+
+    //    if (newIsOnWall)
+    //    {
+    //        animator.SetTrigger(WallKey);
+    //        //source.PlayOneShot(footsteps[Random.Range(0, footsteps.Length)]);
+    //        //source.PlayOneShot(wallSlide);
+    //        moveParticles.Play();
+
+    //        landParticles.transform.localScale = Vector3.one;
+    //        landParticles.Play();
+    //    }
+    //    else
+    //    {
+    //        moveParticles.Stop();
+    //    }
+    //}
+
+    //private static readonly int GroundedKey = Animator.StringToHash("Grounded");
+    //private static readonly int WallKey = Animator.StringToHash("OnWall");
+    //private static readonly int IdleSpeedKey = Animator.StringToHash("IdleSpeed");
+    //private static readonly int JumpKey = Animator.StringToHash("Jump");
 }

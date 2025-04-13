@@ -15,6 +15,7 @@ public class LevelMechanicStats : ScriptableObject
     public float sandLaunchSpeed;
     public float burrowLaunchSpeed;
     public float burrowWeakLaunchSpeed;
+    public float sandColliderReactivationDelay;
 
     #endregion
 

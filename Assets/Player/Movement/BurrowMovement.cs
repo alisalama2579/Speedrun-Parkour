@@ -1,3 +1,4 @@
+using System;
 using UnityEditor.Overlays;
 using UnityEngine;
 using static TransitionLibrary;
@@ -8,16 +9,19 @@ public class BurrowMovement : IState
     private readonly MovementStatsHolder sharedStats;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
-
-    private float PlayerHalfWidth => col.bounds.extents.x;
+    private readonly MovementStateMachine.MovementData data;
     private float PlayerHalfHeight => col.bounds.extents.y;
 
-    public BurrowMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
+    public BurrowMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats, MovementStateMachine.MovementData data)
     {
         this.col = col;
         sharedStats = stats;
         this.stats = stats.burrowStats;
         this.rb = rb;
+        this.data = data;
+
+        data.OnBurrowMovementEnter = OnPlayerEnterBurrow;
+        data.OnBurrowMovementExit = OnPlayerExitBurrow;
     }
 
 
@@ -26,6 +30,8 @@ public class BurrowMovement : IState
         controller.AddTransition(GetType(), typeof(LandMovement), TransitionToLand);
     }
 
+    public event Action OnPlayerEnterBurrow;
+
     public void EnterState(IStateSpecificTransitionData lastStateData) 
     {
         if (lastStateData is BurrowMovementTransitionData transitionData)
@@ -33,19 +39,27 @@ public class BurrowMovement : IState
             wishDir = moveDir = transitionData.EntryDir;
             rb.position = transitionData.EntryPos;
 
-            transitionData.EntrySand.OnSandBurrowEnter(wishDir, rb.position);
-            EventsHolder.PlayerEvents.InvokePlayerBurrow(transitionData.EntrySand);
+            transitionData.EntrySand.OnSandExit(wishDir, rb.position);
+
+            entrySand = transitionData.EntrySand;
+            EventsHolder.PlayerEvents.OnPlayerEnterSand?.Invoke(entrySand);
 
             ExecuteDash();
         }
+
+        OnPlayerEnterBurrow?.Invoke();
     }
 
+    public event Action OnPlayerExitBurrow;
     public void ExitState() 
     {
         ResetAllVelocities();
         ExitDash();
         ExitBounce();
         time = 0;
+
+        EventsHolder.PlayerEvents.OnPlayerExitSand?.Invoke(entrySand);
+        OnPlayerExitBurrow?.Invoke();
     }
 
 
@@ -53,6 +67,8 @@ public class BurrowMovement : IState
 
     private float deltaTime;
     private float time;
+
+    private ISand entrySand;
 
     public void Update(Player.Input frameInput)
     {
@@ -256,13 +272,13 @@ public class BurrowMovement : IState
 
         bool canExit = hit
             && hit.transform.TryGetComponent(out sand)
-            && sand is BurrowSand;
+            && sand == entrySand;
 
         Debug.DrawLine(origin, origin - dir * distance, canExit ? Color.green : Color.red);
 
         if (canExit)
         {
-            sand.OnSandBurrowExit(vel, rb.position);
+            sand.OnSandEnter(vel, rb.position);
 
             rb.position = hit.point + dir * PlayerHalfHeight;
             return new LandMovement.LandMovementTransition(dir, isDashing, sand);

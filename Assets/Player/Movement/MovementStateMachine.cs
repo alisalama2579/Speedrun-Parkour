@@ -40,11 +40,16 @@ public class MovementStateMachine
     Dictionary<Type, StateNode> nodes = new();
     HashSet<Transition> anyTransitions = new();
 
+    private MovementData data;
+    public MovementData Data => data;
+
     public MovementStateMachine(Type startingType, MovementStatsHolder statsHolder, Rigidbody2D rb, Collider2D col)
     {
-        AddNode(typeof(LandMovement), new LandMovement(rb, col, statsHolder));
-        AddNode(typeof(BurrowMovement), new BurrowMovement(rb, col, statsHolder));
-        AddNode(typeof(SandEntryMovement), new SandEntryMovement(rb, col, statsHolder));
+        data = new MovementData();
+
+        AddNode(typeof(LandMovement), new LandMovement(rb, col, statsHolder, data));
+        AddNode(typeof(BurrowMovement), new BurrowMovement(rb, col, statsHolder, data));
+        AddNode(typeof(SandEntryMovement), new SandEntryMovement(rb, col, statsHolder, data));
         InitializeStateTransitions();
 
         SetStartingState(startingType);
@@ -72,9 +77,9 @@ public class MovementStateMachine
 
     public void Update(Player.Input frameInput)
     {
+        current.State?.Update(frameInput);
         var transition = GetTransition(out IStateSpecificTransitionData transitionData);
         if (transition != null) SwitchMovementState(transition.To, transitionData);
-        current.State?.Update(frameInput);
     }
 
     public void FixedUpdate() 
@@ -107,4 +112,16 @@ public class MovementStateMachine
         public void AddTransition(IState state, Func<IStateSpecificTransitionData> func) => Transitions.Add(new Transition(state, func));
     }
 
+
+    public class MovementData
+    {
+        public Action OnJump;
+        public Action OnWallJump;
+        public Action OnDash;
+        public Action<float, TraversableTerrain> OnMove;
+        public Action<bool, float, TraversableTerrain> OnChangeGround;
+        public Action<bool, TraversableTerrain> OnChangeWall;
+        public Action OnBurrowMovementEnter;
+        public Action OnBurrowMovementExit;
+    }
 }
