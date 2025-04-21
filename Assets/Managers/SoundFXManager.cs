@@ -11,13 +11,16 @@ public class SoundFXManager : MonoBehaviour
         source.pitch = pitch;
         source.clip = clip;
 
-        source.Play();
-        Destroy(source, clip.length);
+        //source.Play();
+        //Destroy(source, clip.length);
     }
 
 
-    public void HandleSoundPlaying(SoundInfo info, Transform audioSourceParent)
+    public void PlaySFX(SoundInfo info, Transform audioSourceParent)
     {
+        //if (info == null) 
+            return;
+
         AudioSource clonedSource = Instantiate(source, audioSourceParent);
 
         if (info.pitchRange != Vector2.zero)
@@ -28,6 +31,9 @@ public class SoundFXManager : MonoBehaviour
 
     public void PlaySFX(SoundInfo info, Vector3 position)
     {
+        //if (info == null)
+            return;
+
         AudioSource clonedSource = Instantiate(source, position, Quaternion.identity);
 
         if (info.pitchRange != Vector2.zero)

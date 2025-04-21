@@ -12,12 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
+  directionDetectionSize: 1
   sameSandTargetDelay: 0.2
-  burrowDetectionDistance: 40
   sandDetectionDistance: 40
+  sandDashDetectionDistance: 40
   sandOvershoot: 10
-  sandDashBuffer: 0.1
-  entryLaunchPercentToChain: 0.213
+  directSandDashDetectionDistance: 1
+  sandDashBuffer: 0.2
+  entryLaunchPercentToChain: 0.1
   launchGroundWallDetectDelay: 0.3
   launchOpposingMovementFriction: 0.5
   maxLaunchMoveSpeed: 140
@@ -207,7 +209,7 @@ MonoBehaviour:
   ceilingDistance: 0.3
   ledgeGrabDistance: 0.3
   wallTag: WallGrabbable
-  wallDetectionDistance: 0.15
+  wallDetectionDistance: 0.2
   wallNormalRange: 0.1
   timeToFullSpeedFromWall: 0.1
   maxYVelForWallGrab: 0

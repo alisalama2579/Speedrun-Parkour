@@ -7,7 +7,7 @@ public class RaceEndUI : UIBase
 
     private void Awake() => sprite = GetComponent<SpriteRenderer>();
 
-    public override void StartUI()
+    public override void Display()
     {
         StartCoroutine(UIAnimation());
     }

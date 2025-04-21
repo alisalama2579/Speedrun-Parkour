@@ -1,5 +1,5 @@
 using UnityEngine;
-public static class Utility<T>
+public static class Utility
 {
     public enum CardinalDirections
     {
@@ -29,5 +29,11 @@ public static class Utility<T>
         return ((start * Mathf.Cos(theta)) + (relativeVec * Mathf.Sin(theta)));
     }
 
-    public static T GetRandomFromArray (params T[] array) => array[Random.Range(0, array.Length)];
+    public static float GetVector2Angle(Vector2 v) => Mathf.Rad2Deg * Mathf.Atan2(v.x, v.y);
+    public static float GetVector2Radian(Vector2 v) => Mathf.Atan2(v.x, v.y);
+}
+
+public static class RandomArray<T>
+{
+    public static T GetRandomFromArray(params T[] array) => array[Random.Range(0, array.Length)];
 }

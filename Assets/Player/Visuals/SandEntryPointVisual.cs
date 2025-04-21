@@ -8,12 +8,16 @@ public class SandEntryPointVisual : MonoBehaviour
 
     private void Start()
     {
-        landMovement = controller.MovementMachine.GetStateObject(typeof(LandMovement)) as LandMovement;
+        if (controller == null) return;
+
+        landMovement = controller.StateMachine.GetStateObject(typeof(LandMovement)) as LandMovement;
         sprite = GetComponent<SpriteRenderer>();
     }
 
     private void Update()
     {
+        if (landMovement == null) return;
+
         sprite.color = landMovement.SandEntryPosValid ? Color.white : Color.clear;
         transform.position = landMovement.TargetSandEntryPos;
     }

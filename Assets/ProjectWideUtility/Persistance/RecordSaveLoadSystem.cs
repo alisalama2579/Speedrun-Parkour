@@ -1,48 +1,25 @@
-using UnityEngine;
-using System.IO;
-using UnityEngine.SceneManagement;
-
 namespace System.Persistence
 {
     public static class RecordSaveLoadSystem
     {
-        const string NEW_RECORD_NAME = "New Record";
+        const string NEW_DATA_NAME = "New Data";
 
-        public static RecordData recordData
+        public static RecordData recordData = new RecordData(NEW_DATA_NAME, null);
+
+        static IDataService<RecordData> dataService = new RecordFileDataService(new BinarySerializer());
+
+        public static void NewRecord(LevelRecord[] records)
         {
-            get
-            {
-                if (recordData != null) return recordData;
-                return recordData = new RecordData(NEW_RECORD_NAME);
-            }
-            set => recordData = value;
+            recordData = new RecordData(NEW_DATA_NAME, records);
         }
 
-
-        static IDataService<RecordData> dataService
+        public static void Save(LevelRecord[] records) 
         {
-            get
-            {
-                if (dataService != null) return dataService;
-                return new RecordFileDataService(new BinarySerializer());
-            }
-            set => dataService = value;
+            recordData = new RecordData(NEW_DATA_NAME, records);
+            dataService.Save(recordData);
         }
-
-
-
-        public static void NewRecord()
-        {
-            recordData = new RecordData(NEW_RECORD_NAME);
-        }
-
-        public static void SaveGame() => dataService.Save(recordData);
-        public static void DeleteGame(string gameName) => dataService.Delete(gameName);
-        public static void ReloadGame() => dataService.Load(recordData.Name);
-        public static void LoadGame(string gameName)
-        {
-            recordData = dataService.Load(gameName);
-        }
+        public static void Delete() => dataService.Delete(recordData.Name);
+        public static void Load() => recordData = dataService.Load(recordData.Name);
     }
 
 
@@ -50,7 +27,11 @@ namespace System.Persistence
     public class RecordData : ISaveData
     {
         public string Name { get; set; }
-
-        public RecordData(string name) => Name = name;
+        public LevelRecord[] Records { get; set; }
+        public RecordData(string name, LevelRecord[] records) 
+        {
+            Records = records;
+            Name = name;
+        } 
     }
 }

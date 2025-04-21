@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class UIManager : MonoBehaviour
+public class RaceUI : MonoBehaviour
 {
     [SerializeField] private UIBase RaceStartUI;
     [SerializeField] private UIBase RaceEndUI;
@@ -15,6 +15,15 @@ public class UIManager : MonoBehaviour
         RaceController.OnRaceStart -= ActivateRaceStartUI;
         RaceController.OnRaceStart -= ActivateRaceEndUI;
     }
-    private void ActivateRaceStartUI() => RaceStartUI?.StartUI();
-    private void ActivateRaceEndUI() => RaceEndUI?.StartUI();
+    private void ActivateRaceStartUI()
+    {
+        if (RaceStartUI == null) return;
+        RaceStartUI.Display();
+    }
+
+    private void ActivateRaceEndUI()
+    {
+        if (RaceEndUI == null) return;
+        RaceEndUI.Display();
+    }
 }

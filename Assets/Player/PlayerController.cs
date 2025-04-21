@@ -7,35 +7,49 @@ public class PlayerController : MonoBehaviour
 {
     private Rigidbody2D rb;
     private Collider2D col;
-    private MovementStateMachine movementMachine;
-    public MovementStateMachine MovementMachine => movementMachine;
 
+
+    private PlayerStateMachine stateMachine;
+    public PlayerStateMachine StateMachine => stateMachine;
+
+    private Player player;
+    private Animator anim;
     [SerializeField] private MovementStatsHolder movementStats;
-    [SerializeField] private Player player;
+    [SerializeField] private AnimationStatsHolder animationStats;
+    [SerializeField] private PlayerSoundStats soundStats;
+    [SerializeField] private SoundFXManager sfxManager;
+
+
     public Player.Input FrameInput => player.FrameInput;
 
     private void Awake()
     {
         col = GetComponent<Collider2D>();
         rb = GetComponent<Rigidbody2D>();
+        player = GetComponent<Player>();
 
-        movementMachine = new MovementStateMachine(typeof(LandMovement), movementStats, rb, col);
+        stateMachine = new PlayerStateMachine(typeof(LandMovement), transform, rb, col, movementStats, animationStats, anim, soundStats, sfxManager);
     }
 
 
     private void OnDisable()
     {
-        movementMachine = null;
+        stateMachine = null;
     }
 
     private void Update()
     {
-        movementMachine?.Update(FrameInput);
+        stateMachine?.Update(FrameInput);
     }
 
     private void FixedUpdate()
     {
-        movementMachine?.FixedUpdate();
+        stateMachine?.FixedUpdate();
+    }
+
+    private void OnDestroy()
+    {
+        stateMachine?.OnDestroy();
     }
 
     #region Collisions
@@ -56,9 +70,9 @@ public class PlayerController : MonoBehaviour
                 if (collisionListener is DamageDealer) player.OnDeath();
 
                 collisionListener.OnPlayerEnter();
-                movementMachine?.TriggerEnter(collisionListener);
+                stateMachine?.TriggerEnter(collisionListener);
             }
-            movementMachine?.TriggerEnter(trigger);
+            stateMachine?.TriggerEnter(trigger);
         }
 
         //Colliders
@@ -69,9 +83,9 @@ public class PlayerController : MonoBehaviour
                 if (collisionListener is DamageDealer) player.OnDeath();
 
                 collisionListener.OnPlayerEnter();
-                movementMachine?.CollisionEnter(collisionListener);
+                stateMachine?.CollisionEnter(collisionListener);
             }
-            movementMachine?.CollisionEnter(collision);
+            stateMachine?.CollisionEnter(collision);
         }
     }
     private void ProcessExitCollisions(Collider2D trigger = null, Collision2D collision = null)
@@ -82,9 +96,9 @@ public class PlayerController : MonoBehaviour
             if (trigger.TryGetComponent(out IPlayerCollisionListener collisionListener))
             { 
                 collisionListener.OnPlayerExit();
-                movementMachine?.TriggerExit(collisionListener);
+                stateMachine?.TriggerExit(collisionListener);
             }
-            movementMachine?.TriggerExit(trigger);
+            stateMachine?.TriggerExit(trigger);
         }
 
         //Colliders
@@ -93,9 +107,9 @@ public class PlayerController : MonoBehaviour
             if (collision.transform.TryGetComponent(out IPlayerCollisionListener collisionListener)) 
             { 
                 collisionListener.OnPlayerExit();
-                movementMachine?.CollisionExit(collisionListener);
+                stateMachine?.CollisionExit(collisionListener);
             }
-            movementMachine?.CollisionExit(collision);
+            stateMachine?.CollisionExit(collision);
         }
     }
 

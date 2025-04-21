@@ -8,10 +8,11 @@ public class PlayerSoundStats : ScriptableObject
     [SerializeField] private SerializableDictionary<SoundType, SoundInfo> tempSounds;
     private Dictionary<SoundType, SoundInfo> sounds;   
 
-    [SerializeField] public AudioClip loopingBurrow;
-    [SerializeField] public AudioClip loopingWallSlide;
+    public AudioClip loopingBurrow;
+    public AudioClip loopingWallSlide;
 
-    [SerializeField] public SoundInfo[] footsteps;
+    public SoundInfo[] footsteps;
+    public float footstepInterval;
 
 
     private bool initialized;
@@ -34,11 +35,9 @@ public class PlayerSoundStats : ScriptableObject
         WallGrab,
         WallJump,
         Jump,
+        EntryLaunch,
         BurrowEnter,
-        BurrowExit,
         Dash,
         Landed,
-        SandEnter,
-        SandExit
     }
 }

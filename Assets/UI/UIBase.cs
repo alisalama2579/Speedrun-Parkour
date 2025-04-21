@@ -2,6 +2,6 @@ using UnityEngine;
 
 public abstract class UIBase : MonoBehaviour
 {
-    public abstract void StartUI();
+    public abstract void Display();
 
 }

@@ -3,29 +3,24 @@ using UnityEditor.Overlays;
 using UnityEngine;
 using static TransitionLibrary;
 
-public class BurrowMovement : IState
+public class BurrowMovement : IMovementState
 {
     private readonly BurrowMovementStats stats;
     private readonly MovementStatsHolder sharedStats;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
-    private readonly MovementStateMachine.MovementData data;
     private float PlayerHalfHeight => col.bounds.extents.y;
 
-    public BurrowMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats, MovementStateMachine.MovementData data)
+    public BurrowMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
     {
         this.col = col;
         sharedStats = stats;
         this.stats = stats.burrowStats;
         this.rb = rb;
-        this.data = data;
-
-        data.OnBurrowMovementEnter = OnPlayerEnterBurrow;
-        data.OnBurrowMovementExit = OnPlayerExitBurrow;
     }
 
 
-    public void InitializeTransitions(MovementStateMachine controller)
+    public void InitializeTransitions(PlayerStateMachine controller)
     {
         controller.AddTransition(GetType(), typeof(LandMovement), TransitionToLand);
     }
@@ -82,7 +77,7 @@ public class BurrowMovement : IState
         if (frameInput.SandDashDown) dashRequested = true;
     }
 
-    public void UpdateMovement()
+    public void FixedUpdate()
     {
         deltaTime = Time.deltaTime;
 

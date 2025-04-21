@@ -6,9 +6,15 @@ public static class TransitionLibrary
     {
         public IState To { get; }
         public Func<IStateSpecificTransitionData> Func { get; }
+
+        public event Action OnTransition;
+        public void ClearEvent() => OnTransition = null;
         public bool TryExecute(out IStateSpecificTransitionData data)
         {
             data = Func.Invoke();
+            if (data.ConditionMet)
+                OnTransition?.Invoke();
+
             return data.ConditionMet;
         }
 

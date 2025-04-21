@@ -5,10 +5,14 @@ using UnityEngine.Serialization;
 public class LandMovementStats : ScriptableObject
 {
     #region SandDash
+    public float directionDetectionSize;
     public float sameSandTargetDelay;
-    public float burrowDetectionDistance;
+    [FormerlySerializedAs("burrowDetectionDistance")]
     public float sandDetectionDistance;
+    [FormerlySerializedAs("sandDetectionDistance")]
+    public float sandDashDetectionDistance;
     public float sandOvershoot;
+    public float directSandDashDetectionDistance;
 
     public float sandDashBuffer;
     [Range(0, 1)] public float entryLaunchPercentToChain;

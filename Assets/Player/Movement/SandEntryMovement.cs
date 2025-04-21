@@ -2,13 +2,13 @@ using UnityEngine;
 using static TransitionLibrary;
 
 
-public class SandEntryMovement : IState
+public class SandEntryMovement : IMovementState
 {
     private readonly SandEntryMovementStats stats;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
 
-    public SandEntryMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats, MovementStateMachine.MovementData data)
+    public SandEntryMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
     {
         this.col = col;
         this.stats = stats.interStateDashStats;
@@ -26,7 +26,7 @@ public class SandEntryMovement : IState
         } 
     }
 
-    public void InitializeTransitions(MovementStateMachine controller)
+    public void InitializeTransitions(PlayerStateMachine controller)
     {
         controller.AddTransition(GetType(), typeof(BurrowMovement), TransitionToBurrow);
         controller.AddTransition(GetType(), typeof(LandMovement), TransitionToLand);
@@ -93,7 +93,7 @@ public class SandEntryMovement : IState
     public void HandleInput(Player.Input _) { }
     float t;
 
-    public void UpdateMovement()
+    public void FixedUpdate()
     {
         rb.linearVelocity = Vector2.zero;
 

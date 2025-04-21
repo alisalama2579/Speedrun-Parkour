@@ -2,38 +2,29 @@ using System;
 using UnityEngine;
 using static TransitionLibrary;
 
-public class LandMovement : IState
+public class LandMovement : IMovementState
 {
     private readonly MovementStatsHolder sharedStats;
     private readonly LandMovementStats stats;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
-    private readonly MovementStateMachine.MovementData data;
 
     private float PlayerHalfWidth => col.bounds.extents.x;
     private float PlayerHalfHeight => col.bounds.extents.y;
 
-    public LandMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats, MovementStateMachine.MovementData data)
+    public LandMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
     {
         this.col = col;
         sharedStats = stats;
         this.stats = stats.landStats;
         this.rb = rb;
-        this.data = data;
     }
 
-    public void InitializeTransitions(MovementStateMachine controller)
+    public void InitializeTransitions(PlayerStateMachine controller)
     {
         controller.AddTransition(GetType(), typeof(SandEntryMovement), TransitionToSandEntryDash);
         controller.AddTransition(GetType(), typeof(SandEntryMovement), TransitionToDirectSandEntryDash);
         controller.AddTransition(GetType(), typeof(BurrowMovement), TransitionToSandEntry);
-
-        data.OnChangeWall = OnPlayerChangedWall;
-        data.OnChangeGround = OnPlayerChangedGround;
-        data.OnDash = OnPlayerDash;
-        data.OnJump = OnPlayerJump;
-        data.OnWallJump = OnPlayerWallJump;
-        data.OnMove = OnPlayerMove;
     }
 
     public void EnterState(IStateSpecificTransitionData lastStateData)
@@ -42,10 +33,10 @@ public class LandMovement : IState
         {
             col.transform.rotation = Quaternion.identity;
 
-            invalidSandDashSand = transitionData.EntrySand;
+            entrySand = transitionData.EntrySand;
             float launchSpeed = transitionData.EnteredWithDash
-                ? invalidSandDashSand.LaunchSpeed
-                : invalidSandDashSand.WeakLaunchSpeed;
+                ? entrySand.LaunchSpeed
+                : entrySand.WeakLaunchSpeed;
 
             ExecuteEntryLaunch(launchSpeed * transitionData.EntryDir);
         }
@@ -71,7 +62,6 @@ public class LandMovement : IState
     {
         time += Time.deltaTime;
         HandleInput(frameInput);
-        UpdateSandDash();
     }
 
     public void HandleInput(Player.Input frameInput)
@@ -83,11 +73,7 @@ public class LandMovement : IState
 
         //Only changes dash requested if DashDown
         if (frameInput.DashDown) dashRequested = true;
-        if (frameInput.SandDashDown)
-        {
-            sandDashRequested = true;
-            timeSandDashRequested = time; 
-        }
+        if (frameInput.SandDashDown) timeSandDashRequested = time;
 
         if (frameInput.JumpPressed)
         {
@@ -97,10 +83,10 @@ public class LandMovement : IState
     }
 
 
-    public void UpdateMovement()
+    public void FixedUpdate()
     {
         fixedDeltaTime = Time.fixedDeltaTime;
-        position = rb.position;
+        pos = rb.position;
 
         HandleCollisionInteractions();
         HandleJump();
@@ -113,16 +99,22 @@ public class LandMovement : IState
         ApplyMovement();
     }
 
-    private Vector2 position;
+    public Vector2 Pos => pos;
+    private Vector2 pos;
+    public Vector2 Vel => vel;
     public Vector2 vel;
-
-    private Vector2 nonZeroVelocityDirection;
+    public Vector2 NonZeroVelDir => nonZeroVelDir;
+    private Vector2 nonZeroVelDir;
 
     private float wallJumpHorizontalVel;
+
+    public float HorizontalVel => horizontalVel;
     private float horizontalVel;
+    public float VerticalVel => verticalVel;
     private float verticalVel;
 
     private bool isFacingRight;
+    public bool IsFacingRight => isFacingRight;
     public int FacingDirection => isFacingRight ? 1 : -1;
     private Vector2 FrameDisplacement => vel * fixedDeltaTime;
 
@@ -148,6 +140,8 @@ public class LandMovement : IState
     #endregion
 
     #region EntryLaunch
+    public event Action<Vector2> OnEntryLaunch;
+
     private bool isEntryLaunching;
     private bool entryLaunchInterrupted;
     private float entryLaunchProgress;
@@ -185,8 +179,9 @@ public class LandMovement : IState
 
     private void ExecuteEntryLaunch(Vector2 launchVel)
     {
-        wishLaunchVel = launchVel;
+        OnEntryLaunch?.Invoke(launchVel);
 
+        wishLaunchVel = launchVel;
         initialLaunchVel = wishLaunchVel;
 
         verticalVel = 0;
@@ -259,22 +254,22 @@ private void ExitEntryLaunch()
         Vector2 rightOrigin = Vector2.right * (PlayerHalfWidth - stats.skinWidth);
         Vector2 downOrigin = Vector2.down * (PlayerHalfHeight - stats.skinWidth);
         HandleWallDetection(
-        Physics2D.Raycast(position - downOrigin + rightOrigin, Vector2.right, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
-        Physics2D.Raycast(position + rightOrigin, Vector2.right, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
-        Physics2D.Raycast(position + downOrigin + rightOrigin, Vector2.right, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
-        Physics2D.Raycast(position - downOrigin - rightOrigin, Vector2.left, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
-        Physics2D.Raycast(position - rightOrigin, Vector2.left, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
-        Physics2D.Raycast(position + downOrigin - rightOrigin, Vector2.left, stats.wallDetectionDistance, sharedStats.collisionLayerMask)
+        Physics2D.Raycast(pos - downOrigin + rightOrigin, Vector2.right, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
+        Physics2D.Raycast(pos + rightOrigin, Vector2.right, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
+        Physics2D.Raycast(pos + downOrigin + rightOrigin, Vector2.right, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
+        Physics2D.Raycast(pos - downOrigin - rightOrigin, Vector2.left, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
+        Physics2D.Raycast(pos - rightOrigin, Vector2.left, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
+        Physics2D.Raycast(pos + downOrigin - rightOrigin, Vector2.left, stats.wallDetectionDistance, sharedStats.collisionLayerMask)
         );
         HandleGround(
-        Physics2D.Raycast(position + downOrigin - rightOrigin, Vector2.down, stats.groundedDistance, sharedStats.collisionLayerMask),
-        Physics2D.Raycast(position + downOrigin + rightOrigin, Vector2.down, stats.groundedDistance, sharedStats.collisionLayerMask),
-        Physics2D.Raycast(position + downOrigin, Vector2.down, stats.groundedDistance, sharedStats.collisionLayerMask)
+        Physics2D.Raycast(pos + downOrigin - rightOrigin, Vector2.down, stats.groundedDistance, sharedStats.collisionLayerMask),
+        Physics2D.Raycast(pos + downOrigin + rightOrigin, Vector2.down, stats.groundedDistance, sharedStats.collisionLayerMask),
+        Physics2D.Raycast(pos + downOrigin, Vector2.down, stats.groundedDistance, sharedStats.collisionLayerMask)
         );
         HandleCeiling(
-        Physics2D.Raycast(position - downOrigin - rightOrigin, Vector2.up, stats.ceilingDistance, sharedStats.collisionLayerMask),
-        Physics2D.Raycast(position - downOrigin + rightOrigin, Vector2.up, stats.ceilingDistance, sharedStats.collisionLayerMask),
-        Physics2D.Raycast(position - downOrigin, Vector2.up, stats.ceilingDistance, sharedStats.collisionLayerMask)
+        Physics2D.Raycast(pos - downOrigin - rightOrigin, Vector2.up, stats.ceilingDistance, sharedStats.collisionLayerMask),
+        Physics2D.Raycast(pos - downOrigin + rightOrigin, Vector2.up, stats.ceilingDistance, sharedStats.collisionLayerMask),
+        Physics2D.Raycast(pos - downOrigin, Vector2.up, stats.ceilingDistance, sharedStats.collisionLayerMask)
         );
     }
 
@@ -287,9 +282,9 @@ private void ExitEntryLaunch()
 
         if (((!topRightHit && topLeftHit) || (!topLeftHit && topRightHit)) && topMiddleHit)
         {
-            if (topLeftHit) ceilingNudgeDir = (topLeftHit.point - position).normalized;
-            if (topRightHit) ceilingNudgeDir = (topRightHit.point - position).normalized;
-            position += ceilingNudgeDir * Mathf.Sign(nonZeroVelocityDirection.x);
+            if (topLeftHit) ceilingNudgeDir = (topLeftHit.point - pos).normalized;
+            if (topRightHit) ceilingNudgeDir = (topRightHit.point - pos).normalized;
+            pos += ceilingNudgeDir * Mathf.Sign(nonZeroVelDir.x);
 
             return;
         }
@@ -321,9 +316,7 @@ private void ExitEntryLaunch()
     #endregion
 
     #region Wall
-
     public event Action<bool, TraversableTerrain> OnPlayerChangedWall;
-
     public bool isOnWall { get; private set; }
     private bool isPushingWall;
     private Vector2 wallNormal;
@@ -359,7 +352,7 @@ private void ExitEntryLaunch()
 
             if (normalInWallRange)
             {
-                if (Mathf.RoundToInt(Mathf.Sign(nonZeroVelocityDirection.x)) == dir) isPushingWall = true;
+                if (Mathf.RoundToInt(Mathf.Sign(nonZeroVelDir.x)) == dir) isPushingWall = true;
 
                 if (HitGrabbableWall(hit) && canGrabWall)
                 {
@@ -387,7 +380,7 @@ private void ExitEntryLaunch()
                 if (!HitGrabbableWall(ledgeGrabHit))
                 {
                     int dir = bottomRightHit ? 1 : -1;
-                    float dist = Mathf.Abs(ledgeGrabHit.point.x - (position.x + dir * PlayerHalfWidth));
+                    float dist = Mathf.Abs(ledgeGrabHit.point.x - (pos.x + dir * PlayerHalfWidth));
 
                     Vector2 ledgeNormal = ledgeGrabHit.normal;
 
@@ -395,11 +388,11 @@ private void ExitEntryLaunch()
                     {
                         verticalVel = Mathf.Max(0, verticalVel);
 
-                        Vector2 ledgeGrabDir = (position - bottomRightHit.point).normalized;
+                        Vector2 ledgeGrabDir = (pos - bottomRightHit.point).normalized;
                         ledgeGrabDir.x *= -dir;
                         ledgeGrabDir.y *= dir;
 
-                        position += ledgeGrabDir;
+                        pos += ledgeGrabDir;
                     }
                 }
             }
@@ -433,9 +426,10 @@ private void ExitEntryLaunch()
     #endregion
 
     #region Ground
+    public event Action<bool, float, TraversableTerrain> OnChangeGround;
+
     private bool isGrounded;
     private bool wasOnSlipperyGround;
-    public event Action<bool, float, TraversableTerrain> OnPlayerChangedGround;
     public bool IsGrounded => isGrounded;
 
     private void HandleGround(RaycastHit2D bottomLeftHit, RaycastHit2D bottomMiddleHit, RaycastHit2D bottomRightHit)
@@ -475,7 +469,7 @@ private void ExitEntryLaunch()
         isGrounded = newGrounded;
 
         float impact = 1;
-        OnPlayerChangedGround?.Invoke(newGrounded, impact, terrainOn);
+        OnChangeGround?.Invoke(newGrounded, impact, terrainOn);
 
         if (isGrounded)
         {
@@ -565,9 +559,8 @@ private void ExitEntryLaunch()
     #endregion
 
     #region Jump
-
-    public event Action OnPlayerJump;
-    public event Action OnPlayerWallJump;
+    public event Action<TraversableTerrain> OnJump;
+    public event Action<TraversableTerrain> OnWallJump;
 
     private enum LastSurfaceType
     {
@@ -643,7 +636,7 @@ private void ExitEntryLaunch()
 
     private void WallJump()
     {
-        OnPlayerWallJump?.Invoke();
+        OnJump?.Invoke(terrainOn);
         Vector2 jumpVel = stats.wallJumpVel * Vector2.LerpUnclamped(wallNormal, Vector2.up, stats.wallJumpUpBias);
 
         verticalVel = jumpVel.y;
@@ -654,7 +647,7 @@ private void ExitEntryLaunch()
     }
     private void GroundJump()
     {
-        OnPlayerJump?.Invoke();
+        OnWallJump?.Invoke(terrainOn);
 
         verticalVel = stats.jumpVelocity;
         ApplyMomentum(stats.jumpMomentumIncrease);
@@ -697,6 +690,7 @@ private void ExitEntryLaunch()
     #endregion
 
     #region Dash
+    public event Action OnDash;
 
     private bool dashRequested;
     private bool isDashing;
@@ -709,8 +703,6 @@ private void ExitEntryLaunch()
     private bool dashInterrupted;
     private Vector2 dashVel;
     private Vector2 targetDashVel;
-
-    public event Action OnPlayerDash;
 
     private void HandleDash()
     {
@@ -762,7 +754,7 @@ private void ExitEntryLaunch()
 
     private void ExecuteDash()
     {
-        OnPlayerDash?.Invoke();
+        OnDash?.Invoke();
 
         isDashing = true;
         timeDashed = time;
@@ -782,7 +774,6 @@ private void ExitEntryLaunch()
     #endregion
 
     #region Velocty
-
     private void HandleVelocity()
     {
         float horizontalMult = isEntryLaunching ? entryLaunchControlMult
@@ -809,9 +800,9 @@ private void ExitEntryLaunch()
 
         vel.x = Mathf.Clamp(vel.x, -maxHorizontalSpeed, maxHorizontalSpeed);
 
-        nonZeroVelocityDirection = new Vector2(
-            vel.x != 0 ? vel.x : nonZeroVelocityDirection.x,
-            vel.y != 0 ? vel.y : nonZeroVelocityDirection.y)
+        nonZeroVelDir = new Vector2(
+            vel.x != 0 ? vel.x : nonZeroVelDir.x,
+            vel.y != 0 ? vel.y : nonZeroVelDir.y)
             .normalized;
     }
 
@@ -828,7 +819,7 @@ private void ExitEntryLaunch()
 
     private void ApplyMovement()
     {
-        rb.position = position;
+        rb.position = pos;
         rb.linearVelocity = vel;
     }
 
@@ -851,101 +842,93 @@ private void ExitEntryLaunch()
     public Vector2 TargetSandEntryPos { get; private set; }
     public bool SandEntryPosValid { get; private set; }
 
-    private ISand invalidSandDashSand;
+    private ISand entrySand;
     private float timeSandDashRequested = float.MinValue;
-    private bool sandDashRequested;
-    private bool HasBufferedSandDash => time < stats.sandDashBuffer + timeSandDashRequested;
-
     private void ResetSandEntryDash()
     {
         timeSandDashRequested = float.MinValue;
-        sandDashRequested = false;
         SandEntryPosValid = false;
     }
 
-    private void UpdateSandDash()
-    {
-        sandDashRequested = false;
-        SandEntryPosValid = false;
-        if (time > stats.sameSandTargetDelay) invalidSandDashSand = null;
-    }
+    private bool HasBufferedSandDash => time < stats.sandDashBuffer + timeSandDashRequested;
+    ISand InvalidSandDashSand => time > stats.sameSandTargetDelay ? null : entrySand;
 
     private IStateSpecificTransitionData TransitionToSandEntryDash()
     {
-        bool canSandDash = HasBufferedSandDash || sandDashRequested;
+        SandEntryPosValid = false;
 
-        Vector2 pos = position;
-        float size = stats.burrowDetectionDistance;
+        bool canSandDash = frameInput.SandDashDown || HasBufferedSandDash;
+        Vector2 pos = this.pos;
+        float size = stats.sandDetectionDistance;
 
+        bool isSearching = frameInput.Move != Vector2.zero;
+        Vector2 lookDir = isSearching 
+            ? frameInput.Move
+            : Vector2.right * FacingDirection;
         Collider2D[] overlapCols;
-        bool searching = frameInput.Move != Vector2.zero;
 
-        Vector2 boxDir = searching ? frameInput.Move : FacingDirection * Vector2.right;
-
-        if(searching)
-            overlapCols = Physics2D.OverlapBoxAll(pos + 0.5f * size * boxDir,
+        if (isSearching)
+            overlapCols = Physics2D.OverlapBoxAll(pos + 0.5f * size * lookDir,
                 size * Vector2.one,
-                Mathf.Rad2Deg * Mathf.Atan2(boxDir.x, boxDir.y),
+                Utility.GetVector2Angle(lookDir),
                 sharedStats.sandLayerMask);
         else
             overlapCols = Physics2D.OverlapBoxAll(pos,
                 size * 2 * Vector2.one,
-                Mathf.Rad2Deg * Mathf.Atan2(boxDir.x, boxDir.y),
+                Utility.GetVector2Angle(lookDir),
                 sharedStats.sandLayerMask);
-
 
         for (int i = 0; i < overlapCols.Length; i++)
         {
             Collider2D col = overlapCols[i];
 
-            if (col.transform.TryGetComponent(out ISand sand) && sand.IsBurrowable && sand != invalidSandDashSand)
+            if (ColliderIsBurrowable(col, out ISand sand))
             {
                 Vector2 point = col.ClosestPoint(pos);
-                float dist = (point - pos).sqrMagnitude;
+                float dist = (point - pos).magnitude;
 
-                if (col != null)
+                if (dist <= MaxDist(sand))
                 {
-                    bool isBurrowSand = sand is BurrowSand;
-                    float maxDist = isBurrowSand ? stats.burrowDetectionDistance : stats.sandDetectionDistance;
+                    Vector2 overShoot = (sand is SandBall)
+                          ? Vector2.zero
+                          : frameInput.Move * stats.sandOvershoot;
+                    Vector2 queryPos = pos + overShoot;
 
-                    if (dist < maxDist * maxDist)
+                    Vector2 entryPoint = col.ClosestPoint(queryPos);
+                    Vector2 diff = entryPoint - pos;
+                    float entryDist = diff.magnitude;
+                    Vector2 dir = diff / dist;
+
+                    RaycastHit2D hit = CollisionIntersectionRay(dir, entryDist);
+                    if (hit && hit.transform == col.transform)
                     {
-                        Vector2 overShoot = (sand is SandBall)
-                            ? Vector2.zero
-                            : frameInput.Move * stats.sandOvershoot;
-                        Vector2 queryPos = pos + overShoot;
+                        SandEntryPosValid = true;
+                        TargetSandEntryPos = hit.point;
 
-                        Vector2 entryPoint = col.ClosestPoint(queryPos);
-                        Vector2 diff = entryPoint - pos;
-                        float entryDist = diff.magnitude;
-                        Vector2 dir = diff / dist;
-
-                        RaycastHit2D hit = Physics2D.Raycast(
-                            pos, dir, entryDist + 1,
-                            sharedStats.collisionLayerMask);
-
-                        if (hit && hit.transform == col.transform)
+                        if (canSandDash)
                         {
-                            SandEntryPosValid = true;
-                            TargetSandEntryPos = hit.point;
+                            //Face right or left depending on direction of sand
+                            isFacingRight = Mathf.Sign(dir.x) == 1;
 
-                            if (canSandDash)
-                            {
-                                isFacingRight = Mathf.Sign(dir.x) == 1;
-                                Vector2 heightAdjustedEntryPoint = hit.point + -2 * PlayerHalfHeight * hit.normal;
-                                if (sand is SandBall)
-                                    heightAdjustedEntryPoint += -hit.normal * col.bounds.size.x;
+                            Vector2 heightAdjustedEntryPoint;
+                            if (sand is SandBall)
+                                heightAdjustedEntryPoint = HeightAdjustedEntryPoint(hit.point, dir) - hit.normal * col.bounds.size.x;
+                            else heightAdjustedEntryPoint = HeightAdjustedEntryPoint(hit.point, dir);
 
-                                return new SandEntryMovement.SandEntryData(heightAdjustedEntryPoint, sand);
-                            }
+                            return new SandEntryMovement.SandEntryData(heightAdjustedEntryPoint, sand);
                         }
-                        else Debug.DrawLine(pos, entryPoint, Color.red);
                     }
+                    else Debug.DrawLine(pos, entryPoint, Color.red);
                 }
             }
         }
 
+
         return failedData;
+
+        bool ColliderIsBurrowable(Collider2D col, out ISand sand) => col.transform.TryGetComponent(out sand) && sand.IsBurrowable && sand != InvalidSandDashSand;
+        float MaxDist(ISand sand) => sand is BurrowSand ? stats.sandDetectionDistance : stats.sandDashDetectionDistance;
+        RaycastHit2D CollisionIntersectionRay(Vector2 dir, float dist) => Physics2D.Raycast(pos, dir, dist + 1, sharedStats.collisionLayerMask);
     }
 
     private IStateSpecificTransitionData TransitionToDirectSandEntryDash()
@@ -953,24 +936,23 @@ private void ExitEntryLaunch()
         if (!isEntryLaunching || entryLaunchProgress > stats.entryLaunchPercentToChain) 
             return failedData;
 
-        Vector2 castVector = FrameDisplacement * 2;
+        Vector2 castVector = stats.directSandDashDetectionDistance * FrameDisplacement.normalized;
 
         float dist = castVector.magnitude;
         Vector2 dir = castVector / dist;
 
         RaycastHit2D hit = Physics2D.BoxCast
-            (position, col.bounds.size,
+            (pos, col.bounds.size,
             Mathf.Rad2Deg * Mathf.Atan2(dir.x, dir.y),
             dir, dist, sharedStats.collisionLayerMask);
-        Vector2 diff = hit.point - position;
+        Vector2 diff = hit.point - pos;
 
-        if (hit && hit.transform.TryGetComponent(out ISand sand) && sand.IsBurrowable && sand != invalidSandDashSand)
+        if (hit && hit.transform.TryGetComponent(out ISand sand) && sand.IsBurrowable && sand != entrySand)
         {
             if (Vector2.Dot(initialLaunchVel.normalized, diff/hit.distance) > 0.5f)
             {
-                Debug.DrawLine(position, hit.point, Color.green, 100);
-                Vector2 entryPoint = hit.point + dir * (PlayerHalfHeight + 0.5f);
-                return new SandEntryMovement.SandEntryData(entryPoint, sand);
+                Debug.DrawLine(pos, hit.point, Color.green, 100);
+                return new SandEntryMovement.SandEntryData(HeightAdjustedEntryPoint(hit.point, dir), sand);
             }
         }
 
@@ -983,12 +965,12 @@ private void ExitEntryLaunch()
 
         Vector2 dir = Vector2.down;
 
-        RaycastHit2D hit = Physics2D.BoxCast(position, col.bounds.size, 0,
+        RaycastHit2D hit = Physics2D.BoxCast(pos, col.bounds.size, 0,
             dir, stats.groundedDistance, sharedStats.collisionLayerMask);
 
-        if (hit && hit.transform.TryGetComponent(out ISand sand) && sand != invalidSandDashSand && sand is BurrowSand)
+        if (hit && hit.transform.TryGetComponent(out ISand sand) && sand != entrySand && sand is BurrowSand)
         {
-            Vector2 entryPoint = hit.point + dir * (PlayerHalfHeight + 0.5f);
+            Vector2 entryPoint = HeightAdjustedEntryPoint(hit.point, dir);
             SandEntryPosValid = true;
             TargetSandEntryPos = hit.point;
 
@@ -999,6 +981,7 @@ private void ExitEntryLaunch()
         return failedData;
     }
 
+    private Vector2 HeightAdjustedEntryPoint(Vector2 point, Vector2 dir) => point + 2 * PlayerHalfHeight * dir;
     #endregion
 
     #region Collisions

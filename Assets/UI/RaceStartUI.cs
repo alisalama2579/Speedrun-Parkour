@@ -1,21 +1,36 @@
 using System.Collections;
 using UnityEngine;
+using TMPro;
 
 public class RaceStartUI : UIBase
 {
-    private SpriteRenderer sprite;
+    [SerializeField] private uint countdownLength;
+    [SerializeField] private float tweenLength;
+    [SerializeField] private float pauseLength;
+    [SerializeField] private TextMeshProUGUI display;
 
-    private void Awake() => sprite = GetComponent<SpriteRenderer>();
 
-    public override void StartUI()
+    public override void Display()
     {
-        sprite.enabled = false;
         StartCoroutine(UIAnimation());
     }
 
     private IEnumerator UIAnimation()
     {
-        yield return new WaitForSeconds(2);
-        sprite.enabled = true;
+        for (int i = 0; i < countdownLength; i++)
+        {
+            display.gameObject.SetActive(true);
+            display.text = i.ToString();
+
+            for (float t = 0; t < tweenLength; t += Time.deltaTime)
+            {
+                display.transform.localScale = Vector2.Lerp(Vector2.one, Vector2.one * 5, t / tweenLength);
+                yield return null;
+            }
+
+            display.gameObject.SetActive(false);
+
+            yield return new WaitForSeconds(2);
+        }
     }
 }

@@ -15,7 +15,7 @@ MonoBehaviour:
   exitDetectionDistance: 0.2
   collisionDetectionDistance: 0.2
   acceleration: 1200
-  maxSpeed: 85
+  maxSpeed: 100
   rotationSpeed: 90
   oppositeTurnControl: 1
   bounceDuration: 0.2

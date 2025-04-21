@@ -4,26 +4,42 @@ using UnityEngine;
 public class GhostTapePlayer : MonoBehaviour
 {
     [SerializeField] private int recordIndex;
-    private Transform targetTransform;
 
-
-    private List<RecordsTest.RecordFrameValues> frameRecord;
+    private List<CompressedGhostFrameValues> frameRecord;
+    private GhostFrameValues targetValues;
+    private GhostFrameValues currentValues;
+    private Vector2 startingPos;
 
     private void Start()
     {
-        targetTransform = transform;
-        frameRecord = RecordsTest.GetRecord(recordIndex);
-    }
+        frameRecord = RecordsManager.GetRecord(recordIndex);
+        startingPos = transform.position;
+    }   
 
-    private int frame;
+    private float frame;
     private void FixedUpdate()
     {
-        if (frame < frameRecord.Count)
-        {
-            RecordsTest.RecordFrameValues frameValues = frameRecord[frame];
+        float progress = frame / RecordsManager.framesPerValue;
 
-            targetTransform.position = frameValues.position;
+        if (progress < frameRecord.Count)
+        {
+            float modulus = frame % RecordsManager.framesPerValue;
+            if (modulus == 0)
+            {
+                int index = (int)progress;
+                currentValues = GhostFrameConversions.ToUncompressed(frameRecord[index]);
+                targetValues = GhostFrameConversions.ToUncompressed(
+                    index + 1 == frameRecord.Count 
+                    ?  frameRecord[index] 
+                    : frameRecord[index + 1]);
+            }
+
+            transform.position = startingPos + Vector2.Lerp(currentValues.pos, targetValues.pos, modulus/RecordsManager.framesPerValue);
+            transform.eulerAngles = Vector3.forward * Mathf.Lerp(currentValues.zRot, targetValues.zRot, progress);
+
+            Debug.Log("Modulus: " + modulus);
         }
+        Debug.Log("Progress: " + progress);
         frame++;
     }
 }
