@@ -38,14 +38,13 @@ public class SandEntryMovement : IMovementState
         {
             entrySand = transitionData.EntrySand;
 
-            startingPoint = rb.position;
+            pos = startingPoint = rb.position;
             exitPoint = transitionData.TargetPos;
             Vector2 diff = exitPoint - rb.position;
             dir = diff.normalized;
             duration = diff.magnitude / stats.entrySpeed;
 
             targetIsBurrowSand = entrySand is BurrowSand;
-
             entrySand.OnSandTargetForBurrow(dir * stats.entrySpeed);
 
             if (entrySand is SandBall ball)
@@ -65,6 +64,8 @@ public class SandEntryMovement : IMovementState
     private Vector2 exitPoint;
     private Vector2 startingPoint;
     private Vector2 dir;
+    public Vector2 Dir => dir;
+
     private Vector2 pos;
     private ISand entrySand;
     float durationToSandTouch;
@@ -73,10 +74,9 @@ public class SandEntryMovement : IMovementState
 
     bool targetIsBurrowSand;
 
-    public void Update(Player.Input _) 
+    public void Update(MovementInput _) 
     {
         t += Time.deltaTime;
-
         CheckSandEntryInvokation();
     }
 
@@ -90,7 +90,7 @@ public class SandEntryMovement : IMovementState
         }
     }
 
-    public void HandleInput(Player.Input _) { }
+    public void HandleInput(MovementInput _) { }
     float t;
 
     public void FixedUpdate()

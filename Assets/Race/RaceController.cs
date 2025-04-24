@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ public class RaceController : MonoBehaviour
     public RaceStart raceStart;
     public RaceEnd raceEnd;
 
+    public List<Ghost> ghosts; 
 
     private void Awake()
     {

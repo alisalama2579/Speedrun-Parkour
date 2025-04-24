@@ -21,7 +21,7 @@ public class LandSound : IMovementObserverState<LandMovement>
 
     }
     float deltaTime;
-    public void Update(Player.Input _) 
+    public void Update(MovementInput _) 
     {
         deltaTime = Time.deltaTime;
         HandleFootSteps();
@@ -36,7 +36,7 @@ public class LandSound : IMovementObserverState<LandMovement>
             if (footstepProgress < stats.footstepInterval)
                 return;
 
-            var sound = RandomArray<SoundInfo>.GetRandomFromArray(stats.footsteps);
+            var sound = Utility.GetRandomFromArray<SoundFX>(stats.footsteps);
             sfxManager.PlaySFX(sound, MovementState.Pos);
             footstepProgress = 0;
         }
@@ -53,7 +53,7 @@ public class LandSound : IMovementObserverState<LandMovement>
     {
         if (newGrounded)
         {
-            SoundInfo sound = (SoundInfo)stats.GetSoundFromType(PlayerSoundStats.SoundType.Landed).Clone();
+            SoundFX sound = (SoundFX)stats.GetSoundFromType(PlayerSoundStats.SoundType.Landed).Clone();
             sound.volume *= impact;
 
             sfxManager.PlaySFX(sound, MovementState.Pos);
@@ -63,7 +63,7 @@ public class LandSound : IMovementObserverState<LandMovement>
     {
         if (newWall)
         {
-            SoundInfo sound = (SoundInfo)stats.GetSoundFromType(PlayerSoundStats.SoundType.WallGrab).Clone();
+            SoundFX sound = (SoundFX)stats.GetSoundFromType(PlayerSoundStats.SoundType.WallGrab).Clone();
             sfxManager.PlaySFX(sound, MovementState.Pos);
 
             loopingSource.clip = stats.loopingWallSlide;

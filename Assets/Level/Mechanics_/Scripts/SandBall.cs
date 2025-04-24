@@ -13,10 +13,9 @@ public class SandBall : TraversableTerrain, ISand
     public float LaunchSpeed => stats.sandLaunchSpeed;
     public float WeakLaunchSpeed => LaunchSpeed;
 
-    public void OnSandTargetForBurrow(Vector2 _) { col.enabled = false; Debug.Log("targeted"); }
-    public void OnSandEnter(Vector2 vel, Vector2 pos) { StartCoroutine(EnableCollider()); }
-
-    public void OnSandExit(Vector2 vel, Vector2 pos) { }
+    public void OnSandTargetForBurrow(Vector2 _) { col.enabled = false; StopCoroutine(EnableCollider()); }
+    public void OnSandEnter(Vector2 vel, Vector2 pos) {  }
+    public void OnSandExit(Vector2 vel, Vector2 pos) { StartCoroutine(EnableCollider()); }
 
 
     private IEnumerator EnableCollider()

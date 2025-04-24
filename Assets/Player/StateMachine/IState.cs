@@ -7,7 +7,7 @@ public interface IState
     public void EnterState(IStateSpecificTransitionData lastStateData) { }
     public void ExitState() { }
 
-    public void Update(Player.Input frameInput) { }
+    public void Update(MovementInput input) { }
     public void FixedUpdate() { }
 }
 
@@ -16,7 +16,7 @@ public interface IMovementState : IState
 {
     public void InitializeTransitions(PlayerStateMachine controller) { }
 
-    public void HandleInput(Player.Input frameInput) { }
+    public void HandleInput(MovementInput input) { }
     public void CollisionEnter(Collision2D collision) { }
     public void CollisionExit(Collision2D collision) { }
     public void TriggerEnter(Collider2D trigger) { }

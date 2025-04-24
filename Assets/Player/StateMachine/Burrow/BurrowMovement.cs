@@ -31,15 +31,16 @@ public class BurrowMovement : IMovementState
     {
         if (lastStateData is BurrowMovementTransitionData transitionData)
         {
-            wishDir = moveDir = transitionData.EntryDir;
+            wishDir = transitionData.EntryDir;
+            moveDir = transitionData.EntryDir;
             rb.position = transitionData.EntryPos;
 
-            transitionData.EntrySand.OnSandExit(wishDir, rb.position);
+            transitionData.EntrySand.OnSandEnter(wishDir, rb.position);
 
             entrySand = transitionData.EntrySand;
             EventsHolder.PlayerEvents.OnPlayerEnterSand?.Invoke(entrySand);
 
-            ExecuteDash();
+            dashRequested = true;
         }
 
         OnPlayerEnterBurrow?.Invoke();
@@ -52,29 +53,35 @@ public class BurrowMovement : IMovementState
         ExitDash();
         ExitBounce();
         time = 0;
+        frameInput = new();
+        timeDashRequested = float.MinValue;
 
         EventsHolder.PlayerEvents.OnPlayerExitSand?.Invoke(entrySand);
         OnPlayerExitBurrow?.Invoke();
     }
 
 
-    private Player.Input frameInput;
+    private MovementInput frameInput;
 
     private float deltaTime;
     private float time;
 
     private ISand entrySand;
 
-    public void Update(Player.Input frameInput)
+    public void Update(MovementInput frameInput)
     {
         time += Time.deltaTime;
         HandleInput(frameInput);
     }
 
-    public void HandleInput(Player.Input frameInput)
+    public void HandleInput(MovementInput frameInput)
     {
         this.frameInput = frameInput;
-        if (frameInput.SandDashDown) dashRequested = true;
+        if (frameInput.SandDashDown)
+        {
+            dashRequested = true;
+            timeDashRequested = time;
+        }
     }
 
     public void FixedUpdate()
@@ -91,27 +98,30 @@ public class BurrowMovement : IMovementState
     private Vector2 wishDir;
     private Vector2 vel;
 
-    private Vector2 FrameDisplacement => (bounceVel + moveVel + dashVel) * deltaTime;
+    private Vector2 FrameDisplacement => (moveVel + dashVel) * deltaTime;
     private Vector2 VelocityDir => vel.normalized;
     private float GetVector2Angle(Vector2 dir) => Mathf.Rad2Deg * Mathf.Atan2(dir.y, dir.x);
 
     #region Bounce
 
-    private Vector2 bounceVel;
-    private Vector2 targetBounceVel;
+    private float bounceSpeed;
+    private float targetBounceSpeed;
     private float timeBounced = float.MinValue;
-    private float bounceMoveSpeedMult = 1;
+    private float bounceControlMult = 1;
     private bool isBouncing;
     private bool bounceInterrupted;
 
     private void HandleBounce()
     {
+        float dist = vel.magnitude;
+        Vector2 dir = vel / dist;
+
         RaycastHit2D hit = Physics2D.BoxCast(
             rb.position,
             col.bounds.size,
             GetVector2Angle(vel),
-            vel.normalized,
-            vel.magnitude * deltaTime,
+            dir,
+            dist * deltaTime,
             sharedStats.terrainLayerMask);
 
         float timeSinceBounce = time - timeBounced;
@@ -127,10 +137,10 @@ public class BurrowMovement : IMovementState
         else if (isBouncing)
         {
             float speedPercent = stats.bounceSpeedCurve.Evaluate(timePercent);
-            bounceVel = targetBounceVel * speedPercent;
+            bounceSpeed = targetBounceSpeed * speedPercent;
 
             float controlPercent = stats.bounceControlCurve.Evaluate(timePercent);
-            bounceMoveSpeedMult = stats.bounceMoveSpeedMult * controlPercent;
+            bounceControlMult = stats.bounceMoveSpeedMult * controlPercent;
         }
     }
 
@@ -139,8 +149,8 @@ public class BurrowMovement : IMovementState
         isBouncing = false;
         bounceInterrupted = false;
         timeBounced = float.MinValue;
-        bounceVel = Vector2.zero;
-        bounceMoveSpeedMult = 1;
+        bounceSpeed = 0;
+        bounceControlMult = 1;
     }
 
     private void ExecuteBounce(Vector2 hitNormal)
@@ -150,11 +160,14 @@ public class BurrowMovement : IMovementState
         timeBounced = time;
 
         Vector2 reflectedVel = Vector2.Reflect(vel.normalized, hitNormal);
-        Vector2 bounceDir = Vector2.Lerp(hitNormal, reflectedVel, stats.bounceNormalBias);
+        float normalReflectDot = Mathf.Clamp01(Vector2.Dot(reflectedVel, hitNormal));
 
-        targetBounceVel = bounceDir * stats.bounceSpeed;
-        wishDir = bounceDir;
-        moveDir = bounceDir;
+        Debug.DrawRay(rb.position, reflectedVel * 10, Color.black, 10);
+
+        targetBounceSpeed = Mathf.Lerp(stats.bounceSpeed, stats.bounceSpeed * 0.5f, normalReflectDot);
+        moveVel = reflectedVel * targetBounceSpeed;
+        wishDir = reflectedVel;
+        moveDir = reflectedVel;
     }
 
     #endregion
@@ -166,18 +179,18 @@ public class BurrowMovement : IMovementState
     private Vector2 moveVel;
     private void HandleBurrowMovement()
     {
-        if (frameInput.Move != Vector2.zero) wishDir = frameInput.Move;
+        if (frameInput.Look != Vector2.zero) wishDir = frameInput.Look;
 
         float angle = Mathf.MoveTowardsAngle(
             GetVector2Angle(moveDir),
             GetVector2Angle(wishDir),
-            stats.rotationSpeed);
+            stats.rotationSpeed * bounceControlMult);
 
         moveDir = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)).normalized;
 
         float accel = stats.acceleration;
         Vector2 moveVelChange = accel * deltaTime * moveDir;
-        moveVel = Vector2.ClampMagnitude(bounceMoveSpeedMult * (moveVel + moveVelChange), stats.maxSpeed);
+        moveVel = Vector2.ClampMagnitude((moveVel + moveVelChange), isBouncing ? bounceSpeed : stats.maxSpeed);
     }
 
     #endregion
@@ -186,12 +199,14 @@ public class BurrowMovement : IMovementState
     #region Dash
 
     private bool dashRequested;
+    private float timeDashRequested;
     private bool isDashing;
-    private float dashControlMult = 1;
     private float timeDashed = float.MinValue;
     private bool dashInterrupted;
     private Vector2 dashVel;
     private Vector2 targetDashVel;
+
+    private bool HasBufferedDash => time <= timeDashRequested + stats.dashBuffer;
 
     private void HandleDash()
     {
@@ -200,7 +215,7 @@ public class BurrowMovement : IMovementState
             dashInterrupted = true;
 
         bool canDash = !isDashing && !dashInterrupted;
-        if (dashRequested && canDash) ExecuteDash();
+        if (dashRequested || HasBufferedDash && canDash) ExecuteDash();
         dashRequested = false;
 
         if (dashInterrupted) ExitDash();
@@ -208,19 +223,15 @@ public class BurrowMovement : IMovementState
         {
             float speedPercent = stats.dashSpeedCurve.Evaluate(timePercent);
             dashVel = targetDashVel * speedPercent;
-
-            float controlPercent = stats.dashControlCurve.Evaluate(timePercent);
-            dashControlMult = stats.dashControlMult * controlPercent;
         }
     }
 
     private void ExitDash()
     {
-        dashControlMult = 1;
         dashVel = Vector2.zero;
-        dashControlMult = 1;
         dashInterrupted = false;
         isDashing = false;
+        timeDashed = float.MinValue;
     }
 
     private void ExecuteDash()
@@ -254,29 +265,31 @@ public class BurrowMovement : IMovementState
     private IStateSpecificTransitionData TransitionToLand()
     {
         bool cachedStartInCol = Physics2D.queriesStartInColliders;
+        bool cachedHitTriggers = Physics2D.queriesHitTriggers;
         Physics2D.queriesStartInColliders = true;
+        Physics2D.queriesHitTriggers = true;
 
         //Ray is cast out to in, to prevent sand exit if there is terrain beyond sand
         Vector2 dir = VelocityDir;
+
         Vector2 origin = rb.position + FrameDisplacement + dir * PlayerHalfHeight;
-        float distance = FrameDisplacement.magnitude + stats.exitDetectionDistance;
+        Vector2 boxBounds = new Vector2(col.bounds.size.x, PlayerHalfHeight + FrameDisplacement.magnitude);
+        Vector2 boxDir = dir;
 
-        ISand sand = null;
-        RaycastHit2D hit = Physics2D.Raycast(origin, -dir, distance, sharedStats.collisionLayerMask);
+        Utility.DrawBox(origin, boxBounds, boxDir, Color.black);
+        Collider2D overlap = Physics2D.OverlapBox(origin, boxBounds, Vector2Utility.GetVector2Angle(boxDir), sharedStats.sandLayerMask);
+
         Physics2D.queriesStartInColliders = cachedStartInCol;
+        Physics2D.queriesHitTriggers = cachedHitTriggers;
 
-        bool canExit = hit
-            && hit.transform.TryGetComponent(out sand)
-            && sand == entrySand;
-
-        Debug.DrawLine(origin, origin - dir * distance, canExit ? Color.green : Color.red);
+        bool canExit = overlap == null;
 
         if (canExit)
         {
-            sand.OnSandEnter(vel, rb.position);
+            entrySand.OnSandExit(vel, rb.position);
 
-            rb.position = hit.point + dir * PlayerHalfHeight;
-            return new LandMovement.LandMovementTransition(dir, isDashing, sand);
+            rb.position = rb.position + FrameDisplacement + dir * PlayerHalfHeight;
+            return new LandMovement.LandMovementTransition(dir, isDashing, entrySand);
         }
 
         return failedData;
@@ -288,14 +301,13 @@ public class BurrowMovement : IMovementState
     private void ResetAllVelocities()
     {
         moveVel = Vector2.zero;
-        bounceVel = Vector2.zero;
         dashVel = Vector2.zero;
         vel = Vector2.zero;
     }
 
     private void ApplyMovement()
     {
-        vel = moveVel + bounceVel + dashVel;
+        vel = moveVel + dashVel;
         rb.linearVelocity = vel;
 
         col.transform.eulerAngles = new Vector3(col.transform.eulerAngles.x, col.transform.eulerAngles.y, GetVector2Angle(moveDir) + 90);

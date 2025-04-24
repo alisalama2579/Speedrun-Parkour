@@ -10,7 +10,7 @@ public class SandEntryPointVisual : MonoBehaviour
     {
         if (controller == null) return;
 
-        landMovement = controller.StateMachine.GetStateObject(typeof(LandMovement)) as LandMovement;
+        landMovement = controller.StateMachine.GetStateObject<LandMovement>();
         sprite = GetComponent<SpriteRenderer>();
     }
 

@@ -5,13 +5,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "PlayerSoundStats", menuName = "PlayerSoundStats")]
 public class PlayerSoundStats : ScriptableObject
 {
-    [SerializeField] private SerializableDictionary<SoundType, SoundInfo> tempSounds;
-    private Dictionary<SoundType, SoundInfo> sounds;   
+    [SerializeField] private SerializableDictionary<SoundType, SoundFX> tempSounds;
+    private Dictionary<SoundType, SoundFX> sounds;   
 
     public AudioClip loopingBurrow;
     public AudioClip loopingWallSlide;
 
-    public SoundInfo[] footsteps;
+    public SoundFX[] footsteps;
     public float footstepInterval;
 
 
@@ -28,7 +28,7 @@ public class PlayerSoundStats : ScriptableObject
         tempSounds = null;
     }
 
-    public SoundInfo GetSoundFromType(SoundType type) => sounds.GetValueOrDefault(type);
+    public SoundFX GetSoundFromType(SoundType type) => sounds.GetValueOrDefault(type);
 
     public enum SoundType
     {

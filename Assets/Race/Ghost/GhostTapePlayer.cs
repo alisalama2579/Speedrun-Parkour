@@ -10,14 +10,14 @@ public class GhostTapePlayer : MonoBehaviour
     private GhostFrameValues currentValues;
     private Vector2 startingPos;
 
-    private void Start()
+    public void Start()
     {
         frameRecord = RecordsManager.GetRecord(recordIndex);
         startingPos = transform.position;
-    }   
+    }
 
     private float frame;
-    private void FixedUpdate()
+    public void UpdateTape()
     {
         float progress = frame / RecordsManager.framesPerValue;
 
@@ -36,10 +36,7 @@ public class GhostTapePlayer : MonoBehaviour
 
             transform.position = startingPos + Vector2.Lerp(currentValues.pos, targetValues.pos, modulus/RecordsManager.framesPerValue);
             transform.eulerAngles = Vector3.forward * Mathf.Lerp(currentValues.zRot, targetValues.zRot, progress);
-
-            Debug.Log("Modulus: " + modulus);
         }
-        Debug.Log("Progress: " + progress);
         frame++;
     }
 }

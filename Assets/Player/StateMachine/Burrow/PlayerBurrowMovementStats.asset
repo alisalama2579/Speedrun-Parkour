@@ -15,28 +15,28 @@ MonoBehaviour:
   exitDetectionDistance: 0.2
   collisionDetectionDistance: 0.2
   acceleration: 1200
-  maxSpeed: 100
-  rotationSpeed: 90
+  maxSpeed: 80
+  rotationSpeed: 20
   oppositeTurnControl: 1
   bounceDuration: 0.2
-  bounceSpeed: 120
+  bounceSpeed: 200
   bounceSpeedCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0.0099487305
       value: 0.98944855
-      inSlope: -1.0024476
-      outSlope: -1.0024476
+      inSlope: -0.59780514
+      outSlope: -0.59780514
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 1.0011826
-      value: -0.004211426
-      inSlope: -1.0024476
-      outSlope: -1.0024476
+      time: 1.0110397
+      value: 0.3909912
+      inSlope: -0.59780514
+      outSlope: -0.59780514
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -48,8 +48,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
-      value: 0
+      time: 0.48013306
+      value: 0.0037841797
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -70,6 +70,9 @@ MonoBehaviour:
     m_RotationOrder: 4
   bounceMoveSpeedMult: 1
   bounceNormalBias: 1
+  dashBuffer: 0.1
+  dashDuration: 0.5
+  dashSpeed: 90
   dashSpeedCurve:
     serializedVersion: 2
     m_Curve:
@@ -103,7 +106,6 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  dashSpeed: 80
   dashControlCurve:
     serializedVersion: 2
     m_Curve:
@@ -129,4 +131,3 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   dashControlMult: 3
-  dashDuration: 0.3

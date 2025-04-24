@@ -7,14 +7,12 @@ public class LandMovementStats : ScriptableObject
     #region SandDash
     public float directionDetectionSize;
     public float sameSandTargetDelay;
-    [FormerlySerializedAs("burrowDetectionDistance")]
     public float sandDetectionDistance;
-    [FormerlySerializedAs("sandDetectionDistance")]
     public float sandDashDetectionDistance;
     public float sandOvershoot;
-    public float directSandDashDetectionDistance;
 
     public float sandDashBuffer;
+    public float directSandDashDetectionDistance;
     [Range(0, 1)] public float entryLaunchPercentToChain;
     #endregion
 
@@ -86,17 +84,24 @@ public class LandMovementStats : ScriptableObject
 
     [Space(5)]
 
-    #region Dash
+    #region Leap
 
-    [Header("Dash")]
-    [FormerlySerializedAs("horizontalDashVel")]
-    public Vector2 dashVel;
-    public float dashDuration;
-    public float dashOpposingMovementFriction;
+    [Header("Leap")]
+    [FormerlySerializedAs("dashVel")]
+    public Vector2 leapVel;
+    [FormerlySerializedAs("dashDuration")]
+    public float leapDuration;
+    [FormerlySerializedAs("dashOpposingMovementFriction")]
+    public float leapOpposingMovementFriction;
+    [FormerlySerializedAs("dashGravMult")]
+    public float leapGravMult;
 
-    public AnimationCurve dashSpeedCurve;
-    public AnimationCurve dashHorizontalVelMult;
-    public AnimationCurve dashGravMult;
+    [FormerlySerializedAs("dashSpeedCurve")]
+    public AnimationCurve leapSpeedCurve;
+    [FormerlySerializedAs("dashHorizontalVelMult")]
+    public AnimationCurve leapHorizontalVelMult;
+    [FormerlySerializedAs("dashGravCurve")]
+    public AnimationCurve leapGravCurve;
 
     #endregion
 

@@ -29,14 +29,20 @@ public class LandVisuals : IMovementObserverState<LandMovement>
     {
     }
 
-    private Player.Input frameInput;
+    private MovementInput frameInput;
     private float HorizontalInput => frameInput.HorizontalMove;
     private float fixedDeltaTime;
     private float time;
 
-    public void Update(Player.Input frameInput)
+    public void Update(MovementInput frameInput)
     {
         time += Time.deltaTime;
+        if (MovementState.IsLeaping || MovementState.IsEntryLaunching)
+        {
+            transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y,
+               90 - Vector2Utility.GetVector2Angle(MovementState.Vel) + 90);
+        }
+        else transform.rotation = Quaternion.identity;
     }
 
     private bool isFacingRight;

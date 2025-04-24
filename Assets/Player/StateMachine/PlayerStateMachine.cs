@@ -13,7 +13,8 @@ public class PlayerStateMachine
         => anyTransitions.Add(new Transition(GetNode(to).MovementState, AnyTransitionFunc));
 
 
-    public IState GetStateObject(Type type) => GetNode(type).MovementState;
+    public T GetStateObject<T>() where T : class, IMovementState => (GetNode(typeof(T)).MovementState) as T;
+
     StateNode GetNode(Type type) => nodes.GetValueOrDefault(type);
     void AddNode(Type type, IMovementState movementState, IState visualState, IState soundState) => nodes.Add(type, new StateNode(movementState, visualState, soundState));
 
@@ -60,6 +61,8 @@ public class PlayerStateMachine
             new SandEntryVisuals(sandEntryMovement, transform, animationStats, anim),
             null);
 
+
+
         InitializeStateTransitions();
         SetStartingState(startingType);
     }
@@ -82,16 +85,16 @@ public class PlayerStateMachine
         current.EnterState(transitionData);
     }
 
-    public void Update(Player.Input frameInput)
+    public void Update(MovementInput frameInput)
     {
         current.Update(frameInput);
-
-        var transition = GetTransition(out IStateSpecificTransitionData transitionData);
-        if (transition != null) SwitchMovementState(transition.To, transitionData);
     }
 
     public void FixedUpdate() 
     {
+        var transition = GetTransition(out IStateSpecificTransitionData transitionData);
+        if (transition != null) SwitchMovementState(transition.To, transitionData);
+
         current.FixedUpdate();
     }
 
@@ -153,11 +156,11 @@ public class PlayerStateMachine
             VisualsState?.ExitState();
         }
 
-        public void Update(Player.Input frameInput)
+        public void Update(MovementInput input)
         {
-            MovementState?.Update(frameInput);
-            SoundsState?.Update(frameInput);
-            VisualsState?.Update(frameInput);
+            MovementState?.Update(input);
+            SoundsState?.Update(input);
+            VisualsState?.Update(input);
         }
 
         public void FixedUpdate()

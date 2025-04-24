@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
-  directionDetectionSize: 1
-  sameSandTargetDelay: 0.2
+  directionDetectionSize: 20
+  sameSandTargetDelay: 0.5
   sandDetectionDistance: 40
   sandDashDetectionDistance: 40
-  sandOvershoot: 10
-  directSandDashDetectionDistance: 1
+  sandOvershoot: 20
   sandDashBuffer: 0.2
+  directSandDashDetectionDistance: 0.5
   entryLaunchPercentToChain: 0.1
   launchGroundWallDetectDelay: 0.3
   launchOpposingMovementFriction: 0.5
@@ -122,34 +122,53 @@ MonoBehaviour:
   jumpVelocity: 90
   jumpApexRange: 5
   gravAfterFalloffMultiplier: 3
-  dashVel: {x: 140, y: 10}
-  dashDuration: 0.15
-  dashOpposingMovementFriction: 10
-  dashSpeedCurve:
+  leapVel: {x: 120, y: 50}
+  leapDuration: 0.3
+  leapOpposingMovementFriction: 10
+  leapGravMult: 1.2
+  leapSpeedCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: -0.012980759
-      value: 0.71525234
-      inSlope: 0.61414033
-      outSlope: 0.61414033
+      time: -0.0004493179
+      value: 0.84505445
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
-      outWeight: 0.07284772
+      outWeight: 0
     - serializedVersion: 3
-      time: 1.0098877
-      value: 0.48072052
-      inSlope: -1.7852023
-      outSlope: -1.7852023
+      time: 0.1642952
+      value: 0.9986839
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
-      inWeight: 0.046357695
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.59456265
+      value: 0.70739985
+      inSlope: -2.0918782
+      outSlope: -2.0918782
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.12827466
+      outWeight: 0.102907576
+    - serializedVersion: 3
+      time: 1.0125338
+      value: 0.49469697
+      inSlope: -0.25373715
+      outSlope: -0.25373715
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.46035007
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  dashHorizontalVelMult:
+  leapHorizontalVelMult:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
@@ -162,8 +181,8 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.9939575
-      value: 0.9006462
+      time: 1.0286487
+      value: 1.0617907
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -173,31 +192,31 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  dashGravMult:
+  leapGravCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1
+      value: 0.5014038
       inSlope: 0
       outSlope: 0
-      tangentMode: 34
+      tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
       value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 34
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  maxDownVel: 100
+  maxDownVel: 150
   gravity: 250
   ceilingHitPush: 0
   groundingPush: 0
@@ -213,9 +232,9 @@ MonoBehaviour:
   wallNormalRange: 0.1
   timeToFullSpeedFromWall: 0.1
   maxYVelForWallGrab: 0
-  minVelForPushingWall: 0
+  minVelForPushingWall: -20
   onWallGravity: 70
-  wallJumpVel: 140
+  wallJumpVel: 160
   wallJumpUpBias: 0.7
   slipStrength: 2
   slowAreaDrag: {x: 5, y: 5}

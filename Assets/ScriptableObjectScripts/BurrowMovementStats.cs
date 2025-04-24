@@ -5,32 +5,37 @@ using UnityEngine.Serialization;
 public class BurrowMovementStats : ScriptableObject
 {
     public float exitDetectionDistance;
-
     public float collisionDetectionDistance;
-    [FormerlySerializedAs("speed")]
+
+    [Header("Input Move")]
     public float acceleration;
-    [FormerlySerializedAs("maxVelocity")]
     public float maxSpeed;
     public float rotationSpeed;
-    [FormerlySerializedAs("turnSensitivity")]
     public float oppositeTurnControl;
 
+    [Space(5)]
+    [Header("Bounce")]
+    #region Bounce
     public float bounceDuration;
-    [FormerlySerializedAs("bounceVel")]
     public float bounceSpeed;
     public AnimationCurve bounceSpeedCurve;
     public AnimationCurve bounceControlCurve;
-    [FormerlySerializedAs("bounceControlMult")]
     public float bounceMoveSpeedMult;
 
     [Range(0, 1)] public float bounceNormalBias;
     public readonly float BOUNCE_COOL_DOWN = 0.1f;
+    #endregion
+
+    [Space(5)]
+    [Header("Dash")]
+    #region Dash
+    public float dashBuffer;
+    public float dashDuration;
+    public float dashSpeed;
 
     public AnimationCurve dashSpeedCurve;
-    [FormerlySerializedAs("dashVel")]
-    public float dashSpeed;
     public AnimationCurve dashControlCurve;
     public float dashControlMult;
-    public float dashDuration;
 
+    #endregion
 }

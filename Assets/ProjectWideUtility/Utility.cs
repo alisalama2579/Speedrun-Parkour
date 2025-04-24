@@ -1,39 +1,46 @@
 using UnityEngine;
+
 public static class Utility
 {
     public enum CardinalDirections
     {
         Up,
-        Down, 
-        Left, 
+        Down,
+        Left,
         Right
     }
-
-
-    public static Vector2 Vector2Slerp(Vector2 start, Vector2 end, float maxDelta)
+    public static T GetRandomFromArray<T>(params T[] array) => array[Random.Range(0, array.Length)];
+    public static void DrawBox(Vector2 origin, Vector2 size, Vector2 dir, Color color)
     {
-        // Dot product - the cosine of the angle between 2 vectors.
-        float dot = Vector2.Dot(start, end);
+        const float HALF = 0.5f;
 
-        // Clamp it to be in the range of Acos()
-        dot = Mathf.Clamp(dot, -1.0f, 1.0f);
+        Vector2 bottomLeft;
+        Vector2 bottomRight;
+        Vector2 topLeft;
+        Vector2 topRight;
 
-        // Acos(dot) returns the angle between start and end,
-        // And multiplying that by percent returns the angle between
-        // start and the final result.
-        float theta = Mathf.Acos(dot) * maxDelta;
-        Vector2 relativeVec = end - start * dot;
-        relativeVec.Normalize();
+        if (dir == Vector2.zero)
+        {
+            topRight = origin + HALF * size;
+            bottomLeft = origin + -HALF * size;
 
-        // The final result.
-        return ((start * Mathf.Cos(theta)) + (relativeVec * Mathf.Sin(theta)));
+            topLeft = new Vector2(bottomLeft.x, topRight.y);
+            bottomRight = new Vector2(topRight.x, bottomLeft.y);
+        }
+        else
+        {
+            Vector2 a = size.x * HALF * Vector2.Perpendicular(dir);
+            Vector2 b = size.y * HALF * dir;
+
+            bottomLeft = origin + a - b;
+            bottomRight = origin - a - b;
+            topLeft = origin + a + b;
+            topRight = origin - a + b;
+        }
+
+        Debug.DrawLine(bottomLeft, bottomRight, color);
+        Debug.DrawLine(bottomRight, topRight, color);
+        Debug.DrawLine(topRight, topLeft, color);
+        Debug.DrawLine(topLeft, bottomLeft, color);
     }
-
-    public static float GetVector2Angle(Vector2 v) => Mathf.Rad2Deg * Mathf.Atan2(v.x, v.y);
-    public static float GetVector2Radian(Vector2 v) => Mathf.Atan2(v.x, v.y);
-}
-
-public static class RandomArray<T>
-{
-    public static T GetRandomFromArray(params T[] array) => array[Random.Range(0, array.Length)];
 }

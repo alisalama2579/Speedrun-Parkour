@@ -11,35 +11,42 @@ public class SoundFXManager : MonoBehaviour
         source.pitch = pitch;
         source.clip = clip;
 
-        //source.Play();
-        //Destroy(source, clip.length);
+        if(clip == null)
+        {
+            Destroy(source.gameObject);
+            return;
+        }
+
+        source.Play();
+        Destroy(source.gameObject, clip.length);
     }
 
 
-    public void PlaySFX(SoundInfo info, Transform audioSourceParent)
+    public void PlaySFX(SoundFX soundFX, Transform audioSourceParent)
     {
-        //if (info == null) 
+        if (soundFX == null) 
             return;
 
         AudioSource clonedSource = Instantiate(source, audioSourceParent);
 
-        if (info.pitchRange != Vector2.zero)
-            PlayClipFromSource(clonedSource, info.clip, info.volume, Mathf.Clamp01(UnityEngine.Random.Range(info.pitchRange.x, info.pitchRange.y)));
+
+        if (soundFX is PitchedSoundFX pitchedSoundFX)
+            PlayClipFromSource(clonedSource, soundFX.clip, soundFX.volume, Mathf.Clamp01(Random.Range(pitchedSoundFX.pitchRange.x, pitchedSoundFX.pitchRange.y)));
         else
-            PlayClipFromSource(clonedSource, info.clip, info.volume, 1);
+            PlayClipFromSource(clonedSource, soundFX.clip, soundFX.volume, 1);
     }
 
-    public void PlaySFX(SoundInfo info, Vector3 position)
+    public void PlaySFX(SoundFX soundFX, Vector3 position)
     {
-        //if (info == null)
+        if (soundFX == null)
             return;
 
         AudioSource clonedSource = Instantiate(source, position, Quaternion.identity);
 
-        if (info.pitchRange != Vector2.zero)
-             PlayClipFromSource(clonedSource, info.clip, info.volume, Mathf.Clamp01(UnityEngine.Random.Range(info.pitchRange.x, info.pitchRange.y)));
+        if (soundFX is PitchedSoundFX pitchedSoundFX)
+             PlayClipFromSource(clonedSource, soundFX.clip, soundFX.volume, Mathf.Clamp01(Random.Range(pitchedSoundFX.pitchRange.x, pitchedSoundFX.pitchRange.y)));
         else
-            PlayClipFromSource(clonedSource, info.clip, info.volume, 1);
+            PlayClipFromSource(clonedSource, soundFX.clip, soundFX.volume, 1);
     }
 
 

@@ -18,41 +18,33 @@ MonoBehaviour:
       value:
         clip: {fileID: 0}
         volume: 1
-        pitchRange: {x: 1, y: 1}
     - key: 1
       value:
         clip: {fileID: 0}
         volume: 1
-        pitchRange: {x: 1, y: 1}
     - key: 2
       value:
         clip: {fileID: 0}
         volume: 1
-        pitchRange: {x: 1, y: 1}
     - key: 3
       value:
         clip: {fileID: 0}
         volume: 1
-        pitchRange: {x: 1, y: 1}
     - key: 4
       value:
         clip: {fileID: 0}
         volume: 1
-        pitchRange: {x: 1, y: 1}
     - key: 5
       value:
         clip: {fileID: 0}
         volume: 1
-        pitchRange: {x: 1, y: 1}
     - key: 6
       value:
         clip: {fileID: 0}
         volume: 1
-        pitchRange: {x: 1, y: 1}
   loopingBurrow: {fileID: 0}
   loopingWallSlide: {fileID: 0}
   footsteps:
   - clip: {fileID: 0}
     volume: 0
-    pitchRange: {x: 0, y: 0}
-  footstepInterval: 0
+  footstepInterval: 1

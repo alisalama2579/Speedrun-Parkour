@@ -10,13 +10,14 @@ GameObject:
   m_Component:
   - component: {fileID: 1127008731110700850}
   - component: {fileID: 16616877591481636}
+  - component: {fileID: 1607874487585570420}
   m_Layer: 0
   m_Name: Ghost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1127008731110700850
 Transform:
   m_ObjectHideFlags: 0
@@ -45,7 +46,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cbb0ad5a31a17f499e8468f331de0c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  recordIndex: 0
+  recordIndex: 3
+--- !u!114 &1607874487585570420
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 344531153946111352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54f09aadb9554ec458d73e75732cffe0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  startDelay: 2
 --- !u!1001 &2619182584922066848
 PrefabInstance:
   m_ObjectHideFlags: 0

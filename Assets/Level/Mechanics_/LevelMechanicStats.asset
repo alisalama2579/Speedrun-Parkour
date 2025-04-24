@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fadeTime: 0.2
   fadeDelay: 0.1
-  sandLaunchSpeed: 170
+  sandLaunchSpeed: 190
   burrowLaunchSpeed: 180
-  burrowWeakLaunchSpeed: 90
-  sandColliderReactivationDelay: 0.1
+  burrowWeakLaunchSpeed: 50
+  sandColliderReactivationDelay: 0.3
   secretFadeTime: 0.1
   slipperiness: 1

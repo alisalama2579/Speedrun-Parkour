@@ -5,23 +5,33 @@ public class RaceCamera : MonoBehaviour
 {
     [SerializeField] private Rigidbody2D targetRB;
 
-    [SerializeField] private float smoothTime;
-    Vector2 refVel;
-
     [FormerlySerializedAs("maxDisplacement")]
     [SerializeField] private Vector2 deadZone;
     [SerializeField] private float maximumMoveSpeed;
     [SerializeField] private float distanceToSnap;
 
+    private Vector2 equilibrium;
+    public float dampingRatio;
+    public float frequency;
+
+    private Vector2 refPos;
+    private Vector2 refVel;
+
+    private SpringUtils.DampedSpringMotionParams motionParams = new();
+
     private void FixedUpdate()
     {
-        Vector2 targetPosition = targetRB.position;
-        Vector2 smoothedPosition = Vector2.SmoothDamp(transform.position, targetPosition, ref refVel, smoothTime);
+        Vector2 targetPosition = equilibrium = targetRB.position;
 
-        float xDisplacement =  smoothedPosition.x - targetPosition.x;
+        SpringUtils.CalcDampedSpringMotionParams(motionParams, Time.deltaTime, frequency, dampingRatio);
+        SpringUtils.UpdateDampedSpringMotion(ref refPos.x, ref refVel.x, equilibrium.x, motionParams);
+        SpringUtils.UpdateDampedSpringMotion(ref refPos.y, ref refVel.y, equilibrium.y, motionParams);
+        Vector2 springedPos = refPos;
+
+        float xDisplacement =  springedPos.x - targetPosition.x;
         xDisplacement = Mathf.Clamp(xDisplacement, -deadZone.x, deadZone.x);
 
-        float yDisplacement =  smoothedPosition.y - targetPosition.y;
+        float yDisplacement =  springedPos.y - targetPosition.y;
         yDisplacement = Mathf.Clamp(yDisplacement, -deadZone.y, deadZone.y);
 
         Vector2 deadzonedPosition = new Vector2(targetPosition.x + xDisplacement, targetPosition.y + yDisplacement);
@@ -31,7 +41,7 @@ public class RaceCamera : MonoBehaviour
 
         Vector2 finalPosition;
 
-        if (new Vector2(xDelta, yDelta).sqrMagnitude >= distanceToSnap)
+        if (new Vector2(xDelta, yDelta).sqrMagnitude >= distanceToSnap * distanceToSnap)
             finalPosition = targetPosition;
         else
         {

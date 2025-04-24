@@ -8,19 +8,17 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Collider2D col;
 
-
     private PlayerStateMachine stateMachine;
     public PlayerStateMachine StateMachine => stateMachine;
 
     private Player player;
-    private Animator anim;
+    [SerializeField] private Animator anim;
     [SerializeField] private MovementStatsHolder movementStats;
     [SerializeField] private AnimationStatsHolder animationStats;
     [SerializeField] private PlayerSoundStats soundStats;
     [SerializeField] private SoundFXManager sfxManager;
 
-
-    public Player.Input FrameInput => player.FrameInput;
+    public MovementInput movementInput = new();
 
     private void Awake()
     {
@@ -39,7 +37,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        stateMachine?.Update(FrameInput);
+        movementInput.Update(player.controls);
+        stateMachine?.Update(movementInput);
     }
 
     private void FixedUpdate()

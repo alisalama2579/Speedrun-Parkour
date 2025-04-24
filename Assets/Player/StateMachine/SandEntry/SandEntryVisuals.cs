@@ -2,20 +2,20 @@ using System;
 using UnityEngine;
 using static TransitionLibrary;
 
-public class BurrowVisuals : IMovementObserverState<BurrowMovement>
+public class SandEntryVisuals : IMovementObserverState<SandEntryMovement>
 {
-    public BurrowMovement MovementState { get; set; }
-
     private readonly Animator anim;
     private readonly AnimationStatsHolder stats;
-    private BurrowMovement burrowMovement;
+    private readonly Transform transform;
+    public SandEntryMovement MovementState { get; set; }
 
-    public BurrowVisuals(BurrowMovement burrowMovement, Transform transform, AnimationStatsHolder animationStats, Animator anim)
+    public SandEntryVisuals(SandEntryMovement sandEntryMovement, Transform transform, AnimationStatsHolder animationStats, Animator anim)
     {
         this.anim = anim;
+        this.transform = transform;
         stats = animationStats;
 
-        MovementState = burrowMovement;
+        MovementState = sandEntryMovement;
     }
 
     public void InitializeTransitions(PlayerStateMachine controller)
@@ -24,24 +24,25 @@ public class BurrowVisuals : IMovementObserverState<BurrowMovement>
 
     public void EnterState(IStateSpecificTransitionData lastStateData)
     {
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y,
+        90 - Vector2Utility.GetVector2Angle(MovementState.Dir) + 90);
     }
-
     public void ExitState()
     {
     }
 
-    private Player.Input frameInput;
+    private MovementInput frameInput;
     private float HorizontalInput => frameInput.HorizontalMove;
     private float fixedDeltaTime;
     private float time;
 
-    public void Update(Player.Input frameInput)
+    public void Update(MovementInput frameInput)
     {
         time += Time.deltaTime;
         HandleInput(frameInput);
     }
 
-    public void HandleInput(Player.Input frameInput)
+    public void HandleInput(MovementInput frameInput)
     {
         this.frameInput = frameInput;
 
