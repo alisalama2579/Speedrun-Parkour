@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
 
     private Player player;
     [SerializeField] private Animator anim;
+    [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private MovementStatsHolder movementStats;
     [SerializeField] private AnimationStatsHolder animationStats;
     [SerializeField] private PlayerSoundStats soundStats;
@@ -26,7 +27,22 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         player = GetComponent<Player>();
 
-        stateMachine = new PlayerStateMachine(typeof(LandMovement), transform, rb, col, movementStats, animationStats, anim, soundStats, sfxManager);
+        VisualsInitData visData = new ()
+        {
+            Anim = anim,
+            Transform = anim.transform,
+            Stats = animationStats,
+            Renderer = spriteRenderer
+        };
+
+        SoundInitData soundData = new()
+        {
+            SoundFXManager = sfxManager,
+            Transform = transform,
+            Stats = soundStats,
+        };
+
+        stateMachine = new PlayerStateMachine(typeof(LandMovement), transform, rb, col, movementStats, visData, soundData);
     }
 
 

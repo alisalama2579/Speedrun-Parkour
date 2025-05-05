@@ -22,5 +22,5 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 384
   landStats: {fileID: 11400000, guid: 244854ba9c699c340a34928f41e8e81f, type: 2}
-  burrowStats: {fileID: 11400000, guid: abdac12e1cf1de34290cce3a800c52f2, type: 2}
+  burrowStats: {fileID: 11400000, guid: 4ec9a5bd0597197498b407b005997bac, type: 2}
   interStateDashStats: {fileID: 11400000, guid: f38ce4622a7f5494ba9cdd4db937b402, type: 2}

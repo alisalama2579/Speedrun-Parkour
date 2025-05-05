@@ -7,6 +7,7 @@ public class BurrowMovementStats : ScriptableObject
     public float exitDetectionDistance;
     public float collisionDetectionDistance;
 
+    [Space(5)]
     [Header("Input Move")]
     public float acceleration;
     public float maxSpeed;
@@ -16,6 +17,8 @@ public class BurrowMovementStats : ScriptableObject
     [Space(5)]
     [Header("Bounce")]
     #region Bounce
+    [Range(1, 100)]
+    public int bounceCheckFrequency;
     public float bounceDuration;
     public float bounceSpeed;
     public AnimationCurve bounceSpeedCurve;
@@ -29,6 +32,7 @@ public class BurrowMovementStats : ScriptableObject
     [Space(5)]
     [Header("Dash")]
     #region Dash
+    [Range(0, 1)] public float progressToDashChain;
     public float dashBuffer;
     public float dashDuration;
     public float dashSpeed;

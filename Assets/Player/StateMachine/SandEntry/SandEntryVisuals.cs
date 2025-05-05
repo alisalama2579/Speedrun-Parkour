@@ -7,13 +7,16 @@ public class SandEntryVisuals : IMovementObserverState<SandEntryMovement>
     private readonly Animator anim;
     private readonly AnimationStatsHolder stats;
     private readonly Transform transform;
+    private readonly SpriteRenderer renderer;
+
     public SandEntryMovement MovementState { get; set; }
 
-    public SandEntryVisuals(SandEntryMovement sandEntryMovement, Transform transform, AnimationStatsHolder animationStats, Animator anim)
+    public SandEntryVisuals(SandEntryMovement sandEntryMovement, VisualsInitData visData)
     {
-        this.anim = anim;
-        this.transform = transform;
-        stats = animationStats;
+        anim = visData.Anim;
+        transform = visData.Transform;
+        stats = visData.Stats;
+        renderer = visData.Renderer;
 
         MovementState = sandEntryMovement;
     }

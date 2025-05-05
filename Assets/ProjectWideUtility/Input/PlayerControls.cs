@@ -252,6 +252,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
+                    ""id"": ""1470430c-a68b-416a-8f12-9448652f370c"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Controller"",
+                    ""action"": ""Dash"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""e1fcda47-90c9-4eea-ab66-178ac586d204"",
                     ""path"": ""<Gamepad>/leftStick"",
                     ""interactions"": """",

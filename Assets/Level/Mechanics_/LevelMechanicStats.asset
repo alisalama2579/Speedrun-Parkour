@@ -19,4 +19,4 @@ MonoBehaviour:
   burrowWeakLaunchSpeed: 50
   sandColliderReactivationDelay: 0.3
   secretFadeTime: 0.1
-  slipperiness: 1
+  slipperiness: 0.5

@@ -4,25 +4,33 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(fileName = "PlayerLandControllerStats", menuName = "PlayerLandControllerStats")]
 public class LandMovementStats : ScriptableObject
 {
+    public float rollDuration;
+    public float rollSpeed;
+
     #region SandDash
-    public float directionDetectionSize;
-    public float sameSandTargetDelay;
-    public float sandDetectionDistance;
-    public float sandDashDetectionDistance;
-    public float sandOvershoot;
+    [Header("Sand Dash")]
 
     public float sandDashBuffer;
+    public float sameSandTargetDelay;
+
+    public float directionDetectionSize;
+    public float sandDetectionDistance;
+    public float sandDashDetectionDistance;
     public float directSandDashDetectionDistance;
-    [Range(0, 1)] public float entryLaunchPercentToChain;
+
+    public float sandOvershoot;
     #endregion
 
     [Space(5)]
 
     #region Launch
+    [Header("Launch")]
+
+    public float launchDecel;
     public float launchGroundWallDetectDelay;
     public float launchOpposingMovementFriction;
     public float maxLaunchMoveSpeed;
-    public float launchDuration;
+    public float launchMultDuration;
     public AnimationCurve launchSpeedCurve;
     public AnimationCurve launchGravCurve;
     public AnimationCurve launchControlCurve;
@@ -89,12 +97,14 @@ public class LandMovementStats : ScriptableObject
     [Header("Leap")]
     [FormerlySerializedAs("dashVel")]
     public Vector2 leapVel;
-    [FormerlySerializedAs("dashDuration")]
+    [FormerlySerializedAs("leapDuration")]
     public float leapDuration;
     [FormerlySerializedAs("dashOpposingMovementFriction")]
     public float leapOpposingMovementFriction;
     [FormerlySerializedAs("dashGravMult")]
     public float leapGravMult;
+    public float leapDecel;
+    public float leapEntryLaunchRetainPercent;
 
     [FormerlySerializedAs("dashSpeedCurve")]
     public AnimationCurve leapSpeedCurve;

@@ -41,27 +41,26 @@ public class PlayerStateMachine
     Dictionary<Type, StateNode> nodes = new();
     HashSet<Transition> anyTransitions = new();
 
-    public PlayerStateMachine(Type startingType, Transform transform, Rigidbody2D rb, Collider2D col, MovementStatsHolder movementStats, AnimationStatsHolder animationStats, Animator anim, PlayerSoundStats soundStats, SoundFXManager sfxManager)
+    public PlayerStateMachine(Type startingType, Transform transform, Rigidbody2D rb, Collider2D col, MovementStatsHolder movementStats, VisualsInitData visData, SoundInitData soundData)
     {
         LandMovement landMovement = new LandMovement(rb, col, movementStats);
         AddNode(typeof(LandMovement),
             landMovement,
-            new LandVisuals(landMovement, transform, animationStats, anim), 
-            new LandSound(landMovement, transform, soundStats, sfxManager));
+            new LandVisuals(landMovement, visData), 
+            new LandSound(landMovement, soundData));
 
         BurrowMovement burrowMovement = new BurrowMovement(rb, col, movementStats);
         AddNode(typeof(BurrowMovement), 
             burrowMovement, 
-            new BurrowVisuals(burrowMovement, transform, animationStats, anim), 
-            new BurrowSound(burrowMovement, transform, soundStats, sfxManager));
+            new BurrowVisuals(burrowMovement, visData), 
+            new BurrowSound(burrowMovement, soundData)
+            );
 
         SandEntryMovement sandEntryMovement = new SandEntryMovement(rb, col, movementStats);
         AddNode(typeof(SandEntryMovement), 
             new SandEntryMovement(rb, col, movementStats), 
-            new SandEntryVisuals(sandEntryMovement, transform, animationStats, anim),
+            new SandEntryVisuals(sandEntryMovement, visData),
             null);
-
-
 
         InitializeStateTransitions();
         SetStartingState(startingType);

@@ -1,5 +1,4 @@
 using System;
-using UnityEditor.Overlays;
 using UnityEngine;
 using static TransitionLibrary;
 
@@ -52,6 +51,7 @@ public class BurrowMovement : IMovementState
         ResetAllVelocities();
         ExitDash();
         ExitBounce();
+        frame = 0;
         time = 0;
         frameInput = new();
         timeDashRequested = float.MinValue;
@@ -84,8 +84,10 @@ public class BurrowMovement : IMovementState
         }
     }
 
+    private int frame;
     public void FixedUpdate()
     {
+        frame++;
         deltaTime = Time.deltaTime;
 
         HandleBounce();
@@ -99,8 +101,10 @@ public class BurrowMovement : IMovementState
     private Vector2 vel;
 
     private Vector2 FrameDisplacement => (moveVel + dashVel) * deltaTime;
-    private Vector2 VelocityDir => vel.normalized;
-    private float GetVector2Angle(Vector2 dir) => Mathf.Rad2Deg * Mathf.Atan2(dir.y, dir.x);
+    private Vector2 VelDir => vel.normalized;
+    public Vector2 MoveDir => moveDir;
+    public bool IsBurrowDashing => isDashing;
+
 
     #region Bounce
 
@@ -113,16 +117,21 @@ public class BurrowMovement : IMovementState
 
     private void HandleBounce()
     {
-        float dist = vel.magnitude;
-        Vector2 dir = vel / dist;
+        float dist = vel.magnitude * deltaTime;
+        RaycastHit2D hit = new();
 
-        RaycastHit2D hit = Physics2D.BoxCast(
+        if(dist > 0 && frame % stats.bounceCheckFrequency == 0)
+        {
+            Vector2 dir = vel / dist;
+
+            hit = Physics2D.BoxCast(
             rb.position,
             col.bounds.size,
-            GetVector2Angle(vel),
+            Vector2Utility.GetUnityVector2Angle(vel),
             dir,
-            dist * deltaTime,
+            dist,
             sharedStats.terrainLayerMask);
+        }
 
         float timeSinceBounce = time - timeBounced;
         float timePercent = Mathf.Clamp01(timeSinceBounce / stats.bounceDuration);
@@ -182,8 +191,8 @@ public class BurrowMovement : IMovementState
         if (frameInput.Look != Vector2.zero) wishDir = frameInput.Look;
 
         float angle = Mathf.MoveTowardsAngle(
-            GetVector2Angle(moveDir),
-            GetVector2Angle(wishDir),
+            Vector2Utility.GetUnityVector2Angle(moveDir),
+            Vector2Utility.GetUnityVector2Angle(wishDir),
             stats.rotationSpeed * bounceControlMult);
 
         moveDir = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)).normalized;
@@ -208,14 +217,16 @@ public class BurrowMovement : IMovementState
 
     private bool HasBufferedDash => time <= timeDashRequested + stats.dashBuffer;
 
+    public event Action OnBurrowDash;
     private void HandleDash()
     {
         float timePercent = Mathf.Clamp01((time - timeDashed) / stats.dashDuration);
-        if (((timePercent == 1 || dashRequested) && isDashing) || isBouncing)
+        if ((timePercent >= 1 && isDashing) || isBouncing)
             dashInterrupted = true;
 
-        bool canDash = !isDashing && !dashInterrupted;
-        if (dashRequested || HasBufferedDash && canDash) ExecuteDash();
+        bool canChainDash = dashRequested && timePercent >= stats.progressToDashChain && !dashInterrupted;
+        bool canBufferedDash = HasBufferedDash && !isDashing && !dashInterrupted;
+        if (canChainDash || canBufferedDash) ExecuteDash();
         dashRequested = false;
 
         if (dashInterrupted) ExitDash();
@@ -236,6 +247,8 @@ public class BurrowMovement : IMovementState
 
     private void ExecuteDash()
     {
+        OnBurrowDash?.Invoke();
+
         timeDashed = time;
         dashInterrupted = false;
         isDashing = true;
@@ -270,7 +283,7 @@ public class BurrowMovement : IMovementState
         Physics2D.queriesHitTriggers = true;
 
         //Ray is cast out to in, to prevent sand exit if there is terrain beyond sand
-        Vector2 dir = VelocityDir;
+        Vector2 dir = VelDir;
 
         Vector2 origin = rb.position + FrameDisplacement + dir * PlayerHalfHeight;
         Vector2 boxBounds = new Vector2(col.bounds.size.x, PlayerHalfHeight + FrameDisplacement.magnitude);
@@ -309,7 +322,5 @@ public class BurrowMovement : IMovementState
     {
         vel = moveVel + dashVel;
         rb.linearVelocity = vel;
-
-        col.transform.eulerAngles = new Vector3(col.transform.eulerAngles.x, col.transform.eulerAngles.y, GetVector2Angle(moveDir) + 90);
     }
 }

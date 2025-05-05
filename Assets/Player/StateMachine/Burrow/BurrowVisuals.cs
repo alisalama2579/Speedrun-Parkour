@@ -1,4 +1,4 @@
-using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using static TransitionLibrary;
 
@@ -8,54 +8,99 @@ public class BurrowVisuals : IMovementObserverState<BurrowMovement>
 
     private readonly Animator anim;
     private readonly AnimationStatsHolder stats;
-    private BurrowMovement burrowMovement;
-
-    public BurrowVisuals(BurrowMovement burrowMovement, Transform transform, AnimationStatsHolder animationStats, Animator anim)
+    private readonly Transform transform;
+    private readonly SpriteRenderer renderer;
+    public BurrowVisuals(BurrowMovement burrowMovement, VisualsInitData visData)
     {
-        this.anim = anim;
-        stats = animationStats;
+        anim = visData.Anim;
+        transform = visData.Transform;
+        stats = visData.Stats;
+        renderer = visData.Renderer;
 
         MovementState = burrowMovement;
+        SetState(Burrow);
+
+        MovementState.OnBurrowDash += () =>{
+            burrowDashTriggered = true;
+        };
+        dashUnlockPredicate = new ConditionPredicate(BurrowDashExitCondition);
     }
 
-    public void InitializeTransitions(PlayerStateMachine controller)
-    {
-    }
+    public void ExitState() => Reset();
 
-    public void EnterState(IStateSpecificTransitionData lastStateData)
-    {
-    }
+    private bool stateLocked;
+    private float timeLocked;
+    private IPredicate currentUnlockPredicate;
+    private readonly IPredicate dashUnlockPredicate;
 
-    public void ExitState()
-    {
-    }
+    private bool burrowDashTriggered;
 
-    private MovementInput frameInput;
-    private float HorizontalInput => frameInput.HorizontalMove;
-    private float fixedDeltaTime;
+    private float deltaTime;
+    private float timeStateChanged;
     private float time;
+
+    Vector2 scale;
 
     public void Update(MovementInput frameInput)
     {
-        time += Time.deltaTime;
-        HandleInput(frameInput);
+        deltaTime = Time.deltaTime;
+        time += deltaTime;
+
+        var state = GetState();
+        SetState(state);
+
+        burrowDashTriggered = false;
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, GetZRotation());
+
+        if (MovementState.IsBurrowDashing) renderer.color = Color.blue;
+        else renderer.color = Color.white;
     }
 
-    public void HandleInput(MovementInput frameInput)
+    private void SetState(int state, float duration = 0, int layer = 0)
     {
-        this.frameInput = frameInput;
+        if (state == currentState) return;
 
-        if (HorizontalInput == 1) isFacingRight = true;
-        if (HorizontalInput == -1) isFacingRight = false;
+        timeStateChanged = time;
+        anim.CrossFade(state, duration, layer);
+        currentState = state;
     }
 
-
-    public void FixedUpdate()
+    private int GetState()
     {
-        fixedDeltaTime = Time.fixedDeltaTime;
+        if (stateLocked) stateLocked = !currentUnlockPredicate.Test;
+        if (stateLocked) return currentState;
 
+        // Priorities
+        if (burrowDashTriggered) return LockState(BurrowDash, dashUnlockPredicate);
+        return Burrow;
+
+        int LockState(int s, IPredicate unlockPredicate)
+        {
+            stateLocked = true;
+            currentUnlockPredicate = unlockPredicate;
+            return s;
+        }
     }
 
-    private bool isFacingRight;
-    public int FacingDirection => isFacingRight ? 1 : -1;
+    private float GetZRotation()
+    {
+        return Vector2Utility.GetUnityVector2Angle(MovementState.MoveDir) - 90;
+    }
+
+    private void Reset()
+    {
+        renderer.color = Color.white;
+        time = 0;
+        burrowDashTriggered = false;
+    }
+
+    #region Cached Properties
+
+    private int currentState;
+    private static readonly int Burrow = Animator.StringToHash("Burrow");
+    private static readonly int BurrowDash = Animator.StringToHash("BurrowDash");
+
+    #endregion
+
+    private bool BurrowDashExitCondition() => time > timeStateChanged + stats.burrowDashTime || !MovementState.IsBurrowDashing;
 }

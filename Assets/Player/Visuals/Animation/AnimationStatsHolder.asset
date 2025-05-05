@@ -12,3 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d72d1ac9dc5a9e43aefb57f9c1c82e4, type: 3}
   m_Name: AnimationStatsHolder
   m_EditorClassIdentifier: 
+  minSpeedForRun: 30
+  minSpeedForWalk: 2
+  rollAnimationTime: 0.2
+  rollRotationSpeed: -1300

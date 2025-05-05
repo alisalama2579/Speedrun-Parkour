@@ -10,18 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
-  m_Name: PlayerLandControllerStats
+  m_Name: LandStatsTest
   m_EditorClassIdentifier: 
   rollDuration: 0.2
   rollSpeed: 25
   sandDashBuffer: 0.2
   sameSandTargetDelay: 0.5
   directionDetectionSize: 20
-  sandDetectionDistance: 40
-  sandDashDetectionDistance: 40
+  sandDetectionDistance: 30
+  sandDashDetectionDistance: 30
   directSandDashDetectionDistance: 1
   sandOvershoot: 20
-  fallOvershootMult: 0.02
   launchDecel: 100
   launchGroundWallDetectDelay: 0.1
   launchOpposingMovementFriction: 90

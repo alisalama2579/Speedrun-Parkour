@@ -11,24 +11,29 @@ public class BurrowSound : IMovementObserverState<BurrowMovement>
     private readonly AudioSource loopingSource;
     private readonly Transform transform;
 
-    public BurrowSound(BurrowMovement burrowMovement, Transform transform, PlayerSoundStats stats, SoundFXManager sfx)
+    public BurrowSound(BurrowMovement burrowMovement, SoundInitData soundData)
     {
-        this.transform = transform;
-        this.stats = stats;
-
-        sfxManager = sfx;
-        loopingSource = sfx.GetLoopingSFX(transform);
+        transform = soundData.Transform;
+        stats = soundData.Stats;
+        sfxManager = soundData.SoundFXManager;
+        if (sfxManager) { loopingSource = sfxManager.GetLoopingSFX(transform); }
 
         MovementState = burrowMovement;
     }
 
     public void EnterState()
     {
-        loopingSource.clip = stats.loopingBurrow;
-        loopingSource.Play();
+        if (loopingSource)
+        {
+            loopingSource.clip = stats.loopingBurrow;
+            loopingSource.Play();
+        }
     }
     public void ExitState() 
     {
-        loopingSource.Stop();
+        if (loopingSource)
+        {
+            loopingSource.Stop();
+        }
     }
 }

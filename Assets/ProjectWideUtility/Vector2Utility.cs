@@ -21,6 +21,7 @@ public static class Vector2Utility
     }
 
     public static float GetVector2Angle(Vector2 v) => Mathf.Rad2Deg * Mathf.Atan2(v.x, v.y);
+    public static float GetUnityVector2Angle(Vector2 v) => Mathf.Rad2Deg * Mathf.Atan2(v.y, v.x);
     public static float GetVector2Radian(Vector2 v) => Mathf.Atan2(v.x, v.y);
 
     public static Vector2 GetAngleVector2(float theta) => new (Mathf.Cos(theta), Mathf.Sin(theta));
