@@ -6,11 +6,9 @@ public interface IState
 {
     public void EnterState(IStateSpecificTransitionData lastStateData) { }
     public void ExitState() { }
-
     public void Update(MovementInput input) { }
     public void FixedUpdate() { }
 }
-
 
 public interface IMovementState : IState
 {
@@ -22,10 +20,10 @@ public interface IMovementState : IState
     public void TriggerEnter(Collider2D trigger) { }
     public void TriggerExit(Collider2D trigger) { }
 
-    public void CollisionEnter(IPlayerCollisionListener collisionListener) { }
-    public void CollisionExit(IPlayerCollisionListener collisionListener) { }
-    public void TriggerEnter(IPlayerCollisionListener collisionListener) { }
-    public void TriggerExit(IPlayerCollisionListener collisionListener) { }
+    public void CollisionEnter(IPlayerCollisionInteractor collisionListener) { }
+    public void CollisionExit(IPlayerCollisionInteractor collisionListener) { }
+    public void TriggerEnter(IPlayerCollisionInteractor collisionListener) { }
+    public void TriggerExit(IPlayerCollisionInteractor collisionListener) { }
 }
 
 public interface IMovementObserverState<T> : IState where T : IMovementState

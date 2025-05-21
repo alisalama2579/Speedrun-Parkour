@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class SlowingArea: MonoBehaviour , IPlayerCollisionListener
+public class SlowingArea: MonoBehaviour , IPlayerCollisionInteractor
 {
     public void OnPlayerEnter()
     {
@@ -10,5 +10,10 @@ public class SlowingArea: MonoBehaviour , IPlayerCollisionListener
     public void OnPlayerExit()
     {
         //TODO: implement
+    }
+
+    public void OnPlayerStay()
+    {
+        throw new System.NotImplementedException();
     }
 }

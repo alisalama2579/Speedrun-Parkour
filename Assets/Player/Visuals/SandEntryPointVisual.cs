@@ -17,7 +17,12 @@ public class SandEntryPointVisual : MonoBehaviour
     private void Update()
     {
         if (landMovement == null) return;
+        //Debug.DrawRay(transform.position, Vector2.up * 5, Color.red);
+    }
 
+    private void FixedUpdate()
+    {
+        //Debug.DrawRay(transform.position, Vector2.up * 5, Color.green);
         sprite.color = landMovement.SandEntryPosValid ? Color.white : Color.clear;
         transform.position = landMovement.TargetSandEntryPos;
     }

@@ -12,6 +12,56 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
+  knockBackDuration: 3
+  targetKnockBackMult: {x: 100, y: 100}
+  knockBackHorizontalVelMult:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.9946518
+      value: -0.0023498535
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  knockBackSpeed:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.0066223145
+      value: 0.99905396
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.49499512
+      value: 0.0028419495
+      inSlope: -2.116155
+      outSlope: -2.116155
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.2629802
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   rollDuration: 0.2
   rollSpeed: 25
   sandDashBuffer: 0.2
@@ -21,7 +71,6 @@ MonoBehaviour:
   sandDashDetectionDistance: 40
   directSandDashDetectionDistance: 1
   sandOvershoot: 20
-  fallOvershootMult: 0.02
   launchDecel: 100
   launchGroundWallDetectDelay: 0.1
   launchOpposingMovementFriction: 90
@@ -120,7 +169,7 @@ MonoBehaviour:
   apexAntigravity: 30
   jumpVelocityFallof: 15
   jumpUpBias: 0.7
-  coyoteTime: 0.2
+  coyoteTime: 0.1
   jumpBuffer: 0.2
   jumpVelocity: 90
   jumpApexRange: 5
@@ -235,10 +284,10 @@ MonoBehaviour:
   wallTag: WallGrabbable
   wallDetectionDistance: 0.2
   wallNormalRange: 0.1
-  timeToFullSpeedFromWall: 0.1
+  timeToFullSpeedFromWall: 0.05
   maxYVelForWallGrab: 0
   minVelForPushingWall: -20
-  onWallGravity: 70
+  onWallGravity: 40
   wallJumpVel: 160
   wallJumpUpBias: 0.7
   slipStrength: 2

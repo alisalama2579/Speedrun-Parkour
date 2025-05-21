@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 public static class Vector2Utility
 {
     public static Vector2 Vector2Slerp(Vector2 start, Vector2 end, float maxDelta)
@@ -26,4 +27,14 @@ public static class Vector2Utility
 
     public static Vector2 GetAngleVector2(float theta) => new (Mathf.Cos(theta), Mathf.Sin(theta));
     public static Vector2 GetRadianVector2(float theta) => new (Mathf.Cos(theta * Mathf.Rad2Deg), Mathf.Sin(theta * Mathf.Rad2Deg));
+
+    public static Vector2 GetUnsignedColDir(Vector2 pos, Collider2D col)
+    {
+        if (col == null) return Vector2.zero;
+
+        Vector2 dir = (pos - col.ClosestPoint(pos)).normalized;
+        if (col.bounds.Contains(pos)) dir *= -1;
+
+        return dir;
+    }
 }

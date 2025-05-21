@@ -70,31 +70,31 @@ public class PlayerStateMachine
     private void SetStartingState(Type startingType)
     {
         current = GetNode(startingType);
-        current.EnterState(failedData);
+        current?.EnterState(failedData);
     }
 
     private void SwitchMovementState(IState state, IStateSpecificTransitionData transitionData) 
     {
-        if (state == current.MovementState) return;
+        if (current != null && state == current.MovementState) return;
 
-        current.ExitState();
+        current?.ExitState();
 
         current = GetNode(state.GetType());
 
-        current.EnterState(transitionData);
+        current?.EnterState(transitionData);
     }
 
     public void Update(MovementInput frameInput)
     {
-        current.Update(frameInput);
+        current?.Update(frameInput);
     }
 
     public void FixedUpdate() 
     {
+        current?.FixedUpdate();
+
         var transition = GetTransition(out IStateSpecificTransitionData transitionData);
         if (transition != null) SwitchMovementState(transition.To, transitionData);
-
-        current.FixedUpdate();
     }
 
     public void OnDestroy()
@@ -113,10 +113,10 @@ public class PlayerStateMachine
     public void TriggerEnter(Collider2D trigger) => current.MovementState?.TriggerEnter(trigger); 
     public void TriggerExit(Collider2D trigger) => current.MovementState?.TriggerExit(trigger); 
 
-    public void CollisionEnter(IPlayerCollisionListener collisionListener) => current.MovementState?.CollisionEnter(collisionListener);
-    public void CollisionExit(IPlayerCollisionListener collisionListener) => current.MovementState?.CollisionExit(collisionListener);
-    public void TriggerEnter(IPlayerCollisionListener collisionListener) => current.MovementState?.TriggerEnter(collisionListener);
-    public void TriggerExit(IPlayerCollisionListener collisionListener) => current.MovementState?.TriggerExit(collisionListener);
+    public void CollisionEnter(IPlayerCollisionInteractor collisionListener) => current.MovementState?.CollisionEnter(collisionListener);
+    public void CollisionExit(IPlayerCollisionInteractor collisionListener) => current.MovementState?.CollisionExit(collisionListener);
+    public void TriggerEnter(IPlayerCollisionInteractor collisionListener) => current.MovementState?.TriggerEnter(collisionListener);
+    public void TriggerExit(IPlayerCollisionInteractor collisionListener) => current.MovementState?.TriggerExit(collisionListener);
 
     #endregion
 
@@ -167,16 +167,6 @@ public class PlayerStateMachine
             MovementState?.FixedUpdate();
             SoundsState?.FixedUpdate();
             VisualsState?.FixedUpdate();
-        }
-    }
-
-    public class StateTransitionEvent
-    {
-        public event Action<Type> transitionEvent;
-
-        public StateTransitionEvent(Action<Type> transitionEvent)
-        {
-            this.transitionEvent = transitionEvent;
         }
     }
 }

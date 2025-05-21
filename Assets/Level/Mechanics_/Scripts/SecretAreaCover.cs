@@ -39,4 +39,6 @@ public class SecretAreaCover : MonoBehaviour, IPlayerCollisionListener
     {
         isFading = true;
     }
+
+    public void OnPlayerStay() { }
 }

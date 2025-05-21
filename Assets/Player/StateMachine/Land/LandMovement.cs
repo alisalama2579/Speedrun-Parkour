@@ -1,19 +1,14 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Persistence;
 using UnityEngine;
+using System;
 using static TransitionLibrary;
 
 public class LandMovement : IMovementState
 {
+    #region State
     private readonly MovementStatsHolder sharedStats;
     private readonly LandMovementStats stats;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
-
-    private float PlayerHalfWidth => col.bounds.extents.x;
-    private float HalfHeight => col.bounds.extents.y;
 
     public LandMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
     {
@@ -58,18 +53,12 @@ public class LandMovement : IMovementState
         ResetJump();
         ResetSandEntryDash();
     }
-
+    #endregion
+    #region Input
     private MovementInput frameInput;
     private float HorizontalInput => frameInput.SnappedHorizontalMove;
     private float fixedDeltaTime;
     private float time;
-
-    public void Update(MovementInput frameInput)
-    {
-        time += Time.deltaTime;
-        HandleInput(frameInput);
-    }
-
     public void HandleInput(MovementInput frameInput)
     {
         this.frameInput = frameInput;
@@ -86,6 +75,13 @@ public class LandMovement : IMovementState
             timeJumpRequested = time;
         }
     }
+    #endregion
+
+    public void Update(MovementInput frameInput)
+    {
+        time += Time.deltaTime;
+        HandleInput(frameInput);
+    }
 
 
     public void FixedUpdate()
@@ -93,6 +89,7 @@ public class LandMovement : IMovementState
         fixedDeltaTime = Time.fixedDeltaTime;
         pos = rb.position;
 
+        HandleExternalEffectors();
         HandleCollisionInteractions();
         HandleJump();
         HandleGravity();
@@ -129,11 +126,14 @@ public class LandMovement : IMovementState
     public bool IsJumping => isJumping;
     public bool IsRolling => isRolling;
     #endregion
-
+    #region Private properties
     /// <summary>
     /// Between 0 and 1, how strongly the desired input opposes with the current velocity
     /// </summary>
     private float VelocityOpposingMovementStrength(float vel) => Mathf.Clamp01(1 - Mathf.Abs(Mathf.Sign(vel) + FacingDirection));
+    private float HalfWidth => col.bounds.extents.x;
+    private float HalfHeight => col.bounds.extents.y;
+    #endregion
 
     #region ExternalEffectors
     private float SlipMultiplier => wasOnSlipperyGround ? 1 / stats.slipStrength : 1;
@@ -149,37 +149,63 @@ public class LandMovement : IMovementState
         }
     }
 
+    private void HandleExternalEffectors()
+    {
+        wasOnSlipperyGround = lastNonAirSurface?.terrain is SlipperyGround;
+    }
+
     #endregion
 
     #region TerrainBehaviour
 
-    public enum TerrainInteractionType
+    private class Surface
     {
-        Ground,
-        Ceiling,
-        Wall
+        public TraversableTerrain terrain;
+        public TerrainSurfaceType surfaceType;
+        public Surface(TraversableTerrain terrain, TerrainSurfaceType surfaceType)
+        {
+            this.terrain = terrain;
+            this.surfaceType = surfaceType;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Surface surface && this == surface;
+        }
+        public static bool operator == (Surface lhs, Surface rhs)
+        {
+            bool leftNull = lhs is null;
+            bool rightNull = rhs is null;
+            if (leftNull || rightNull)
+                return leftNull == rightNull;
+
+            return lhs.terrain == rhs.terrain &&
+                   lhs.surfaceType == rhs.surfaceType;
+        }
+        public static bool operator !=(Surface lhs, Surface rhs) => !(lhs == rhs);
+    }
+    Surface lastNonAirSurface;
+
+    private void HandleTerrainInteractionUpdate(TraversableTerrain newTerrain, TerrainSurfaceType surfaceType)
+    {
+        if (newTerrain == null) return;
+
+        Interact(newTerrain, surfaceType);
+        lastNonAirSurface = new Surface(newTerrain, surfaceType);
+
+        void Interact(TraversableTerrain terrain, TerrainSurfaceType surfaceType)
+        {
+            if (TryGetTerrainInteractor(terrain, out TraversalInteractionComponent interactor))
+                interactor.OnInteract(new TerrainInteract(CollisionType.Stayed, surfaceType));
+        }
     }
 
-    TraversableTerrain terrainOn;
-    private void HandleTerrainChange(TraversableTerrain newTerrain, TerrainInteractionType interactionType)
+    private void HandleTerrainTouch(TraversableTerrain terrainTouched, CollisionType collisionType, TerrainSurfaceType surfaceType)
     {
-        if (newTerrain == null || newTerrain == terrainOn) return;
-        terrainOn = newTerrain;
+        bool interactorInvalid = !TryGetTerrainInteractor(terrainTouched, out TraversalInteractionComponent interactor);
+        if (interactorInvalid) return;
 
-        wasOnSlipperyGround = newTerrain is SlipperyGround;
-
-        if (interactionType == TerrainInteractionType.Wall)
-            EventsHolder.PlayerEvents.OnPlayerGrabWall?.Invoke(newTerrain);
-        if (interactionType == TerrainInteractionType.Ground)
-            EventsHolder.PlayerEvents.OnPlayerLandOnGround?.Invoke(newTerrain);
-
-        newTerrain.OnEnterTerrain();
-    }
-
-    private void HandleTerrainTouch(TraversableTerrain terrainTouched, TerrainInteractionType interactionType)
-    {
-        if (terrainTouched == null || terrainTouched == terrainOn) return;
-        terrainTouched.OnCollideWithTerrain(interactionType);
+        interactor.OnInteract(new TerrainTouch(collisionType, surfaceType));
     }
 
     /// <summary>
@@ -190,10 +216,16 @@ public class LandMovement : IMovementState
         terrain = null;
         return hit ? hit.transform.TryGetComponent(out terrain) : false;
     }
+    private bool TryGetTerrainInteractor(TraversableTerrain terrain, out TraversalInteractionComponent interactor)
+    {
+        interactor = null;
+        return terrain != null && terrain.TryGetComponent(out interactor);
+    }
+    private bool HitInvalidDueToEntryLaunch(RaycastHit2D hit) => !hit || (hit.transform.TryGetComponent(out ISand sand) && sand == entrySand && time <= stats.launchGroundWallDetectDelay);
 
     private void HandleCollisionInteractions()
     {
-        Vector2 rightOrigin = Vector2.right * (PlayerHalfWidth - stats.skinWidth);
+        Vector2 rightOrigin = Vector2.right * (HalfWidth - stats.skinWidth);
         Vector2 downOrigin = Vector2.down * (HalfHeight - stats.skinWidth);
         HandleWallDetection(
         Physics2D.Raycast(pos - downOrigin + rightOrigin, Vector2.right, stats.wallDetectionDistance, sharedStats.collisionLayerMask),
@@ -238,12 +270,15 @@ public class LandMovement : IMovementState
 
         if (hit)
         {
-            verticalVel = Mathf.Min(averageCeilNormal.y * stats.ceilingHitPush, verticalVel);
-            shouldApplyGravFallof = true;
-            hitCeilingThisFrame = true;
-
             if (TryGetHitTerrain(hit, out TraversableTerrain terrainTouched))
-                HandleTerrainTouch(terrainTouched, TerrainInteractionType.Ceiling);
+                HandleTerrainTouch(terrainTouched, CollisionType.Stayed, TerrainSurfaceType.Ceiling);
+
+            if (hit.collider.enabled && !HitInvalidDueToEntryLaunch(hit))
+            {
+                verticalVel = Mathf.Min(averageCeilNormal.y * stats.ceilingHitPush, verticalVel);
+                shouldApplyGravFallof = true;
+                hitCeilingThisFrame = true;
+            }
         }
     }
 
@@ -252,13 +287,14 @@ public class LandMovement : IMovementState
         isBeingSlowed = false;
         isOnWall = false;
         isGrounded = false;
-        terrainOn = null;
+        lastNonAirSurface = null;
+        lastNonAirSurface = null;
     }
 
     #endregion
 
     #region Wall
-    public event Action<bool, TraversableTerrain> OnPlayerChangedWall;
+    public event Action<bool> OnPlayerChangedWall;
     public bool isOnWall { get; private set; }
     private bool isPushingWall;
     private Vector2 wallNormal;
@@ -289,26 +325,29 @@ public class LandMovement : IMovementState
             newWallNormal = hit.normal;
             bool normalInWallRange = NormalInWallRange(newWallNormal);
 
-            if (TryGetHitTerrain(hit, out TraversableTerrain terrainTouched))
-                HandleTerrainTouch(terrainTouched, TerrainInteractionType.Wall);
-
-            if (normalInWallRange)
+            if (!HitInvalidDueToEntryLaunch(hit))
             {
-                if (vel.x * dir > stats.minVelForPushingWall) isPushingWall = true;
-
-                if (HitGrabbableWall(hit) && canGrabWall)
+                if (normalInWallRange)
                 {
-                    newIsOnWall = true;
+                    if (TryGetHitTerrain(hit, out TraversableTerrain terrainTouched))
+                        HandleTerrainTouch(terrainTouched, CollisionType.Stayed, TerrainSurfaceType.Wall);
 
-                    TryGetHitTerrain(hit, out newTerrain);
-                    lastSurfaceType = LastSurfaceType.Wall;
+                    if (vel.x * dir > stats.minVelForPushingWall) isPushingWall = true;
 
-                    wallNormal = newWallNormal;
+                    if (HitGrabbableWall(hit) && canGrabWall)
+                    {
+                        newIsOnWall = true;
+
+                        TryGetHitTerrain(hit, out newTerrain);
+                        lastSurfaceType = LastSurfaceType.Wall;
+
+                        wallNormal = newWallNormal;
+                    }
                 }
             }
         }
 
-        HandleTerrainChange(newTerrain, TerrainInteractionType.Wall);
+        HandleTerrainInteractionUpdate(newTerrain, TerrainSurfaceType.Wall);
         if (newIsOnWall ^ isOnWall) OnChangeWall(newIsOnWall);
 
         HandleLedgeGrab();
@@ -322,7 +361,7 @@ public class LandMovement : IMovementState
                 if (!HitGrabbableWall(ledgeGrabHit))
                 {
                     int dir = bottomRightHit ? 1 : -1;
-                    float dist = Mathf.Abs(ledgeGrabHit.point.x - (pos.x + dir * PlayerHalfWidth));
+                    float dist = Mathf.Abs(ledgeGrabHit.point.x - (pos.x + dir * HalfWidth));
 
                     Vector2 ledgeNormal = ledgeGrabHit.normal;
 
@@ -347,7 +386,7 @@ public class LandMovement : IMovementState
         if (time < stats.launchGroundWallDetectDelay) return;
 
         isOnWall = newWall;
-        OnPlayerChangedWall?.Invoke(newWall, terrainOn);
+        OnPlayerChangedWall?.Invoke(newWall);
 
         if (isOnWall)
         {
@@ -367,7 +406,7 @@ public class LandMovement : IMovementState
     #endregion
 
     #region Ground
-    public event Action<bool, float, TraversableTerrain> OnChangeGround;
+    public event Action<bool, float> OnChangeGround;
 
     private bool isGrounded;
     private bool wasOnSlipperyGround;
@@ -389,32 +428,33 @@ public class LandMovement : IMovementState
 
         if (hit)
         {
-            if (TryGetHitTerrain(hit, out TraversableTerrain terrainTouched))
-                HandleTerrainTouch(terrainTouched, TerrainInteractionType.Ground);
-
-            if (newGroundNormal.y > stats.minGroundNormal && TryGetHitTerrain(hit, out newTerrain))
+            if (!HitInvalidDueToEntryLaunch(hit))
             {
-                newGrounded = true;
-                lastSurfaceType = LastSurfaceType.Ground;
+                if (newGroundNormal.y > stats.minGroundNormal && TryGetHitTerrain(hit, out newTerrain))
+                {
+                    newGrounded = true;
+                    lastSurfaceType = LastSurfaceType.Ground;
+                }
             }
         }
-        HandleTerrainChange(newTerrain, TerrainInteractionType.Ground);
+        HandleTerrainInteractionUpdate(newTerrain, TerrainSurfaceType.Ground);
         if (isGrounded ^ newGrounded) OnChangeGrounded(newGrounded);
     }
 
 
     private void OnChangeGrounded(bool newGrounded)
     {
-        if (time < stats.launchGroundWallDetectDelay) return;
-
         isGrounded = newGrounded;
 
         float impact = 1;
-        OnChangeGround?.Invoke(newGrounded, impact, terrainOn);
+        OnChangeGround?.Invoke(newGrounded, impact);
 
         if (isGrounded)
         {
-            rollRequested = (isLeaping || isEntryLaunching) && Mathf.Approximately(Mathf.Sign(vel.x), HorizontalInput) && HorizontalInput != 0;
+            if(isLeaping || isEntryLaunching && Mathf.Approximately(Mathf.Sign(vel.x), HorizontalInput) && HorizontalInput != 0)
+                rollRequested = true;
+
+            EventsHolder.PlayerEvents.OnPlayerLandOnGround?.Invoke(lastNonAirSurface.terrain);
 
             isJumping = false;
             coyoteUsable = true;
@@ -519,7 +559,7 @@ public class LandMovement : IMovementState
 
     #region HorizontalMovement
 
-    public event Action<float, TraversableTerrain> OnPlayerMove;
+    public event Action<float> OnPlayerMove;
     private float horizontalDelta;
 
     private void HandleHorizontalMovement()
@@ -540,7 +580,7 @@ public class LandMovement : IMovementState
         float vel = GetFinalVel();
 
         SetHorizontalVel(vel);
-        if (hasMoveInput) OnPlayerMove?.Invoke(horizontalVel, terrainOn);
+        if (hasMoveInput) OnPlayerMove?.Invoke(horizontalVel);
 
         float GetTurningMult() { 
             return Mathf.Lerp(1, stats.turningAccelerationMultiplier, VelocityOpposingMovementStrength(horizontalVel)); 
@@ -568,8 +608,8 @@ public class LandMovement : IMovementState
         }
         float GetFinalVel(){
             float vel = Mathf.MoveTowards(horizontalVel, targetSpeed, acceleration * fixedDeltaTime);
-            if(lastSurfaceType == LastSurfaceType.Wall) vel *= Mathf.Clamp01((time - timeLeftSurface) / stats.timeToFullSpeedFromWall);
 
+            if(lastSurfaceType == LastSurfaceType.Wall) vel *= Mathf.Clamp01((time - timeLeftSurface) / stats.timeToFullSpeedFromWall);
             return vel;
         }
     }
@@ -708,7 +748,7 @@ public class LandMovement : IMovementState
 
     private void WallJump()
     {
-        OnWallJump?.Invoke(terrainOn);
+        OnWallJump?.Invoke(lastNonAirSurface?.terrain);
         Vector2 jumpVel = stats.wallJumpVel * Vector2.LerpUnclamped(wallNormal, Vector2.up, stats.wallJumpUpBias);
 
         verticalVel = jumpVel.y;
@@ -719,7 +759,7 @@ public class LandMovement : IMovementState
     }
     private void GroundJump()
     {
-        OnJump?.Invoke(terrainOn);
+        OnJump?.Invoke(lastNonAirSurface?.terrain);
 
         verticalVel = stats.jumpVelocity;
         ApplyMomentum(stats.jumpMomentumIncrease);
@@ -933,7 +973,7 @@ public class LandMovement : IMovementState
 
         float detectDist = stats.sandDetectionDistance;
         Vector2 lookDir = frameInput.NonZeroLook;
-        Vector2 pos = this.pos;
+        Vector2 pos = this.pos + vel * fixedDeltaTime;
         Vector2 origin = pos + 0.5f * detectDist * lookDir;
 
         #region Direction Search
@@ -976,12 +1016,15 @@ public class LandMovement : IMovementState
                     Vector2 point = col.ClosestPoint(pos);
                     float dist = (point - pos).magnitude;
 
+                    Debug.DrawRay(point, Vector2.up * 5, Color.red);
+
                     if (dist <= MaxDist(sand))
                     {
                         float downVel = verticalVel < 0 && frameInput.Look.y < 0 ? Mathf.Abs(verticalVel * fixedDeltaTime) : 1;
                         Vector2 overShoot = (sand is SandBall)
                             ? Vector2.zero
                             : (dist / MaxDist(sand)) * stats.sandOvershoot * new Vector2(frameInput.Look.x, frameInput.Look.y * downVel);
+
                         Vector2 queryPos = pos + overShoot;
 
                         Vector2 entryPoint = col.ClosestPoint(queryPos);
@@ -1009,6 +1052,8 @@ public class LandMovement : IMovementState
 
             if (canSandDash)
             {
+                Debug.DrawRay(targetHit.point, Vector2.up * 5, Color.green);
+
                 //Face right or left depending on direction of sand
                 isFacingRight = Mathf.Sign((targetHit.point - pos).x) == 1;
 
@@ -1063,8 +1108,7 @@ public class LandMovement : IMovementState
 
         Vector2 dir = Vector2.down;
 
-        RaycastHit2D hit = Physics2D.BoxCast(pos, col.bounds.size, 0,
-            dir, stats.groundedDistance, sharedStats.collisionLayerMask);
+        RaycastHit2D hit = Physics2D.Raycast(pos + vel * fixedDeltaTime + Vector2.down * HalfHeight, dir, stats.groundedDistance, sharedStats.collisionLayerMask);
 
         if (hit && hit.transform.TryGetComponent(out ISand sand) && SandCanBeEntered(sand) && sand is BurrowSand)
         {
@@ -1075,7 +1119,6 @@ public class LandMovement : IMovementState
             if (frameInput.SandDashDown && sand.IsBurrowable)
                 return new BurrowMovement.BurrowMovementTransitionData(dir, entryPoint, sand);
         }
-
         return failedData;
     }
 
@@ -1083,7 +1126,7 @@ public class LandMovement : IMovementState
     #endregion
 
     #region Collisions
-    public void TriggerEnter(IPlayerCollisionListener collisionListener)
+    public void TriggerEnter(IPlayerCollisionInteractor collisionListener)
     {
         if (collisionListener == null) return;
 
@@ -1093,7 +1136,7 @@ public class LandMovement : IMovementState
             ApplyMomentum(-stats.slowAreaMomentumLoss);
         }
     }
-    public void TriggerExit(IPlayerCollisionListener collisionListener)
+    public void TriggerExit(IPlayerCollisionInteractor collisionListener)
     {
         if (collisionListener == null) return;
         if (collisionListener is SlowingArea) isBeingSlowed = false;

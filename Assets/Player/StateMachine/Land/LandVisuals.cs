@@ -26,7 +26,7 @@ public class LandVisuals : IMovementObserverState<LandMovement>
         MovementState.OnLeap += () => {
             leapTriggered = true;
         };
-        MovementState.OnChangeGround += (grounded, impactForce, _) => {
+        MovementState.OnChangeGround += (grounded, impactForce) => {
             this.grounded = grounded;
             if (grounded)
                 landTriggered = true;

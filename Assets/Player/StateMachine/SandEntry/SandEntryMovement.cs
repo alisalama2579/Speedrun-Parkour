@@ -40,6 +40,7 @@ public class SandEntryMovement : IMovementState
 
             pos = startingPoint = rb.position;
             exitPoint = transitionData.TargetPos;
+
             Vector2 diff = exitPoint - rb.position;
             dir = diff.normalized;
             duration = diff.magnitude / stats.entrySpeed;
@@ -90,7 +91,6 @@ public class SandEntryMovement : IMovementState
         }
     }
 
-    public void HandleInput(MovementInput _) { }
     float t;
 
     public void FixedUpdate()

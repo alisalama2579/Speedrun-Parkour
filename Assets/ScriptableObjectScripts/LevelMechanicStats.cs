@@ -10,6 +10,7 @@ public class LevelMechanicStats : ScriptableObject
 
     [Header("Sand")]
     [Range(0, 100)] public float fadeTime;
+    [Range(0, 100)] public float fastFadeTime;
     [Range(0, 100)] public float fadeDelay;
 
     public float sandLaunchSpeed;
@@ -36,6 +37,14 @@ public class LevelMechanicStats : ScriptableObject
 
     [Header("SlipperyGround")]
     [Range(0, 100)] public float slipperiness;
+
+    #endregion
+
+    [Space(5)]
+    #region Hazards
+
+    public int spikeDamage;
+    public float spikeKnockback;
 
     #endregion
 

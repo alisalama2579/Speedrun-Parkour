@@ -4,6 +4,11 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(fileName = "PlayerLandControllerStats", menuName = "PlayerLandControllerStats")]
 public class LandMovementStats : ScriptableObject
 {
+    public float knockBackDuration;
+    public Vector2 targetKnockBackMult;
+    public AnimationCurve knockBackHorizontalVelMult;
+    public AnimationCurve knockBackSpeed;
+
     public float rollDuration;
     public float rollSpeed;
 

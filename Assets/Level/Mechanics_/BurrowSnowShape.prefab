@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1771984831108415765}
   - component: {fileID: -2655627905439319327}
   m_Layer: 8
-  m_Name: HardSandShape
+  m_Name: BurrowSnowShape
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -93,7 +93,7 @@ SpriteShapeRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -5
-  m_Color: {r: 1, g: 0.7607844, b: 0.25882354, a: 1}
+  m_Color: {r: 0.7529412, g: 0.9137255, b: 1, a: 1}
   m_MaskInteraction: 0
   m_ShapeTexture: {fileID: 0}
   m_Sprites: []

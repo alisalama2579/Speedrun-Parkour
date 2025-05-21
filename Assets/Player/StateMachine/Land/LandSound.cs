@@ -48,8 +48,8 @@ public class LandSound : IMovementObserverState<LandMovement>
 
     public void OnDash() { if (sfxManager) { sfxManager.PlaySFX(stats.GetSoundFromType(PlayerSoundStats.SoundType.Dash), MovementState.Pos); } }
     public void OnEntryLaunch(Vector2 vel) { if (sfxManager) { sfxManager.PlaySFX(stats.GetSoundFromType(PlayerSoundStats.SoundType.EntryLaunch), MovementState.Pos); } }
-    public void OnJump(TraversableTerrain terrain) { if (sfxManager) { sfxManager.PlaySFX(stats.GetSoundFromType(PlayerSoundStats.SoundType.Jump), MovementState.Pos); } }
-    public void OnWallJump(TraversableTerrain terrain) { if (sfxManager) { sfxManager.PlaySFX(stats.GetSoundFromType(PlayerSoundStats.SoundType.WallJump), MovementState.Pos); }}
+    public void OnJump() { if (sfxManager) { sfxManager.PlaySFX(stats.GetSoundFromType(PlayerSoundStats.SoundType.Jump), MovementState.Pos); } }
+    public void OnWallJump() { if (sfxManager) { sfxManager.PlaySFX(stats.GetSoundFromType(PlayerSoundStats.SoundType.WallJump), MovementState.Pos); }}
     
     public void OnChangeGrounded(bool newGrounded, float impact, TraversableTerrain _)
     {

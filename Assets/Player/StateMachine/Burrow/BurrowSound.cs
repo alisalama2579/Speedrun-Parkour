@@ -21,7 +21,7 @@ public class BurrowSound : IMovementObserverState<BurrowMovement>
         MovementState = burrowMovement;
     }
 
-    public void EnterState()
+    public void EnterState(IStateSpecificTransitionData _)
     {
         if (loopingSource)
         {

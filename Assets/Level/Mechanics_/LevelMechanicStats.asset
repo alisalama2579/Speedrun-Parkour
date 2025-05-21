@@ -12,11 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1341f83a9b034a6429c8dd86b3d5073d, type: 3}
   m_Name: LevelMechanicStats
   m_EditorClassIdentifier: 
-  fadeTime: 0.2
-  fadeDelay: 0.1
+  fadeTime: 0.15
+  fastFadeTime: 0.075
+  fadeDelay: 0.05
   sandLaunchSpeed: 190
   burrowLaunchSpeed: 180
   burrowWeakLaunchSpeed: 50
   sandColliderReactivationDelay: 0.3
   secretFadeTime: 0.1
   slipperiness: 0.5
+  spikeDamage: 1
+  spikeKnockback: 100

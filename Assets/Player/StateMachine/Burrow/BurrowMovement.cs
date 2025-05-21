@@ -39,7 +39,7 @@ public class BurrowMovement : IMovementState
             entrySand = transitionData.EntrySand;
             EventsHolder.PlayerEvents.OnPlayerEnterSand?.Invoke(entrySand);
 
-            dashRequested = true;
+            ExecuteDash();
         }
 
         OnPlayerEnterBurrow?.Invoke();
@@ -176,9 +176,8 @@ public class BurrowMovement : IMovementState
         targetBounceSpeed = Mathf.Lerp(stats.bounceSpeed, stats.bounceSpeed * 0.5f, normalReflectDot);
         moveVel = reflectedVel * targetBounceSpeed;
         wishDir = reflectedVel;
-        moveDir = reflectedVel;
+        moveDir = reflectedVel; 
     }
-
     #endregion
 
 
@@ -211,6 +210,7 @@ public class BurrowMovement : IMovementState
     private float timeDashRequested;
     private bool isDashing;
     private float timeDashed = float.MinValue;
+    private float dashDuration;
     private bool dashInterrupted;
     private Vector2 dashVel;
     private Vector2 targetDashVel;
@@ -220,7 +220,7 @@ public class BurrowMovement : IMovementState
     public event Action OnBurrowDash;
     private void HandleDash()
     {
-        float timePercent = Mathf.Clamp01((time - timeDashed) / stats.dashDuration);
+        float timePercent = Mathf.Clamp01((time - timeDashed) / dashDuration);
         if ((timePercent >= 1 && isDashing) || isBouncing)
             dashInterrupted = true;
 
@@ -254,7 +254,20 @@ public class BurrowMovement : IMovementState
         isDashing = true;
 
         targetDashVel = stats.dashSpeed * moveDir;
+        dashDuration = stats.dashDuration;
     }
+
+    //private void ExecuteDash(float speed, float duration)
+    //{
+    //    OnBurrowDash?.Invoke();
+
+    //    timeDashed = time;
+    //    dashInterrupted = false;
+    //    isDashing = true;
+
+    //    targetDashVel = speed * moveDir;
+    //    dashDuration = duration;
+    //}
 
     #endregion
 
@@ -285,12 +298,12 @@ public class BurrowMovement : IMovementState
         //Ray is cast out to in, to prevent sand exit if there is terrain beyond sand
         Vector2 dir = VelDir;
 
-        Vector2 origin = rb.position + FrameDisplacement + dir * PlayerHalfHeight;
+        Vector2 origin = rb.position + dir * PlayerHalfHeight;
         Vector2 boxBounds = new Vector2(col.bounds.size.x, PlayerHalfHeight + FrameDisplacement.magnitude);
         Vector2 boxDir = dir;
 
         Utility.DrawBox(origin, boxBounds, boxDir, Color.black);
-        Collider2D overlap = Physics2D.OverlapBox(origin, boxBounds, Vector2Utility.GetVector2Angle(boxDir), sharedStats.sandLayerMask);
+        Collider2D overlap = Physics2D.OverlapBox(origin, boxBounds, Vector2Utility.GetVector2Angle(boxDir), sharedStats.collisionLayerMask);
 
         Physics2D.queriesStartInColliders = cachedStartInCol;
         Physics2D.queriesHitTriggers = cachedHitTriggers;
@@ -301,7 +314,7 @@ public class BurrowMovement : IMovementState
         {
             entrySand.OnSandExit(vel, rb.position);
 
-            rb.position = rb.position + FrameDisplacement + dir * PlayerHalfHeight;
+            rb.position = rb.position + dir * PlayerHalfHeight;
             return new LandMovement.LandMovementTransition(dir, isDashing, entrySand);
         }
 
