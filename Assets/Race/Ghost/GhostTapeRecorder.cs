@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class GhostTapeRecorder : MonoBehaviour
 {
-    [SerializeField] private PlayerAnimator animator;
+    [SerializeField] private Animator playerAnimator;
     [SerializeField] private int recordIndex;
 
     private Transform targetTransform;
@@ -25,10 +25,13 @@ public class GhostTapeRecorder : MonoBehaviour
         if (frame % RecordsManager.framesPerValue == 0)
         {
             CompressedGhostFrameValues frameValue = GhostFrameConversions.ToCompressed(
-                new GhostFrameValues(){
+                new GhostFrameValues()
+                {
                     pos = (Vector2)targetTransform.position - startingPos,
-                    zRot = targetTransform.eulerAngles.z,
-            });
+                    zRot = playerAnimator.transform.eulerAngles.z,
+                    animID = playerAnimator.GetCurrentAnimatorStateInfo(0).fullPathHash,
+                    animSpeed = (uint)playerAnimator.GetCurrentAnimatorStateInfo(0).speedMultiplier
+                });
 
             frameRecord.Add(frameValue);
         }

@@ -148,6 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ad68335c3c78c846bda841f40745ca0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  soundType: 2
   stats: {fileID: 11400000, guid: 05c1c87f60cd42748bd31dfc4b501643, type: 2}
   isSlippery: 1
 --- !u!114 &-2526282153991394202
@@ -162,4 +163,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e21953bd66c9c64c9d387bd9e0a7d50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attemptEnterExitFromStay: 0

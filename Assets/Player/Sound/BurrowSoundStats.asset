@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 603b6814035088946a592a943423e381, type: 3}
+  m_Name: BurrowSoundStats
+  m_EditorClassIdentifier: 
+  burrowFadeInTime: 1
+  timeToSandExitSound: 0.3
+  loopingBurrow:
+    clip: {fileID: 8300000, guid: 50b1d77402e449348b52b5808396d75c, type: 3}
+    volume: 0.4
+    pitchRange: {x: 1, y: 1}
+  burrowNumToMaxPitch: 3
+  dash:
+    clip: {fileID: 8300000, guid: 474573b9ffe63c64e9118fe6034549f3, type: 3}
+    volume: 0.7
+    pitchRange: {x: 0.5, y: 0.6}
+  entry:
+    clip: {fileID: 8300000, guid: 0f5df7405797ecd47a0fe14a8a62534b, type: 3}
+    volume: 0.03
+    pitchRange: {x: 0.6, y: 1.2}
+  directEntry:
+    clip: {fileID: 8300000, guid: 0f5df7405797ecd47a0fe14a8a62534b, type: 3}
+    volume: 0.4
+    pitchRange: {x: 0.2, y: 0.4}
+  bounce:
+    clip: {fileID: 8300000, guid: a7bc728d90741ec428a5ad6bd87cddc0, type: 3}
+    volume: 0.01
+    pitchRange: {x: 0.8, y: 1.2}
+  exit:
+    clip: {fileID: 8300000, guid: 01fbb98fbbe7f54428870b30d086fa6d, type: 3}
+    volume: 0.5
+    pitchRange: {x: 0.9, y: 3}
+  dashExit:
+    clip: {fileID: 8300000, guid: ec1b350caa22b954bb16c7f3120bd469, type: 3}
+    volume: 0.2
+    pitchRange: {x: 0.9, y: 1.1}

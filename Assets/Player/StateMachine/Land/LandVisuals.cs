@@ -26,12 +26,12 @@ public class LandVisuals : IMovementObserverState<LandMovement>
         MovementState.OnLeap += () => {
             leapTriggered = true;
         };
-        MovementState.OnChangeGround += (grounded, impactForce) => {
+        MovementState.OnChangeGround += (grounded, impactForce, _) => {
             this.grounded = grounded;
             if (grounded)
                 landTriggered = true;
         };
-        MovementState.OnEntryLaunch += (launchDir) =>{
+        MovementState.OnEntryLaunch += (launchDir) => {
             entryLaunchTriggered = true;
             renderer.flipX = launchDir.x > 0;
         };
@@ -42,8 +42,22 @@ public class LandVisuals : IMovementObserverState<LandMovement>
         scale = new Vector2(transform.localScale.x, transform.localScale.y);
         SetState(Idle);
     }
+    public void ExitState()
+    {
+        time = 0;
 
-    public void ExitState() => Reset();
+        jumpTriggered = false;
+        leapTriggered = false;
+        landTriggered = false;
+        isRolling = false;
+        grounded = false;
+
+        stateLocked = false;
+        currentUnlockPredicate = null;
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, 0);
+
+        SetState(Idle);
+    }
 
     private bool stateLocked;
     private float timeLocked;
@@ -100,7 +114,7 @@ public class LandVisuals : IMovementObserverState<LandMovement>
 
     private int GetState()
     {
-        if (stateLocked) stateLocked = !currentUnlockPredicate.Test;
+        if (stateLocked) stateLocked = currentUnlockPredicate != null && !currentUnlockPredicate.Test;
         if (stateLocked) return currentState;
 
         // Priorities
@@ -150,18 +164,6 @@ public class LandVisuals : IMovementObserverState<LandMovement>
         return scale;
     }
 
-    private void Reset()
-    {
-        time = 0;
-
-        jumpTriggered = false;
-        leapTriggered = false;
-        landTriggered = false;
-        isRolling = false;
-        grounded = false;
-
-        SetState(Idle);
-    }
 
     #region Cached Properties
 

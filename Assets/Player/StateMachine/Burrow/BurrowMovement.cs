@@ -9,6 +9,7 @@ public class BurrowMovement : IMovementState
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
     private float PlayerHalfHeight => col.bounds.extents.y;
+    private Transform transform;
 
     public BurrowMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
     {
@@ -16,6 +17,7 @@ public class BurrowMovement : IMovementState
         sharedStats = stats;
         this.stats = stats.burrowStats;
         this.rb = rb;
+        transform = rb.transform;
     }
 
 
@@ -39,7 +41,8 @@ public class BurrowMovement : IMovementState
             entrySand = transitionData.EntrySand;
             EventsHolder.PlayerEvents.OnPlayerEnterSand?.Invoke(entrySand);
 
-            ExecuteDash();
+
+            ExecuteDash(transitionData.EnteredDirectly ? stats.dashSpeed * stats.directEntryMultiplier : stats.dashSpeed);
         }
 
         OnPlayerEnterBurrow?.Invoke();
@@ -107,6 +110,8 @@ public class BurrowMovement : IMovementState
 
 
     #region Bounce
+
+    public event Action<Vector2> OnPlayerBounce;
 
     private float bounceSpeed;
     private float targetBounceSpeed;
@@ -176,7 +181,9 @@ public class BurrowMovement : IMovementState
         targetBounceSpeed = Mathf.Lerp(stats.bounceSpeed, stats.bounceSpeed * 0.5f, normalReflectDot);
         moveVel = reflectedVel * targetBounceSpeed;
         wishDir = reflectedVel;
-        moveDir = reflectedVel; 
+        moveDir = reflectedVel;
+
+        OnPlayerBounce?.Invoke(reflectedVel * targetBounceSpeed);
     }
     #endregion
 
@@ -226,7 +233,7 @@ public class BurrowMovement : IMovementState
 
         bool canChainDash = dashRequested && timePercent >= stats.progressToDashChain && !dashInterrupted;
         bool canBufferedDash = HasBufferedDash && !isDashing && !dashInterrupted;
-        if (canChainDash || canBufferedDash) ExecuteDash();
+        if (canChainDash || canBufferedDash) ExecuteDash(stats.dashSpeed);
         dashRequested = false;
 
         if (dashInterrupted) ExitDash();
@@ -245,7 +252,7 @@ public class BurrowMovement : IMovementState
         timeDashed = float.MinValue;
     }
 
-    private void ExecuteDash()
+    private void ExecuteDash(float dashSpeed)
     {
         OnBurrowDash?.Invoke();
 
@@ -253,7 +260,7 @@ public class BurrowMovement : IMovementState
         dashInterrupted = false;
         isDashing = true;
 
-        targetDashVel = stats.dashSpeed * moveDir;
+        targetDashVel = dashSpeed* moveDir;
         dashDuration = stats.dashDuration;
     }
 
@@ -279,12 +286,14 @@ public class BurrowMovement : IMovementState
         public Vector2 EntryDir { get; }
         public Vector2 EntryPos { get; }
         public ISand EntrySand { get; }
+        public bool EnteredDirectly { get; }
 
-        public BurrowMovementTransitionData(Vector2 entryDir, Vector2 entryPos, ISand entrySand)
+        public BurrowMovementTransitionData(Vector2 entryDir, Vector2 entryPos, ISand entrySand, bool enteredDirectly)
         {
             EntryDir = entryDir;
             EntryPos = entryPos;
             EntrySand = entrySand;
+            EnteredDirectly = enteredDirectly;
         }
     }
 
@@ -335,5 +344,6 @@ public class BurrowMovement : IMovementState
     {
         vel = moveVel + dashVel;
         rb.linearVelocity = vel;
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, Vector2Utility.GetUnityVector2Angle(MoveDir) - 90);
     }
 }

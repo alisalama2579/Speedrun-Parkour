@@ -33,6 +33,7 @@ public class BurrowMovementStats : ScriptableObject
     [Header("Dash")]
     #region Dash
     [Range(0, 1)] public float progressToDashChain;
+    public float directEntryMultiplier;
     public float dashBuffer;
     public float dashDuration;
     public float dashSpeed;

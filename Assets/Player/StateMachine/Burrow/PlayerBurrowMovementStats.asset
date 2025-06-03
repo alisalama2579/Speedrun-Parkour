@@ -71,9 +71,10 @@ MonoBehaviour:
     m_RotationOrder: 4
   bounceMoveSpeedMult: 1
   bounceNormalBias: 1
-  progressToDashChain: 0.1
+  progressToDashChain: 0.2
+  directEntryMultiplier: 1.5
   dashBuffer: 0.3
-  dashDuration: 0.4
+  dashDuration: 0.45
   dashSpeed: 80
   dashSpeedCurve:
     serializedVersion: 2
@@ -88,8 +89,8 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.7921106
-      value: 0.9984373
+      time: 0.7986261
+      value: 0.99464166
       inSlope: -0.046894588
       outSlope: -0.046894588
       tangentMode: 0

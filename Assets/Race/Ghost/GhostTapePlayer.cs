@@ -4,6 +4,7 @@ using UnityEngine;
 public class GhostTapePlayer : MonoBehaviour
 {
     [SerializeField] private int recordIndex;
+    [SerializeField] private Animator animator;
 
     private List<CompressedGhostFrameValues> frameRecord;
     private GhostFrameValues targetValues;
@@ -17,6 +18,7 @@ public class GhostTapePlayer : MonoBehaviour
     }
 
     private float frame;
+    private int animID;
     public void UpdateTape()
     {
         float progress = frame / RecordsManager.framesPerValue;
@@ -32,6 +34,14 @@ public class GhostTapePlayer : MonoBehaviour
                     index + 1 == frameRecord.Count 
                     ?  frameRecord[index] 
                     : frameRecord[index + 1]);
+
+                int id = targetValues.animID;
+                if (animID != id)
+                {
+                    animator.CrossFade(id, 0);
+                    animator.speed = currentValues.animSpeed;
+                }
+                animID = id;
             }
 
             transform.position = startingPos + Vector2.Lerp(currentValues.pos, targetValues.pos, modulus/RecordsManager.framesPerValue);

@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using UnityEngine;
+
 namespace System.Persistence
 {
     public static class RecordSaveLoadSystem
@@ -19,7 +22,10 @@ namespace System.Persistence
             dataService.Save(recordData);
         }
         public static void Delete() => dataService.Delete(recordData.Name);
-        public static void Load() => recordData = dataService.Load(recordData.Name);
+        public static void Load()
+        { 
+            recordData = dataService.Load(recordData.Name);
+        }
     }
 
 

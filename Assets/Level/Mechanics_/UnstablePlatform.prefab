@@ -80,7 +80,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -1
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.73018867, g: 0.90578014, b: 1, a: 1}
+  m_Color: {r: 0.91886795, g: 0.9717802, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -148,6 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fc487552ead4af4a9a4e34e355482bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  soundType: 1
   stats: {fileID: 11400000, guid: 05c1c87f60cd42748bd31dfc4b501643, type: 2}
   interactor: {fileID: 4203906952406574413}
   instantFadeDetector: {fileID: 0}

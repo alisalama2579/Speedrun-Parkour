@@ -115,6 +115,7 @@ public class LandMovement : IMovementState
     #region Public Properties
     public float VerticalVel => verticalVel;
     public float HorizontalVel => horizontalVel;
+    public float HorizontalDelta => horizontalDelta;
     public bool IsFacingRight => isFacingRight;
     public int FacingDirection => isFacingRight ? 1 : -1;
     public Vector2 NonZeroVelDir => nonZeroVelDir;
@@ -185,10 +186,15 @@ public class LandMovement : IMovementState
         public static bool operator !=(Surface lhs, Surface rhs) => !(lhs == rhs);
     }
     Surface lastNonAirSurface;
+    bool wasLastInAir;
 
     private void HandleTerrainInteractionUpdate(TraversableTerrain newTerrain, TerrainSurfaceType surfaceType)
     {
-        if (newTerrain == null) return;
+        wasLastInAir = newTerrain == null;
+        if (wasLastInAir) return;
+
+        if (lastNonAirSurface != null && (lastNonAirSurface.terrain != newTerrain || !wasLastInAir) && newTerrain is not IUnstable && surfaceType == TerrainSurfaceType.Ground)
+            EventsHolder.PlayerEvents.OnPlayerLandOnGround?.Invoke(lastNonAirSurface.terrain);
 
         Interact(newTerrain, surfaceType);
         lastNonAirSurface = new Surface(newTerrain, surfaceType);
@@ -294,7 +300,7 @@ public class LandMovement : IMovementState
     #endregion
 
     #region Wall
-    public event Action<bool> OnPlayerChangedWall;
+    public event Action<bool, TraversableTerrain> OnPlayerChangedWall;
     public bool isOnWall { get; private set; }
     private bool isPushingWall;
     private Vector2 wallNormal;
@@ -386,7 +392,7 @@ public class LandMovement : IMovementState
         if (time < stats.launchGroundWallDetectDelay) return;
 
         isOnWall = newWall;
-        OnPlayerChangedWall?.Invoke(newWall);
+        OnPlayerChangedWall?.Invoke(newWall, lastNonAirSurface?.terrain);
 
         if (isOnWall)
         {
@@ -406,7 +412,7 @@ public class LandMovement : IMovementState
     #endregion
 
     #region Ground
-    public event Action<bool, float> OnChangeGround;
+    public event Action<bool, float, TraversableTerrain> OnChangeGround;
 
     private bool isGrounded;
     private bool wasOnSlipperyGround;
@@ -447,14 +453,12 @@ public class LandMovement : IMovementState
         isGrounded = newGrounded;
 
         float impact = 1;
-        OnChangeGround?.Invoke(newGrounded, impact);
+        OnChangeGround?.Invoke(newGrounded, impact, lastNonAirSurface?.terrain);
 
         if (isGrounded)
         {
             if(isLeaping || isEntryLaunching && Mathf.Approximately(Mathf.Sign(vel.x), HorizontalInput) && HorizontalInput != 0)
                 rollRequested = true;
-
-            EventsHolder.PlayerEvents.OnPlayerLandOnGround?.Invoke(lastNonAirSurface.terrain);
 
             isJumping = false;
             coyoteUsable = true;
@@ -1058,7 +1062,7 @@ public class LandMovement : IMovementState
                 isFacingRight = Mathf.Sign((targetHit.point - pos).x) == 1;
 
                 Vector2 heightAdjustedEntryPoint = HeightAdjustedEntryPoint(targetHit.point, -targetHit.normal);
-                return new SandEntryMovement.SandEntryData(heightAdjustedEntryPoint, targetSand);
+                return new SandEntryMovement.SandEntryData(heightAdjustedEntryPoint, targetSand, vel);
             }
         }
 
@@ -1087,7 +1091,7 @@ public class LandMovement : IMovementState
         if (hit && hit.transform.TryGetComponent(out ISand sand) && sand.IsBurrowable && sand is BurrowSand && sand != entrySand)
         {
             Debug.DrawLine(pos, hit.point, Color.green, 100);
-            return new BurrowMovement.BurrowMovementTransitionData(dir, HeightAdjustedEntryPoint(hit.point, dir), sand);
+            return new BurrowMovement.BurrowMovementTransitionData(dir, HeightAdjustedEntryPoint(hit.point, dir), sand, true);
         }
 
         RaycastHit2D boxHit = Physics2D.BoxCast
@@ -1096,7 +1100,7 @@ public class LandMovement : IMovementState
         if (boxHit && boxHit.transform.TryGetComponent(out sand) && sand.IsBurrowable && sand is BurrowSand && sand != entrySand)
         {
             Debug.DrawLine(pos, boxHit.point, Color.green, 100);
-            return new BurrowMovement.BurrowMovementTransitionData(dir, HeightAdjustedEntryPoint(boxHit.point, dir), sand);
+            return new BurrowMovement.BurrowMovementTransitionData(dir, HeightAdjustedEntryPoint(boxHit.point, dir), sand, true);
         }
 
         return failedData;
@@ -1117,12 +1121,12 @@ public class LandMovement : IMovementState
             TargetSandEntryPos = hit.point;
 
             if (frameInput.SandDashDown && sand.IsBurrowable)
-                return new BurrowMovement.BurrowMovementTransitionData(dir, entryPoint, sand);
+                return new BurrowMovement.BurrowMovementTransitionData(dir, entryPoint, sand, false);
         }
         return failedData;
     }
 
-    private Vector2 HeightAdjustedEntryPoint(Vector2 point, Vector2 dir) => point + HalfHeight * dir;
+    private Vector2 HeightAdjustedEntryPoint(Vector2 point, Vector2 dir) => point;
     #endregion
 
     #region Collisions

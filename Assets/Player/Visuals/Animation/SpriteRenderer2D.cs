@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerAnimator : MonoBehaviour
+public class SpriteRenderer2D : MonoBehaviour
 {
     //[Header("References")]
     //[SerializeField]

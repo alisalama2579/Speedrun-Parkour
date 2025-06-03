@@ -4,4 +4,5 @@ using UnityEngine;
 public class SandEntryMovementStats : ScriptableObject
 {
     public float entrySpeed;
+    public float velToSpeedRatio;
 }

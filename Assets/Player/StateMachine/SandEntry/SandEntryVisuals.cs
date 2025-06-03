@@ -14,9 +14,9 @@ public class SandEntryVisuals : IMovementObserverState<SandEntryMovement>
     public SandEntryVisuals(SandEntryMovement sandEntryMovement, VisualsInitData visData)
     {
         anim = visData.Anim;
-        transform = visData.Transform;
         stats = visData.Stats;
         renderer = visData.Renderer;
+        transform = visData.Transform;
 
         MovementState = sandEntryMovement;
     }
@@ -27,11 +27,11 @@ public class SandEntryVisuals : IMovementObserverState<SandEntryMovement>
 
     public void EnterState(IStateSpecificTransitionData lastStateData)
     {
-        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y,
-        90 - Vector2Utility.GetVector2Angle(MovementState.Dir) + 90);
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, Vector2Utility.GetUnityVector2Angle(MovementState.dir) - 90);
     }
     public void ExitState()
     {
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y, 0);
     }
 
     private MovementInput frameInput;

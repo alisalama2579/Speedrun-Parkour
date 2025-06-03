@@ -58,9 +58,9 @@ public class PlayerStateMachine
 
         SandEntryMovement sandEntryMovement = new SandEntryMovement(rb, col, movementStats);
         AddNode(typeof(SandEntryMovement), 
-            new SandEntryMovement(rb, col, movementStats), 
+            sandEntryMovement, 
             new SandEntryVisuals(sandEntryMovement, visData),
-            null);
+            new SandEntrySound(sandEntryMovement, soundData));
 
         InitializeStateTransitions();
         SetStartingState(startingType);

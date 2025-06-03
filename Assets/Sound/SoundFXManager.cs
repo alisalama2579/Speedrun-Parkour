@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class SoundFXManager : MonoBehaviour
@@ -28,12 +29,8 @@ public class SoundFXManager : MonoBehaviour
             return;
 
         AudioSource clonedSource = Instantiate(source, audioSourceParent);
-
-
-        if (soundFX is PitchedSoundFX pitchedSoundFX)
-            PlayClipFromSource(clonedSource, soundFX.clip, soundFX.volume, Mathf.Clamp01(Random.Range(pitchedSoundFX.pitchRange.x, pitchedSoundFX.pitchRange.y)));
-        else
-            PlayClipFromSource(clonedSource, soundFX.clip, soundFX.volume, 1);
+        PlayClipFromSource(clonedSource, soundFX.clip, soundFX.volume,
+             GetPitchFromRange(soundFX.pitchRange));
     }
 
     public void PlaySFX(SoundFX soundFX, Vector3 position)
@@ -42,14 +39,14 @@ public class SoundFXManager : MonoBehaviour
             return;
 
         AudioSource clonedSource = Instantiate(source, position, Quaternion.identity);
-
-        if (soundFX is PitchedSoundFX pitchedSoundFX)
-             PlayClipFromSource(clonedSource, soundFX.clip, soundFX.volume, Mathf.Clamp01(Random.Range(pitchedSoundFX.pitchRange.x, pitchedSoundFX.pitchRange.y)));
-        else
-            PlayClipFromSource(clonedSource, soundFX.clip, soundFX.volume, 1);
+        PlayClipFromSource(clonedSource, soundFX.clip, soundFX.volume,
+             GetPitchFromRange(soundFX.pitchRange));
     }
 
-
+    public static float GetPitchFromRange(Vector2 pitchRange)
+    {
+        return Mathf.Clamp01(Random.Range(pitchRange.x, pitchRange.y));
+    }
 
     /// <summary>
     ///  Intended for looping audios where more class-specific control is required for stopping/starting, pitch etc.
@@ -68,5 +65,12 @@ public class SoundFXManager : MonoBehaviour
         clonedSource.loop = true;
 
         return clonedSource;
+    }
+
+    public static void ChangeSourceSound(AudioSource source, SoundFX newSound)
+    {
+        source.clip = newSound.clip;
+        source.volume = newSound.volume;
+        source.pitch = GetPitchFromRange(newSound.pitchRange);
     }
 }

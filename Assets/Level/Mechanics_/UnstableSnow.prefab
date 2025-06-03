@@ -148,6 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92c1d16403352544187b3aab398d66a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  soundType: 1
   stats: {fileID: 11400000, guid: 05c1c87f60cd42748bd31dfc4b501643, type: 2}
   interactor: {fileID: 8236554304655340616}
   instantFadeDetector: {fileID: 0}

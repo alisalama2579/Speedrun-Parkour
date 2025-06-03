@@ -7,22 +7,26 @@ public class SandEntryMovement : IMovementState
     private readonly SandEntryMovementStats stats;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
+    private readonly Transform transform;
 
     public SandEntryMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
     {
         this.col = col;
         this.stats = stats.interStateDashStats;
         this.rb = rb;
+        transform = rb.transform;
     }
 
     public class SandEntryData : SuccesfulTransitionData
     {
         public Vector2 TargetPos { get; }
         public ISand EntrySand { get; }
-        public SandEntryData(Vector2 targetPos,  ISand sand) 
+        public Vector2 Vel { get; }
+        public SandEntryData(Vector2 targetPos,  ISand sand, Vector2 vel) 
         {
             TargetPos = targetPos;
             EntrySand = sand;
+            Vel = vel;
         } 
     }
 
@@ -43,18 +47,19 @@ public class SandEntryMovement : IMovementState
 
             Vector2 diff = exitPoint - rb.position;
             dir = diff.normalized;
-            duration = diff.magnitude / stats.entrySpeed;
+
+            speed = Mathf.Max(transitionData.Vel.magnitude * stats.velToSpeedRatio, stats.entrySpeed);
+            duration = diff.magnitude / speed;
 
             targetIsBurrowSand = entrySand is BurrowSand;
-            entrySand.OnSandTargetForBurrow(dir * stats.entrySpeed);
+            entrySand.OnSandTargetForBurrow(dir * speed);
 
             if (entrySand is SandBall ball)
-                durationToSandTouch = duration - (ball.GetComponent<CircleCollider2D>().radius / stats.entrySpeed);
+                durationToSandTouch = duration - (ball.GetComponent<CircleCollider2D>().radius / speed);
             else
                 durationToSandTouch = 0.9f * duration;
         }
     }
-
     public void ExitState()
     {
         CheckSandEntryInvokation();
@@ -64,12 +69,13 @@ public class SandEntryMovement : IMovementState
 
     private Vector2 exitPoint;
     private Vector2 startingPoint;
-    private Vector2 dir;
+    public Vector2 dir;
     public Vector2 Dir => dir;
 
     private Vector2 pos;
     private ISand entrySand;
     float durationToSandTouch;
+    float speed;
     bool sandTouched;
     float duration;
 
@@ -86,7 +92,7 @@ public class SandEntryMovement : IMovementState
         if (!targetIsBurrowSand && !sandTouched && t >= durationToSandTouch)
         {
             sandTouched = true;
-            entrySand.OnSandExit(dir * stats.entrySpeed, pos);
+            entrySand.OnSandExit(dir * speed, pos);
             EventsHolder.PlayerEvents.OnPlayerEnterSand?.Invoke(entrySand);
         }
     }
@@ -106,7 +112,7 @@ public class SandEntryMovement : IMovementState
     {
         if(t >= duration && targetIsBurrowSand)
         {
-            return new BurrowMovement.BurrowMovementTransitionData(dir, exitPoint, entrySand);
+            return new BurrowMovement.BurrowMovementTransitionData(dir, exitPoint, entrySand, false);
         }
         return failedData;
     }
@@ -116,7 +122,7 @@ public class SandEntryMovement : IMovementState
     {
         if (t >= duration && !targetIsBurrowSand)
         {
-            entrySand.OnSandEnter(dir * stats.entrySpeed, pos);
+            entrySand.OnSandEnter(dir * speed, pos);
             EventsHolder.PlayerEvents.OnPlayerExitSand?.Invoke(entrySand);
 
             return new LandMovement.LandMovementTransition(dir, true, entrySand);

@@ -16,3 +16,4 @@ MonoBehaviour:
   minSpeedForWalk: 2
   rollAnimationTime: 0.2
   rollRotationSpeed: -1300
+  burrowDashTime: 1

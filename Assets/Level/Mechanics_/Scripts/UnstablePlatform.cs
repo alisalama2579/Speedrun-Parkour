@@ -23,7 +23,9 @@ public class UnstablePlatform : TraversableTerrain, IWallGrabbable, IUnstable
 
         yield return new WaitForSeconds(fadeTime);
 
-        while(t <= fadeTime)
+        col.enabled = false;
+
+        while (t <= fadeTime)
         {
             sprite.color = Color.Lerp(originalColor, Color.clear, t/fadeTime);
             t += Time.deltaTime;
@@ -50,16 +52,15 @@ public class UnstablePlatform : TraversableTerrain, IWallGrabbable, IUnstable
         if(fadeRoutine != null) StopCoroutine(fadeRoutine);
     } 
 
-    protected virtual void OnPlayerEnter(ITerrainInteraction interaction)
-    {
-        if (!fadeTriggered && interaction is TerrainInteract) 
-            StartFade(stats.fadeTime);
-    }
-
     protected virtual void OnPlayerStay(ITerrainInteraction interaction)
     {
-        if (interaction.SurfaceType == TerrainSurfaceType.Ceiling && !fadeTriggered)
-            StartFade(stats.fastFadeTime, true);
+        if (!fadeTriggered)
+        {
+            if (interaction is TerrainInteract)
+                StartFade(stats.fadeTime);
+            else if (interaction.SurfaceType == TerrainSurfaceType.Ceiling)
+                StartFade(stats.fastFadeTime, true);
+        }
     }
 
     protected void ResetSand()
@@ -78,7 +79,6 @@ public class UnstablePlatform : TraversableTerrain, IWallGrabbable, IUnstable
         col = GetComponent<Collider2D>();
         originalColor = sprite.color;
 
-        interactor.OnInteractionEnter += OnPlayerEnter;
         interactor.OnInteractionStay += OnPlayerStay;
         EventsHolder.PlayerEvents.OnPlayerLandOnGround += OnPlayerLand;
         EventsHolder.PlayerEvents.OnPlayerEnterSand += OnPlayerEnterSand;
@@ -99,7 +99,6 @@ public class UnstablePlatform : TraversableTerrain, IWallGrabbable, IUnstable
         base.OnDisable();
 
         interactor.OnInteractionStay -= OnPlayerStay;
-        interactor.OnInteractionEnter -= OnPlayerEnter;
         EventsHolder.PlayerEvents.OnPlayerLandOnGround -= OnPlayerLand;
         EventsHolder.PlayerEvents.OnPlayerEnterSand -= OnPlayerEnterSand;
     }

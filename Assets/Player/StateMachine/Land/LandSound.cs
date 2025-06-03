@@ -18,10 +18,41 @@ public class LandSound : IMovementObserverState<LandMovement>
         if (sfxManager) { loopingSource = sfxManager.GetLoopingSFX(transform); }
 
         MovementState = landMovement;
-
+        MovementState.OnChangeGround += (bool a, float b, TraversableTerrain c) =>{
+            OnChangeGrounded(a, b, c);
+        };
+        MovementState.OnLeap += () =>{
+            OnLeap();
+        };
+        MovementState.OnPlayerChangedWall += (bool a, TraversableTerrain c) => {
+            OnChangeWall(a, c);
+        };
+        MovementState.OnWallJump += (TraversableTerrain a) => {
+            OnWallJump(a);
+        };
+        MovementState.OnJump += (TraversableTerrain a) => {
+            OnJump(a);
+        };
     }
+
+    public void ExitState()
+    {
+        footstepProgress = 0;
+        time = 0;
+        if(loopingSource) loopingSource.Stop();
+    }
+
+
     float deltaTime;
+    float time;
     public void Update(MovementInput _)
+    {
+        if (sfxManager == null) return;
+        time += Time.deltaTime;
+        loopingSource.volume = Mathf.Lerp(loopingSource.volume, stats.loopingWallSlide.volume,
+            time / stats.wallSlideFadeInTime);
+    }
+    public void FixedUpdate()
     {
         if (sfxManager == null) return;
 
@@ -30,50 +61,58 @@ public class LandSound : IMovementObserverState<LandMovement>
     }
 
     private float footstepProgress;
-    public void HandleFootSteps()
+    private void HandleFootSteps()
     {
         if (MovementState.IsGrounded)
         {
-            footstepProgress += deltaTime;
+            footstepProgress += Mathf.Abs(MovementState.HorizontalVel * deltaTime);
             if (footstepProgress < stats.footstepInterval)
                 return;
 
             var sound = Utility.GetRandomFromArray<SoundFX>(stats.footsteps);
             if (sfxManager) { sfxManager.PlaySFX(sound, MovementState.Pos); }
+            Debug.Log("took step ");
             footstepProgress = 0;
         }
         else
             footstepProgress = 0;
     }
-
-    public void OnDash() { if (sfxManager) { sfxManager.PlaySFX(stats.GetSoundFromType(PlayerSoundStats.SoundType.Dash), MovementState.Pos); } }
-    public void OnEntryLaunch(Vector2 vel) { if (sfxManager) { sfxManager.PlaySFX(stats.GetSoundFromType(PlayerSoundStats.SoundType.EntryLaunch), MovementState.Pos); } }
-    public void OnJump() { if (sfxManager) { sfxManager.PlaySFX(stats.GetSoundFromType(PlayerSoundStats.SoundType.Jump), MovementState.Pos); } }
-    public void OnWallJump() { if (sfxManager) { sfxManager.PlaySFX(stats.GetSoundFromType(PlayerSoundStats.SoundType.WallJump), MovementState.Pos); }}
-    
-    public void OnChangeGrounded(bool newGrounded, float impact, TraversableTerrain _)
+    private void OnJump(TraversableTerrain _) { if (sfxManager) { sfxManager.PlaySFX(stats.jump, MovementState.Pos); } }
+    private void OnWallJump(TraversableTerrain _) { if (sfxManager) { sfxManager.PlaySFX(stats.wallJump, MovementState.Pos); }}
+    private void OnLeap(){ if (sfxManager) { sfxManager.PlaySFX(Utility.GetRandomFromArray(stats.leaps), MovementState.Pos); } }
+    private void OnChangeGrounded(bool newGrounded, float impact, TraversableTerrain _)
     {
         if (newGrounded)
         {
-            SoundFX sound = (SoundFX)stats.GetSoundFromType(PlayerSoundStats.SoundType.Landed).Clone();
+            SoundFX sound = (SoundFX)stats.land.Clone();
             sound.volume *= impact;
 
             if (sfxManager) { sfxManager.PlaySFX(sound, MovementState.Pos); }
         }
     }
-    public void OnChangeWall(bool newWall, TraversableTerrain _)
+    private void OnChangeWall(bool newWall, TraversableTerrain terrain)
     {
-        if (!loopingSource) return;
+        if (!loopingSource || !sfxManager) return;
 
         if (newWall)
         {
-            SoundFX sound = (SoundFX)stats.GetSoundFromType(PlayerSoundStats.SoundType.WallGrab).Clone();
-            if (sfxManager) { sfxManager.PlaySFX(sound, MovementState.Pos); }
+            sfxManager.PlaySFX(GetSurfaceSpecificSound(stats.wallGrabs, terrain), MovementState.Pos);
 
-            loopingSource.clip = stats.loopingWallSlide;
+            SoundFX sound = (SoundFX)GetSurfaceSpecificSound(stats.wallSlides, terrain).Clone();
+            SoundFXManager.ChangeSourceSound(loopingSource, sound);
+            loopingSource.volume = 0;
             loopingSource.Play();
         }
         else 
             loopingSource.Stop();
+    }
+
+
+    private SoundFX GetSurfaceSpecificSound(SoundFX[] sounds, TraversableTerrain terrain)
+    {
+        if (sounds == null || terrain == null) return null;
+
+        int index = Mathf.Clamp((int)terrain.soundType, 0, sounds.Length - 1);
+        return sounds[index];
     }
 }

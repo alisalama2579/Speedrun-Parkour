@@ -13,6 +13,8 @@ public static class RecordsManager
     {
         if (index >= levelRecords.Length) return;
 
+        Debug.Log($"Set record number {index}");
+
         levelRecords[index] = new LevelRecord(frameRecord);
         RecordSaveLoadSystem.Save(levelRecords);
     }
@@ -22,6 +24,7 @@ public static class RecordsManager
         if (index >= levelRecords.Length) return new List<CompressedGhostFrameValues>();
 
         RecordSaveLoadSystem.Load();
+        Debug.Log($"Got record number {index}");
 
         levelRecords = RecordSaveLoadSystem.recordData.Records;
         return levelRecords[index].ghostFrameValues;

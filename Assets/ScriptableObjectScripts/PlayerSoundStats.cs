@@ -5,39 +5,25 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "PlayerSoundStats", menuName = "PlayerSoundStats")]
 public class PlayerSoundStats : ScriptableObject
 {
-    [SerializeField] private SerializableDictionary<SoundType, SoundFX> tempSounds;
-    private Dictionary<SoundType, SoundFX> sounds;   
+    public BurrowSoundStats burrowStats;
 
-    public AudioClip loopingBurrow;
-    public AudioClip loopingWallSlide;
+    public SoundFX loopingWallSlide;
+    public float wallSlideFadeInTime;
 
     public SoundFX[] footsteps;
     public float footstepInterval;
+    public float maxFootstepInterval;
 
 
-    private bool initialized;
-    private void OnValidate() => TryInitialize();
-    private void Awake() => TryInitialize();
+    public SoundFX land;
+    public SoundFX wallGrab;
+    public SoundFX jump;
+    public SoundFX wallJump;
+    public SoundFX roll;
+    public SoundFX[] leaps;
 
-    private void TryInitialize()
-    {
-        if (!initialized) return;
-
-        initialized = true;
-        sounds = tempSounds.GenerateDictionary();
-        tempSounds = null;
-    }
-
-    public SoundFX GetSoundFromType(SoundType type) => sounds.GetValueOrDefault(type);
-
-    public enum SoundType
-    {
-        WallGrab,
-        WallJump,
-        Jump,
-        EntryLaunch,
-        BurrowEnter,
-        Dash,
-        Landed,
-    }
+    [Header("Surface-Specific Sounds, consult Traversable Terrain order")]
+    public SoundFX[] wallSlides;
+    public SoundFX[] wallGrabs;
+    public SoundFX[] lands;
 }

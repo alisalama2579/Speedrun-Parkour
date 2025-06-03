@@ -47,6 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9c5984d7283bc940841c53661d4a781, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  soundType: 1
   stats: {fileID: 11400000, guid: 05c1c87f60cd42748bd31dfc4b501643, type: 2}
 --- !u!212 &593992227244705277
 SpriteRenderer:
