@@ -29,6 +29,7 @@ public class BurrowSound : IMovementObserverState<BurrowMovement>
         };
         MovementState.OnBurrowDash += () =>
         {
+            OnBurrowDash();
             entryDashStoppedOrInterrupted = true;
             isDashing = true;
         };
@@ -39,24 +40,42 @@ public class BurrowSound : IMovementObserverState<BurrowMovement>
     private bool isDashing;
     public void Update(MovementInput _)
     {
-        time += Time.deltaTime;
-        loopingSource.volume = Mathf.Lerp(loopingSource.volume, 
-            (MovementState.IsBurrowDashing && time >= stats.timeToSandExitSound) ? stats.dash.volume  : stats.loopingBurrow.volume, 
-            time / stats.burrowFadeInTime);
+        justEntered = false;
 
+        time += Time.deltaTime;
+        if (loopingSource){
+            loopingSource.volume = Mathf.Lerp(loopingSource.volume,
+                (MovementState.IsBurrowDashing && time >= stats.timeToSandExitSound) ? stats.dash.volume : stats.loopingBurrow.volume,
+                time / stats.burrowFadeInTime);
+        }
         if (!MovementState.IsBurrowDashing) { entryDashStoppedOrInterrupted = true; isDashing = false; }
     }
 
     float lastBurrowTime;
     float pitchProgress;
     int entries;
-    public void EnterState(IStateSpecificTransitionData _)
+    bool justEntered;
+
+    private void OnBurrowDash()
     {
+        if (!sfxManager || justEntered) return;
+
+        SoundFX dash = (SoundFX)stats.dash.Clone();
+        dash.volume *= isDashing ? 0.5f : 1;
+        sfxManager.PlaySFX(dash, transform.position);
+    }
+    public void EnterState(IStateSpecificTransitionData data)
+    {
+        justEntered = true;
         entries++;
         if (sfxManager)
         {
+            bool enteredDirectly = data is BurrowMovement.BurrowMovementTransitionData burrowData
+                                   && burrowData.EnteredDirectly;
+
             pitchProgress = Mathf.Repeat(entries, stats.burrowNumToMaxPitch);
-            SoundFX snowEntry = (SoundFX)stats.entry.Clone();
+
+            SoundFX snowEntry = enteredDirectly ? (SoundFX)stats.directEntry.Clone() : (SoundFX)stats.entry.Clone();
             snowEntry.pitchRange = Vector2.one * Mathf.Lerp(snowEntry.pitchRange.x, snowEntry.pitchRange.y, pitchProgress / stats.burrowNumToMaxPitch);
             sfxManager.PlaySFX(snowEntry, transform.position);
         }

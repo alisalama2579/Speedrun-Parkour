@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.Persistence;
 using UnityEngine;
   
 [RequireComponent(typeof(Rigidbody2D))]
@@ -12,6 +14,7 @@ public class PlayerController : MonoBehaviour, IInteractionProvider
     public PlayerStateMachine StateMachine => stateMachine;
 
     private Player player;
+    [SerializeField] private PlayerProperties properties;
     [SerializeField] private Animator anim;
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private MovementStatsHolder movementStats;
@@ -42,7 +45,34 @@ public class PlayerController : MonoBehaviour, IInteractionProvider
             Stats = soundStats,
         };
 
-        stateMachine = new PlayerStateMachine(typeof(LandMovement), transform, rb, col, movementStats, visData, soundData);
+        MovementInitData movementData = new()
+        {
+            Transform = transform,
+            RB = rb,
+            Col = col,
+            Stats = movementStats,
+            Properties = properties.movementProperties
+        };
+
+        stateMachine = new PlayerStateMachine(typeof(LandMovement), movementData, visData, soundData);
+        stateMachine.AddAnyTransition(typeof(RaceReadyMovement), TransitionToRaceState);
+
+        IRaceController.OnRaceEnter += (IRaceController race) =>{
+            raceEnterTriggered = true;
+        };
+    }
+
+    private bool raceEnterTriggered;
+    public TransitionLibrary.IStateSpecificTransitionData TransitionToRaceState ()
+    {
+        if(raceEnterTriggered)
+        {
+            properties.enteredRaceStartPosition.Value = false;
+            raceEnterTriggered = false;
+            return new TransitionLibrary.SuccesfulTransitionData();
+        }
+
+        return new TransitionLibrary.FailedTransitionData();
     }
 
     private void OnDestroy()
@@ -84,10 +114,15 @@ public class PlayerController : MonoBehaviour, IInteractionProvider
         if (trigger != null)
         {
             if (trigger.TryGetComponent(out listener))
+            {
                 listener.OnPlayerEnter();
+            }
 
             if (trigger.transform.TryGetComponent(out interactor))
             {
+                if (interactor is RaceStart && properties.enteredRaceStartPosition != null)
+                    properties.enteredRaceStartPosition.Value = true;
+
                 stateMachine?.TriggerEnter(interactor);
                 stateMachine?.TriggerEnter(trigger);
             }
@@ -117,10 +152,15 @@ public class PlayerController : MonoBehaviour, IInteractionProvider
         if (trigger != null)
         {
             if (trigger.TryGetComponent(out listener))
-                listener.OnPlayerExit();
-
-            if (trigger.transform.TryGetComponent(out interactor))
             {
+                listener.OnPlayerExit();
+            }
+
+            if (trigger.TryGetComponent(out interactor))
+            {
+                if (interactor is RaceStart && properties.enteredRaceStartPosition != null)
+                    properties.enteredRaceStartPosition.Value = false;
+
                 stateMachine?.TriggerExit(interactor);
                 stateMachine?.TriggerExit(trigger);
             }
@@ -130,7 +170,9 @@ public class PlayerController : MonoBehaviour, IInteractionProvider
         else if (collision != null)
         {
             if (collision.transform.TryGetComponent(out listener))
+            {
                 listener.OnPlayerExit();
+            }
 
             if (collision.transform.TryGetComponent(out interactor))
             {
@@ -150,7 +192,9 @@ public class PlayerController : MonoBehaviour, IInteractionProvider
         if (trigger != null)
         {
             if (trigger.TryGetComponent(out listener))
+            {
                 listener.OnPlayerStay();
+            }
 
             trigger.transform.TryGetComponent(out interactor);
         }

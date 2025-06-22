@@ -44,7 +44,7 @@ public class GhostTapeRecorder : MonoBehaviour
             SaveTape();
     }
 
-    public void SaveTape() => RecordsManager.SetRecord(frameRecord, recordIndex);
+    public void SaveTape() => RecordsManager.SetRecord(new GhostTape(frameRecord), recordIndex);
 
     [ContextMenu("test saving")]
     public void Test() => RecordsManager.Test();

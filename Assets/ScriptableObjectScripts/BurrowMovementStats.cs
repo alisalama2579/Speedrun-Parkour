@@ -41,6 +41,7 @@ public class BurrowMovementStats : ScriptableObject
     public AnimationCurve dashSpeedCurve;
     public AnimationCurve dashControlCurve;
     public float dashControlMult;
+    public float directDashControlMult;
 
     #endregion
 }

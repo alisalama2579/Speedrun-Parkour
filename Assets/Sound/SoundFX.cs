@@ -7,6 +7,7 @@ public class SoundFX : ICloneable
     public AudioClip clip;
     public float volume = 1;
     public Vector2 pitchRange = Vector2.one;
+    public SoundFXManager.SoundFXType type;
 
     public object Clone() => this.MemberwiseClone();
 

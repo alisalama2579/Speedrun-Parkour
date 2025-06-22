@@ -9,8 +9,8 @@ public class PlayerStateMachine
         => GetNode(from).AddTransition(GetNode(to).MovementState, func);
     public void AddUnconditionalTransition(Type from, Type to)
         => GetNode(from).AddTransition(GetNode(to).MovementState, AnyTransitionFunc);
-    public void AddAnyTransition(Type to) 
-        => anyTransitions.Add(new Transition(GetNode(to).MovementState, AnyTransitionFunc));
+    public void AddAnyTransition(Type to, Func<IStateSpecificTransitionData> func) 
+        => anyTransitions.Add(new Transition(GetNode(to).MovementState, func));
 
 
     public T GetStateObject<T>() where T : class, IMovementState => (GetNode(typeof(T)).MovementState) as T;
@@ -41,26 +41,31 @@ public class PlayerStateMachine
     Dictionary<Type, StateNode> nodes = new();
     HashSet<Transition> anyTransitions = new();
 
-    public PlayerStateMachine(Type startingType, Transform transform, Rigidbody2D rb, Collider2D col, MovementStatsHolder movementStats, VisualsInitData visData, SoundInitData soundData)
+    public PlayerStateMachine(Type startingType, MovementInitData movementData, VisualsInitData visData, SoundInitData soundData)
     {
-        LandMovement landMovement = new LandMovement(rb, col, movementStats);
+        LandMovement landMovement = new LandMovement(movementData);
         AddNode(typeof(LandMovement),
             landMovement,
             new LandVisuals(landMovement, visData), 
             new LandSound(landMovement, soundData));
 
-        BurrowMovement burrowMovement = new BurrowMovement(rb, col, movementStats);
+        BurrowMovement burrowMovement = new BurrowMovement(movementData);
         AddNode(typeof(BurrowMovement), 
             burrowMovement, 
             new BurrowVisuals(burrowMovement, visData), 
             new BurrowSound(burrowMovement, soundData)
             );
 
-        SandEntryMovement sandEntryMovement = new SandEntryMovement(rb, col, movementStats);
+        SandEntryMovement sandEntryMovement = new SandEntryMovement(movementData);
         AddNode(typeof(SandEntryMovement), 
             sandEntryMovement, 
             new SandEntryVisuals(sandEntryMovement, visData),
             new SandEntrySound(sandEntryMovement, soundData));
+
+        RaceReadyMovement raceReadyMovement = new RaceReadyMovement(movementData);
+        AddNode(typeof(RaceReadyMovement),
+            raceReadyMovement,
+            null, null);
 
         InitializeStateTransitions();
         SetStartingState(startingType);

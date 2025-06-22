@@ -8,16 +8,18 @@ public class BurrowMovement : IMovementState
     private readonly MovementStatsHolder sharedStats;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
+    private readonly PlayerMovementProperties properties;
     private float PlayerHalfHeight => col.bounds.extents.y;
     private Transform transform;
 
-    public BurrowMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
+    public BurrowMovement(MovementInitData movementData)
     {
-        this.col = col;
-        sharedStats = stats;
-        this.stats = stats.burrowStats;
-        this.rb = rb;
-        transform = rb.transform;
+        col = movementData.Col;
+        sharedStats = movementData.Stats;
+        stats = movementData.Stats.burrowStats;
+        rb = movementData.RB;
+        transform = movementData.Transform;
+        properties = movementData.Properties;
     }
 
 
@@ -41,8 +43,8 @@ public class BurrowMovement : IMovementState
             entrySand = transitionData.EntrySand;
             EventsHolder.PlayerEvents.OnPlayerEnterSand?.Invoke(entrySand);
 
-
-            ExecuteDash(transitionData.EnteredDirectly ? stats.dashSpeed * stats.directEntryMultiplier : stats.dashSpeed);
+            dashControlMult = 2;
+            ExecuteDash(transitionData.EnteredDirectly);
         }
 
         OnPlayerEnterBurrow?.Invoke();
@@ -199,7 +201,7 @@ public class BurrowMovement : IMovementState
         float angle = Mathf.MoveTowardsAngle(
             Vector2Utility.GetUnityVector2Angle(moveDir),
             Vector2Utility.GetUnityVector2Angle(wishDir),
-            stats.rotationSpeed * bounceControlMult);
+            stats.rotationSpeed * bounceControlMult * dashControlMult);
 
         moveDir = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad)).normalized;
 
@@ -219,6 +221,8 @@ public class BurrowMovement : IMovementState
     private float timeDashed = float.MinValue;
     private float dashDuration;
     private bool dashInterrupted;
+    private float dashControlMult;
+    private float entireDashControlMult;
     private Vector2 dashVel;
     private Vector2 targetDashVel;
 
@@ -233,32 +237,38 @@ public class BurrowMovement : IMovementState
 
         bool canChainDash = dashRequested && timePercent >= stats.progressToDashChain && !dashInterrupted;
         bool canBufferedDash = HasBufferedDash && !isDashing && !dashInterrupted;
-        if (canChainDash || canBufferedDash) ExecuteDash(stats.dashSpeed);
+        if (canChainDash || canBufferedDash) ExecuteDash(false);
         dashRequested = false;
 
         if (dashInterrupted) ExitDash();
         else if (isDashing)
         {
             float speedPercent = stats.dashSpeedCurve.Evaluate(timePercent);
+            dashControlMult = stats.dashControlCurve.Evaluate(timePercent) * entireDashControlMult;
             dashVel = targetDashVel * speedPercent;
         }
     }
 
     private void ExitDash()
     {
+        dashControlMult = 1;
+        entireDashControlMult = 1;
         dashVel = Vector2.zero;
         dashInterrupted = false;
         isDashing = false;
         timeDashed = float.MinValue;
     }
 
-    private void ExecuteDash(float dashSpeed)
+    private void ExecuteDash(bool directEntry)
     {
         OnBurrowDash?.Invoke();
 
         timeDashed = time;
         dashInterrupted = false;
         isDashing = true;
+
+        float dashSpeed = directEntry ? stats.dashSpeed * stats.directEntryMultiplier : stats.dashSpeed;
+        entireDashControlMult = directEntry ? stats.directDashControlMult : stats.dashControlMult;
 
         targetDashVel = dashSpeed* moveDir;
         dashDuration = stats.dashDuration;
@@ -299,6 +309,8 @@ public class BurrowMovement : IMovementState
 
     private IStateSpecificTransitionData TransitionToLand()
     {
+        const float INSIDE_SAND_ERROR_MARGIN = 0.1f;
+
         bool cachedStartInCol = Physics2D.queriesStartInColliders;
         bool cachedHitTriggers = Physics2D.queriesHitTriggers;
         Physics2D.queriesStartInColliders = true;
@@ -314,10 +326,14 @@ public class BurrowMovement : IMovementState
         Utility.DrawBox(origin, boxBounds, boxDir, Color.black);
         Collider2D overlap = Physics2D.OverlapBox(origin, boxBounds, Vector2Utility.GetVector2Angle(boxDir), sharedStats.collisionLayerMask);
 
+        Collider2D sandOverlap = Physics2D.OverlapBox(rb.position, (Vector2)col.bounds.size + Vector2.one * INSIDE_SAND_ERROR_MARGIN, Vector2Utility.GetVector2Angle(boxDir), sharedStats.sandLayerMask);
+
         Physics2D.queriesStartInColliders = cachedStartInCol;
         Physics2D.queriesHitTriggers = cachedHitTriggers;
 
-        bool canExit = overlap == null;
+        bool insideBurrowSand = sandOverlap != null && sandOverlap.TryGetComponent(out ISand sand) && sand == entrySand;
+        bool hitTerrain = overlap != null;
+        bool canExit = !hitTerrain || !insideBurrowSand;
 
         if (canExit)
         {

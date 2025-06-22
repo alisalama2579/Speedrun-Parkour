@@ -2,30 +2,51 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 
-public class RaceController : MonoBehaviour
+public interface IRaceController
 {
-    public static event Action OnRaceStart;
-    public static event Action OnRaceEnd;
+    public static IRaceController currentRace;
+    public const float ABSOLUTE_MAX_PREP_TIME = 10f;
 
-    public RaceStart raceStart;
-    public RaceEnd raceEnd;
+    public static Action<IRaceController> OnRaceEnter;
+    public static Action OnRaceStart;
+    public static Action OnRaceExit;
+    public static Action OnCompleteRaceObjective;
+    public static Action<int> OnCountDown;
+    public Vector2 StartingPos { get; }
+    public int CountDowns { get; }
+    public RaceState CurrentState { get; }
+    public PlayerRaceStats RaceStats { get; }
 
-    public List<Ghost> ghosts; 
-
-    private void Awake()
+    public void RaceEnter()
     {
-        raceStart.onPlayerEnter += RaceStarted;
-        raceEnd.onPlayerEnter += RaceEnded;
-    }
 
-    private void RaceStarted()
+    }
+    public void RaceStart()
     {
-        OnRaceStart?.Invoke();
-    }
 
-    private void RaceEnded()
+    }
+    public void RaceEnd()
     {
-        OnRaceEnd?.Invoke();
-    }
 
+    }
+    public void RaceExit()
+    {
+
+    }
+}
+
+public struct PlayerRaceStats
+{
+    public bool Passed;
+    public bool Perfected;
+    public double RecordTime;
+    public int Attempts;
+}
+
+public enum RaceState
+{
+    NotInRace,
+    Prep,
+    InRace,
+    CompletedObjective
 }

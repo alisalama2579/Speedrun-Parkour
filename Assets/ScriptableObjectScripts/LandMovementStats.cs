@@ -4,11 +4,11 @@ using UnityEngine.Serialization;
 [CreateAssetMenu(fileName = "PlayerLandControllerStats", menuName = "PlayerLandControllerStats")]
 public class LandMovementStats : ScriptableObject
 {
-    public float knockBackDuration;
-    public Vector2 targetKnockBackMult;
-    public AnimationCurve knockBackHorizontalVelMult;
-    public AnimationCurve knockBackSpeed;
+    [Header("ScriptableProperties")]
+    public SurfaceProperty currentSurface;
+    public BooleanProperty isOnStableGround;
 
+    [Header("Roll")]
     public float rollDuration;
     public float rollSpeed;
 
@@ -136,6 +136,8 @@ public class LandMovementStats : ScriptableObject
     #region Ground/ledge detect
 
     [Header("Ground and wall detection")]
+    [Range(0, 1000)] public float velToMaxImpact;
+    public float entrylaunchTimeToDoubleImpact;
     public float ceilingHitPush;
     public float groundingPush;
 

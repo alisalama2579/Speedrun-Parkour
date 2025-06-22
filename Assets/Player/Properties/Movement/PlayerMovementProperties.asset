@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d01151bba6ba99c469aaa9b09b32f5d2, type: 3}
+  m_Name: PlayerMovementProperties
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovementProperties
+  currentSurface: {fileID: 11400000, guid: 19b3ba86941a5514e96f8b6e08d02f9e, type: 2}
+  isOnStableGround: {fileID: 11400000, guid: 2a452b11e4a01b84d989db3f4d1a5e80, type: 2}

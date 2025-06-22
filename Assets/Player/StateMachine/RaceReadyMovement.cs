@@ -8,33 +8,48 @@ public class RaceReadyMovement : IMovementState
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
 
-    public RaceReadyMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
+    private Vector2 startingPos;
+
+    public RaceReadyMovement(MovementInitData movementData)
     {
-        this.col = col;
-        this.stats = stats.interStateDashStats;
-        this.rb = rb;
+        col = movementData.Col;
+        stats = movementData.Stats.interStateDashStats;
+        rb = movementData.RB;
+
+        startingPos = rb.position;
+
+        IRaceController.OnRaceEnter += (IRaceController race) =>{
+            startingPos = race.StartingPos;
+            raceEnterTriggered = true;
+        };
+        IRaceController.OnRaceStart += () => {
+            raceStartTriggered = true;
+        };
     }
 
     public void InitializeTransitions(PlayerStateMachine controller)
     {
+        controller.AddTransition(GetType(), typeof(LandMovement), TransitionToLandMovement);
+    }
+
+    private bool raceStartTriggered;
+    private bool raceEnterTriggered;
+    public IStateSpecificTransitionData TransitionToLandMovement()
+    {
+        if (raceStartTriggered && raceEnterTriggered) return new SuccesfulTransitionData();
+        else return new FailedTransitionData();
     }
 
     public void EnterState(IStateSpecificTransitionData lastStateData)
     {
-      
+        rb.position = startingPos;
+        rb.linearVelocity = Vector2.zero;
     }
 
     public void ExitState()
     {
-
-    }
-
-    public void Update(MovementInput _) 
-    {
-   
-    }
-
-    public void FixedUpdate()
-    {
+        raceStartTriggered = false;
+        raceEnterTriggered = false;
+        Debug.Log("Exited race ready movement");
     }
 }

@@ -11,12 +11,12 @@ namespace System.Persistence
 
         static IDataService<RecordData> dataService = new RecordFileDataService(new BinarySerializer());
 
-        public static void NewRecord(LevelRecord[] records)
+        public static void NewRecord(GhostTape[] records)
         {
             recordData = new RecordData(NEW_DATA_NAME, records);
         }
 
-        public static void Save(LevelRecord[] records) 
+        public static void Save(GhostTape[] records) 
         {
             recordData = new RecordData(NEW_DATA_NAME, records);
             dataService.Save(recordData);
@@ -33,8 +33,8 @@ namespace System.Persistence
     public class RecordData : ISaveData
     {
         public string Name { get; set; }
-        public LevelRecord[] Records { get; set; }
-        public RecordData(string name, LevelRecord[] records) 
+        public GhostTape[] Records { get; set; }
+        public RecordData(string name, GhostTape[] records) 
         {
             Records = records;
             Name = name;

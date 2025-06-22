@@ -25,5 +25,6 @@ public class PlayerSoundStats : ScriptableObject
     [Header("Surface-Specific Sounds, consult Traversable Terrain order")]
     public SoundFX[] wallSlides;
     public SoundFX[] wallGrabs;
+    public SoundFX[] wallJumps;
     public SoundFX[] lands;
 }

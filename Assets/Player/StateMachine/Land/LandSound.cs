@@ -78,7 +78,7 @@ public class LandSound : IMovementObserverState<LandMovement>
             footstepProgress = 0;
     }
     private void OnJump(TraversableTerrain _) { if (sfxManager) { sfxManager.PlaySFX(stats.jump, MovementState.Pos); } }
-    private void OnWallJump(TraversableTerrain _) { if (sfxManager) { sfxManager.PlaySFX(stats.wallJump, MovementState.Pos); }}
+    private void OnWallJump(TraversableTerrain terrain) { if (sfxManager) {  sfxManager.PlaySFX(GetSurfaceSpecificSound(stats.wallJumps, terrain), MovementState.Pos); }}
     private void OnLeap(){ if (sfxManager) { sfxManager.PlaySFX(Utility.GetRandomFromArray(stats.leaps), MovementState.Pos); } }
     private void OnChangeGrounded(bool newGrounded, float impact, TraversableTerrain _)
     {

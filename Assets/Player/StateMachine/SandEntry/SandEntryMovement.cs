@@ -8,13 +8,15 @@ public class SandEntryMovement : IMovementState
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
     private readonly Transform transform;
+    private readonly PlayerMovementProperties properties;
 
-    public SandEntryMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
+    public SandEntryMovement(MovementInitData movementData)
     {
-        this.col = col;
-        this.stats = stats.interStateDashStats;
-        this.rb = rb;
-        transform = rb.transform;
+        col = movementData.Col;
+        stats = movementData.Stats.interStateDashStats;
+        rb = movementData.RB;
+        transform = movementData.Transform;
+        properties = movementData.Properties;
     }
 
     public class SandEntryData : SuccesfulTransitionData

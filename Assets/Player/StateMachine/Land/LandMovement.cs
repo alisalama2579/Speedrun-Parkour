@@ -9,13 +9,15 @@ public class LandMovement : IMovementState
     private readonly LandMovementStats stats;
     private readonly Collider2D col;
     private readonly Rigidbody2D rb;
+    private readonly PlayerMovementProperties properties;
 
-    public LandMovement(Rigidbody2D rb, Collider2D col, MovementStatsHolder stats)
+    public LandMovement(MovementInitData movementData)
     {
-        this.col = col;
-        sharedStats = stats;
-        this.stats = stats.landStats;
-        this.rb = rb;
+        col = movementData.Col;
+        sharedStats = movementData.Stats;
+        stats = movementData.Stats.landStats;
+        rb = movementData.RB;
+        properties = movementData.Properties;
     }
 
     public void InitializeTransitions(PlayerStateMachine controller)
@@ -159,42 +161,22 @@ public class LandMovement : IMovementState
 
     #region TerrainBehaviour
 
-    private class Surface
-    {
-        public TraversableTerrain terrain;
-        public TerrainSurfaceType surfaceType;
-        public Surface(TraversableTerrain terrain, TerrainSurfaceType surfaceType)
-        {
-            this.terrain = terrain;
-            this.surfaceType = surfaceType;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Surface surface && this == surface;
-        }
-        public static bool operator == (Surface lhs, Surface rhs)
-        {
-            bool leftNull = lhs is null;
-            bool rightNull = rhs is null;
-            if (leftNull || rightNull)
-                return leftNull == rightNull;
-
-            return lhs.terrain == rhs.terrain &&
-                   lhs.surfaceType == rhs.surfaceType;
-        }
-        public static bool operator !=(Surface lhs, Surface rhs) => !(lhs == rhs);
-    }
     Surface lastNonAirSurface;
     bool wasLastInAir;
 
     private void HandleTerrainInteractionUpdate(TraversableTerrain newTerrain, TerrainSurfaceType surfaceType)
     {
         wasLastInAir = newTerrain == null;
+        properties.isOnStableGround.Value = false;
+        properties.currentSurface.Value = new Surface(newTerrain, surfaceType);
+
         if (wasLastInAir) return;
 
-        if (lastNonAirSurface != null && (lastNonAirSurface.terrain != newTerrain || !wasLastInAir) && newTerrain is not IUnstable && surfaceType == TerrainSurfaceType.Ground)
+        if (lastNonAirSurface != null && (lastNonAirSurface.terrain != newTerrain || !wasLastInAir) && newTerrain is not IUnstable && surfaceType == TerrainSurfaceType.Ground) 
+        {
+            stats.isOnStableGround.Value = true;
             EventsHolder.PlayerEvents.OnPlayerLandOnGround?.Invoke(lastNonAirSurface.terrain);
+        }
 
         Interact(newTerrain, surfaceType);
         lastNonAirSurface = new Surface(newTerrain, surfaceType);
@@ -452,13 +434,19 @@ public class LandMovement : IMovementState
     {
         isGrounded = newGrounded;
 
-        float impact = 1;
-        OnChangeGround?.Invoke(newGrounded, impact, lastNonAirSurface?.terrain);
+        float impact = 0;
 
         if (isGrounded)
         {
-            if(isLeaping || isEntryLaunching && Mathf.Approximately(Mathf.Sign(vel.x), HorizontalInput) && HorizontalInput != 0)
+            bool shouldRoll = isLeaping || isEntryLaunching && Mathf.Approximately(Mathf.Sign(vel.x), HorizontalInput) && HorizontalInput != 0;
+            if(shouldRoll)
                 rollRequested = true;
+            else
+            {
+                impact = Mathf.Abs(vel.y) / stats.velToMaxImpact;
+                if (time - timeEntryLaunched < stats.entrylaunchTimeToDoubleImpact) impact *= 2;
+                impact = Mathf.Clamp01(impact);
+            }
 
             isJumping = false;
             coyoteUsable = true;
@@ -472,6 +460,8 @@ public class LandMovement : IMovementState
             //Applies gravity fallof if not jumping, such as walking off a ledge
             if (!isJumping) shouldApplyGravFallof = true;
         }
+
+        OnChangeGround?.Invoke(newGrounded, impact, lastNonAirSurface?.terrain);
     }
 
     #endregion
@@ -487,6 +477,7 @@ public class LandMovement : IMovementState
 
     private float entryLaunchGravMult;
     private float entryLaunchControlMult;
+    private float timeEntryLaunched;
 
     private void HandleEntryLaunch()
     {
@@ -517,6 +508,7 @@ public class LandMovement : IMovementState
     {
         OnEntryLaunch?.Invoke(launchVel);
 
+        timeEntryLaunched = time;
         entryLaunchVel = launchVel;
         verticalVel = 0;
 
@@ -525,6 +517,7 @@ public class LandMovement : IMovementState
     }
     private void ResetEntryLaunch()
     {
+        timeEntryLaunched = float.MinValue;
         entryLaunchInterrupted = false;
         isEntryLaunching = false;
         entryLaunchVel = Vector2.zero;
@@ -1133,7 +1126,6 @@ public class LandMovement : IMovementState
     public void TriggerEnter(IPlayerCollisionInteractor collisionListener)
     {
         if (collisionListener == null) return;
-
         if (collisionListener is SlowingArea)
         {
             isBeingSlowed = true;

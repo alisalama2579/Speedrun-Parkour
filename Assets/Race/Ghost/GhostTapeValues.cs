@@ -1,5 +1,17 @@
+using System.Collections.Generic;
 using System;
 using UnityEngine;
+
+
+[Serializable]
+public class GhostTape
+{
+    public List<CompressedGhostFrameValues> ghostFrameValues;
+    public GhostTape(List<CompressedGhostFrameValues> ghostFrameValues)
+    {
+        this.ghostFrameValues = ghostFrameValues;
+    }
+}
 
 [Serializable]
 public struct CompressedGhostFrameValues

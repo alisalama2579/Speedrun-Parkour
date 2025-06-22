@@ -18,28 +18,35 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 50b1d77402e449348b52b5808396d75c, type: 3}
     volume: 0.4
     pitchRange: {x: 1, y: 1}
+    type: 0
   burrowNumToMaxPitch: 3
   dash:
-    clip: {fileID: 8300000, guid: 474573b9ffe63c64e9118fe6034549f3, type: 3}
-    volume: 0.7
-    pitchRange: {x: 0.5, y: 0.6}
+    clip: {fileID: 8300000, guid: 50f6a6d0ed572be468240e49e6cd2fce, type: 3}
+    volume: 0.002
+    pitchRange: {x: 0.9, y: 1.2}
+    type: 0
   entry:
     clip: {fileID: 8300000, guid: 0f5df7405797ecd47a0fe14a8a62534b, type: 3}
     volume: 0.03
-    pitchRange: {x: 0.6, y: 1.2}
+    pitchRange: {x: 0.9, y: 1.1}
+    type: 0
   directEntry:
     clip: {fileID: 8300000, guid: 0f5df7405797ecd47a0fe14a8a62534b, type: 3}
-    volume: 0.4
-    pitchRange: {x: 0.2, y: 0.4}
+    volume: 0.06
+    pitchRange: {x: 1, y: 1.5}
+    type: 0
   bounce:
     clip: {fileID: 8300000, guid: a7bc728d90741ec428a5ad6bd87cddc0, type: 3}
     volume: 0.01
     pitchRange: {x: 0.8, y: 1.2}
+    type: 0
   exit:
     clip: {fileID: 8300000, guid: 01fbb98fbbe7f54428870b30d086fa6d, type: 3}
     volume: 0.5
     pitchRange: {x: 0.9, y: 3}
+    type: 0
   dashExit:
     clip: {fileID: 8300000, guid: ec1b350caa22b954bb16c7f3120bd469, type: 3}
     volume: 0.2
     pitchRange: {x: 0.9, y: 1.1}
+    type: 0

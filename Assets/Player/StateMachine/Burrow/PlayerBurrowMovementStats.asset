@@ -134,3 +134,4 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   dashControlMult: 3
+  directDashControlMult: 5
