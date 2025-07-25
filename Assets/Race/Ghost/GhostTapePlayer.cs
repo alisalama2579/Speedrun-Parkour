@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class GhostTapePlayer : MonoBehaviour
 {
+    [SerializeField] private FloatProperty PhysicsUpdatePerSecond;
     [SerializeField] private int recordIndex;
     [SerializeField] private Animator animator;
 
-    [SerializeField] public float recordTime;
     public bool playing;
 
     private List<CompressedGhostFrameValues> frameRecord;

@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   exitDetectionDistance: 0.2
   collisionDetectionDistance: 0.2
-  acceleration: 1200
-  maxSpeed: 80
-  rotationSpeed: 20
+  acceleration: 1199
+  maxSpeed: 60
+  rotationSpeed: 200
   oppositeTurnControl: 1
   bounceCheckFrequency: 4
   bounceDuration: 0.2
@@ -69,13 +69,16 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  bounceMoveSpeedMult: 1
+  bounceMoveSpeedMult: 0
   bounceNormalBias: 1
-  progressToDashChain: 0.2
+  entryDashSpeed: 105
+  dashSlownessAcummulation: 0.2
+  dashSlownessDecay: 0.005
+  progressToDashChain: 0
   directEntryMultiplier: 1.5
   dashBuffer: 0.3
   dashDuration: 0.45
-  dashSpeed: 80
+  dashSpeed: 100
   dashSpeedCurve:
     serializedVersion: 2
     m_Curve:
@@ -88,6 +91,48 @@ MonoBehaviour:
       weightedMode: 0
       inWeight: 0
       outWeight: 0
+    - serializedVersion: 3
+      time: 0.7986261
+      value: 0.99464166
+      inSlope: -0.046894588
+      outSlope: -0.046894588
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.44005784
+    - serializedVersion: 3
+      time: 0.99433684
+      value: -0.0011772811
+      inSlope: 0.020425595
+      outSlope: 0.020425595
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.4700193
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  entryDashSpeedCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0.0046539307
+      value: 0.49872208
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.13934264
+      value: 0.99766564
+      inSlope: 0.0027075277
+      outSlope: 0.0027075277
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
     - serializedVersion: 3
       time: 0.7986261
       value: 0.99464166
@@ -133,5 +178,5 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  dashControlMult: 3
+  dashControlMult: 2
   directDashControlMult: 5

@@ -20,10 +20,13 @@ public class PlayerStateMachine
 
     Transition GetTransition(out IStateSpecificTransitionData transitionData)
     {
-        foreach (var transition in anyTransitions)
+        if (anyTransitions != null)
         {
-            if (transition.TryExecute(out transitionData))
-                return transition;
+            foreach (var transition in anyTransitions)
+            {
+                if (transition.TryExecute(out transitionData))
+                    return transition;
+            }
         }
 
         foreach (var transition in current.Transitions)
@@ -102,15 +105,6 @@ public class PlayerStateMachine
         if (transition != null) SwitchMovementState(transition.To, transitionData);
     }
 
-    public void OnDestroy()
-    {
-        foreach (StateNode node in nodes.Values)
-        {
-            foreach (Transition transition in node.Transitions)
-                transition.ClearEvent();
-        }
-    }
-
     #region Collisions
 
     public void CollisionEnter(Collision2D collision) => current.MovementState?.CollisionEnter(collision);
@@ -162,9 +156,9 @@ public class PlayerStateMachine
 
         public void Update(MovementInput input)
         {
-            MovementState?.Update(input);
-            SoundsState?.Update(input);
-            VisualsState?.Update(input);
+            MovementState?.UpdateState(input);
+            SoundsState?.UpdateState();
+            VisualsState?.UpdateState();
         }
 
         public void FixedUpdate()

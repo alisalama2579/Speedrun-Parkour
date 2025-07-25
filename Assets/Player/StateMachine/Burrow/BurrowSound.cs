@@ -38,7 +38,7 @@ public class BurrowSound : IMovementObserverState<BurrowMovement>
     private float time;
     private bool entryDashStoppedOrInterrupted;
     private bool isDashing;
-    public void Update(MovementInput _)
+    public void UpdateState()
     {
         justEntered = false;
 

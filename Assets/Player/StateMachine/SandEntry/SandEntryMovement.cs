@@ -83,7 +83,7 @@ public class SandEntryMovement : IMovementState
 
     bool targetIsBurrowSand;
 
-    public void Update(MovementInput _) 
+    public void UpdateState(MovementInput _) 
     {
         t += Time.deltaTime;
         CheckSandEntryInvokation();

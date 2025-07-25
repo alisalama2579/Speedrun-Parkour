@@ -12,15 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdc5c967dbba5414394fede3c3e356ed, type: 3}
   m_Name: PlayerLandControllerStats
   m_EditorClassIdentifier: 
+  raceStartSpeed: 130
   currentSurface: {fileID: 11400000, guid: 19b3ba86941a5514e96f8b6e08d02f9e, type: 2}
   isOnStableGround: {fileID: 11400000, guid: 2a452b11e4a01b84d989db3f4d1a5e80, type: 2}
   rollDuration: 0.2
   rollSpeed: 25
+  leapAdditionalRollSpeed: 100
+  launchAdditionalRollSpeed: 150
   sandDashBuffer: 0.2
   sameSandTargetDelay: 0.5
   directionDetectionSize: 20
-  sandDetectionDistance: 40
-  sandDashDetectionDistance: 40
+  sandDetectionDistance: 30
+  sandDashDetectionDistance: 30
   directSandDashDetectionDistance: 1
   sandOvershoot: 20
   launchDecel: 100
@@ -126,9 +129,9 @@ MonoBehaviour:
   jumpVelocity: 90
   jumpApexRange: 5
   gravAfterFalloffMultiplier: 3
-  leapVel: {x: 100, y: 50}
+  leapVel: {x: 115, y: 50}
   leapDuration: 0.3
-  leapOpposingMovementFriction: 6
+  leapOpposingMovementFriction: 10
   leapGravMult: 1.2
   leapDecel: 200
   leapEntryLaunchRetainPercent: 0.3
@@ -136,8 +139,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: -0.0004493179
-      value: 0.84505445
+      time: 0.009613854
+      value: 0.5267866
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -238,12 +241,12 @@ MonoBehaviour:
   wallTag: WallGrabbable
   wallDetectionDistance: 0.2
   wallNormalRange: 0.1
-  timeToFullSpeedFromWall: 0.05
+  timeToFullSpeedFromWall: 0.0001
   maxYVelForWallGrab: 0
   minVelForPushingWall: -20
-  onWallGravity: 40
+  onWallGravity: 20
   wallJumpVel: 160
-  wallJumpUpBias: 0.7
+  wallJumpUpBias: 0.72
   slipStrength: 2
   slowAreaDrag: {x: 5, y: 5}
   slowAreaMomentumLoss: 0.5

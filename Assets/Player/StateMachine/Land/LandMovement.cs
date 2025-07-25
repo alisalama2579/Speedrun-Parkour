@@ -34,11 +34,24 @@ public class LandMovement : IMovementState
             col.transform.rotation = Quaternion.identity;
 
             entrySand = transitionData.EntrySand;
-            float launchSpeed = transitionData.EnteredWithDash
-                ? entrySand.LaunchSpeed
-                : entrySand.WeakLaunchSpeed;
+            if(entrySand != null)
+            {
+                qeuedEntryLaunchVel = entrySand.LaunchSpeed * transitionData.EntryDir;
+                bool isStrong = transitionData.EnteredWithDash;
 
-            ExecuteEntryLaunch(launchSpeed * transitionData.EntryDir);
+                float launchSpeed = isStrong
+                    ? entrySand.LaunchSpeed
+                    : entrySand.WeakLaunchSpeed;
+
+                ExecuteEntryLaunch(launchSpeed * transitionData.EntryDir, isStrong);
+            }
+
+            if (transitionData.EnteredFromRace)
+            {
+                isFacingRight = transitionData.EntryDir.x > 0;
+                ExecuteRoll(transitionData.EntryDir.x * stats.raceStartSpeed);
+                isGrounded = true;
+            }
         }
     }
 
@@ -79,7 +92,7 @@ public class LandMovement : IMovementState
     }
     #endregion
 
-    public void Update(MovementInput frameInput)
+    public void UpdateState(MovementInput frameInput)
     {
         time += Time.deltaTime;
         HandleInput(frameInput);
@@ -474,6 +487,8 @@ public class LandMovement : IMovementState
     private float entryLaunchProgress;
 
     private Vector2 entryLaunchVel;
+    private Vector2 qeuedEntryLaunchVel;
+    private bool isStrongLaunch;
 
     private float entryLaunchGravMult;
     private float entryLaunchControlMult;
@@ -481,6 +496,7 @@ public class LandMovement : IMovementState
 
     private void HandleEntryLaunch()
     {
+        if (time <= 0.1f && frameInput.SandDashHeld && !isStrongLaunch) ExecuteEntryLaunch(qeuedEntryLaunchVel, true);
         entryLaunchProgress = Mathf.Clamp01(time / stats.launchMultDuration);
 
         if (isBeingSlowed
@@ -504,9 +520,11 @@ public class LandMovement : IMovementState
         }
     }
 
-    private void ExecuteEntryLaunch(Vector2 launchVel)
+    private void ExecuteEntryLaunch(Vector2 launchVel, bool isStrong)
     {
         OnEntryLaunch?.Invoke(launchVel);
+
+        isStrongLaunch = isStrong;
 
         timeEntryLaunched = time;
         entryLaunchVel = launchVel;
@@ -517,6 +535,7 @@ public class LandMovement : IMovementState
     }
     private void ResetEntryLaunch()
     {
+        isStrongLaunch = false;
         timeEntryLaunched = float.MinValue;
         entryLaunchInterrupted = false;
         isEntryLaunching = false;
@@ -527,6 +546,7 @@ public class LandMovement : IMovementState
 
     private void ExitEntryLaunch()
     {
+        isStrongLaunch = false;
         entryLaunchInterrupted = false;
         isEntryLaunching = false;
         entryLaunchVel = Vector2.zero;
@@ -640,16 +660,34 @@ public class LandMovement : IMovementState
         if (rollInterrupted)
             ExitRoll();
         else if (isRolling)
-            SetHorizontalVel(rollSpeed * rollDir);
+        {
+            float speed = rollSpeed;
+            if (wasOnSlipperyGround) speed *= 0.8f / SlipMultiplier;
+            SetHorizontalVel(speed * rollDir);
+        }
     }
     private void ExecuteRoll()
     {
         isRolling = true; 
         timeRolled = time;
 
+        rollSpeed = 
+            Mathf.Clamp(Mathf.Abs(vel.x), 0, stats.launchAdditionalRollSpeed)
+            + stats.rollSpeed;
+
         float sign = Mathf.Sign(vel.x);
-        rollSpeed = vel.x/sign + stats.rollSpeed; 
         rollDir = sign; 
+        OnRoll?.Invoke(rollDir);
+
+    }
+    private void ExecuteRoll(float speed)
+    {
+        isRolling = true;
+        timeRolled = time;
+
+        rollSpeed = Mathf.Abs(speed);
+        float sign = Mathf.Sign(speed);
+        rollDir = sign;
         OnRoll?.Invoke(rollDir);
 
     }
@@ -937,12 +975,14 @@ public class LandMovement : IMovementState
         public bool EnteredWithDash { get; }
         public ISand EntrySand { get; }
         public Vector2 EntryDir { get; }
+        public bool EnteredFromRace { get; }
 
-        public LandMovementTransition(Vector2 entryDir, bool enteredWithDash, ISand entrySand)
+        public LandMovementTransition(Vector2 entryDir, bool enteredWithDash, ISand entrySand, bool enteredFromRace = false)
         {
             EntryDir = entryDir;
             EnteredWithDash = enteredWithDash;
             EntrySand = entrySand;
+            EnteredFromRace = enteredFromRace;
         }
     }
     public Vector2 TargetSandEntryPos { get; private set; }

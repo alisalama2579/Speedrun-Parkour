@@ -9,6 +9,7 @@ public class RaceReadyMovement : IMovementState
     private readonly Rigidbody2D rb;
 
     private Vector2 startingPos;
+    private int facingDir;
 
     public RaceReadyMovement(MovementInitData movementData)
     {
@@ -18,8 +19,10 @@ public class RaceReadyMovement : IMovementState
 
         startingPos = rb.position;
 
-        IRaceController.OnRaceEnter += (IRaceController race) =>{
-            startingPos = race.StartingPos;
+        IRaceController.OnRacePrepStart += () =>{
+            startingPos = IRaceController.CurrentRace.StartingPos;
+
+            facingDir = IRaceController.CurrentRace.FacingDir;
             raceEnterTriggered = true;
         };
         IRaceController.OnRaceStart += () => {
@@ -36,8 +39,8 @@ public class RaceReadyMovement : IMovementState
     private bool raceEnterTriggered;
     public IStateSpecificTransitionData TransitionToLandMovement()
     {
-        if (raceStartTriggered && raceEnterTriggered) return new SuccesfulTransitionData();
-        else return new FailedTransitionData();
+        if (raceStartTriggered && raceEnterTriggered) return new LandMovement.LandMovementTransition(facingDir * Vector2.right, false, null, true);
+        else return failedData;
     }
 
     public void EnterState(IStateSpecificTransitionData lastStateData)

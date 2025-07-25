@@ -45,7 +45,7 @@ public class LandSound : IMovementObserverState<LandMovement>
 
     float deltaTime;
     float time;
-    public void Update(MovementInput _)
+    public void UpdateState()
     {
         if (sfxManager == null) return;
         time += Time.deltaTime;

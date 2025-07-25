@@ -9,6 +9,7 @@ public static class Utility
         Left,
         Right
     }
+
     public static T GetRandomFromArray<T>(params T[] array) => array[Random.Range(0, array.Length)];
     public static void DrawBox(Vector2 origin, Vector2 size, Vector2 dir, Color color)
     {

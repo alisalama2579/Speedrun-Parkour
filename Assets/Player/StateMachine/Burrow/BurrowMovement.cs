@@ -44,7 +44,7 @@ public class BurrowMovement : IMovementState
             EventsHolder.PlayerEvents.OnPlayerEnterSand?.Invoke(entrySand);
 
             dashControlMult = 2;
-            ExecuteDash(transitionData.EnteredDirectly);
+            ExecuteDash(true, transitionData.EnteredDirectly);
         }
 
         OnPlayerEnterBurrow?.Invoke();
@@ -54,12 +54,11 @@ public class BurrowMovement : IMovementState
     public void ExitState() 
     {
         ResetAllVelocities();
-        ExitDash();
+        ResetDash();
         ExitBounce();
         frame = 0;
         time = 0;
         frameInput = new();
-        timeDashRequested = float.MinValue;
 
         EventsHolder.PlayerEvents.OnPlayerExitSand?.Invoke(entrySand);
         OnPlayerExitBurrow?.Invoke();
@@ -73,7 +72,7 @@ public class BurrowMovement : IMovementState
 
     private ISand entrySand;
 
-    public void Update(MovementInput frameInput)
+    public void UpdateState(MovementInput frameInput)
     {
         time += Time.deltaTime;
         HandleInput(frameInput);
@@ -196,7 +195,7 @@ public class BurrowMovement : IMovementState
     private Vector2 moveVel;
     private void HandleBurrowMovement()
     {
-        if (frameInput.Look != Vector2.zero) wishDir = frameInput.Look;
+        if(frameInput.Look != Vector2.zero) wishDir = frameInput.Look;
 
         float angle = Mathf.MoveTowardsAngle(
             Vector2Utility.GetUnityVector2Angle(moveDir),
@@ -215,6 +214,8 @@ public class BurrowMovement : IMovementState
 
     #region Dash
 
+    private float dashSlownessAccumulation = 1;
+
     private bool dashRequested;
     private float timeDashRequested;
     private bool isDashing;
@@ -226,26 +227,34 @@ public class BurrowMovement : IMovementState
     private Vector2 dashVel;
     private Vector2 targetDashVel;
 
+    private AnimationCurve dashSpeedCurve;
+
     private bool HasBufferedDash => time <= timeDashRequested + stats.dashBuffer;
 
     public event Action OnBurrowDash;
     private void HandleDash()
     {
+        dashSlownessAccumulation = Mathf.MoveTowards(dashSlownessAccumulation, 1, stats.dashSlownessDecay);
+
         float timePercent = Mathf.Clamp01((time - timeDashed) / dashDuration);
         if ((timePercent >= 1 && isDashing) || isBouncing)
             dashInterrupted = true;
 
         bool canChainDash = dashRequested && timePercent >= stats.progressToDashChain && !dashInterrupted;
         bool canBufferedDash = HasBufferedDash && !isDashing && !dashInterrupted;
-        if (canChainDash || canBufferedDash) ExecuteDash(false);
+        if (canChainDash || canBufferedDash) ExecuteDash(false, false);
         dashRequested = false;
 
         if (dashInterrupted) ExitDash();
         else if (isDashing)
         {
-            float speedPercent = stats.dashSpeedCurve.Evaluate(timePercent);
+            float speedPercent = dashSpeedCurve.Evaluate(timePercent);
             dashControlMult = stats.dashControlCurve.Evaluate(timePercent) * entireDashControlMult;
             dashVel = targetDashVel * speedPercent;
+            float mag = dashVel.magnitude;
+
+            Vector2 dashVelChange = dashControlMult * stats.acceleration * deltaTime * moveDir;
+            dashVel = Vector2.ClampMagnitude(dashVel + dashVelChange, mag);
         }
     }
 
@@ -259,7 +268,20 @@ public class BurrowMovement : IMovementState
         timeDashed = float.MinValue;
     }
 
-    private void ExecuteDash(bool directEntry)
+    private void ResetDash()
+    {
+        dashControlMult = 1;
+        entireDashControlMult = 1;
+        dashVel = Vector2.zero;
+        dashInterrupted = false;
+        isDashing = false;
+        timeDashed = float.MinValue;
+
+        timeDashRequested = float.MinValue;
+        dashSlownessAccumulation = 1;
+    }
+
+    private void ExecuteDash(bool isEntryDash, bool directEntry)
     {
         OnBurrowDash?.Invoke();
 
@@ -267,11 +289,23 @@ public class BurrowMovement : IMovementState
         dashInterrupted = false;
         isDashing = true;
 
-        float dashSpeed = directEntry ? stats.dashSpeed * stats.directEntryMultiplier : stats.dashSpeed;
+        float dashSpeed;
+
+        if (directEntry)
+            dashSpeed = stats.dashSpeed * stats.directEntryMultiplier;
+        else if (isEntryDash)
+            dashSpeed = stats.entryDashSpeed;
+        else
+            dashSpeed = stats.dashSpeed;
+
+
+        dashSpeedCurve = isEntryDash ? stats.entryDashSpeedCurve : stats.dashSpeedCurve;
         entireDashControlMult = directEntry ? stats.directDashControlMult : stats.dashControlMult;
 
-        targetDashVel = dashSpeed* moveDir;
+        targetDashVel = dashSpeed * dashSlownessAccumulation * moveDir;
         dashDuration = stats.dashDuration;
+
+        dashSlownessAccumulation = Mathf.Clamp01(dashSlownessAccumulation - stats.dashSlownessAcummulation);
     }
 
     //private void ExecuteDash(float speed, float duration)

@@ -1,9 +1,10 @@
 using UnityEngine;
+using UnityEngine.U2D;
 
 public class SecretAreaCover : MonoBehaviour, IPlayerCollisionListener
 {
     [SerializeField] private LevelMechanicStats stats;
-    private SpriteRenderer sprite;
+    private SpriteShapeRenderer sprite;
     private Color originalColor;
 
     private float fadedTime;
@@ -11,7 +12,7 @@ public class SecretAreaCover : MonoBehaviour, IPlayerCollisionListener
 
     private void Awake()
     {
-        sprite = GetComponent<SpriteRenderer>();
+        sprite = GetComponent<SpriteShapeRenderer>();
         originalColor = sprite.color;
     }
     public void OnPlayerEnter()

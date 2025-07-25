@@ -46,7 +46,7 @@ public class BurrowVisuals : IMovementObserverState<BurrowMovement>
 
     Vector2 scale;
 
-    public void Update(MovementInput frameInput)
+    public void UpdateState()
     {
         deltaTime = Time.deltaTime;
         time += deltaTime;

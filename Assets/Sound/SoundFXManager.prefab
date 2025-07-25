@@ -41,6 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1969449194021641881}
   - component: {fileID: 4189626081044754560}
+  - component: {fileID: -3235220403619941510}
   m_Layer: 0
   m_Name: SoundFXManager
   m_TagString: Untagged
@@ -94,6 +95,20 @@ MonoBehaviour:
   - sfxCount: 5
     sourceHolder: {fileID: 6892562309692907054}
     source: {fileID: 4607082746309963241, guid: a9c14594dd06ae84cbccda6261dc1f5d, type: 3}
+--- !u!114 &-3235220403619941510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1155955973762424690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e51aab460d69514794be15963284571, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  failMusic: {fileID: 0}
+  raceMusic: {fileID: 0}
 --- !u!1 &2492180459161526321
 GameObject:
   m_ObjectHideFlags: 0

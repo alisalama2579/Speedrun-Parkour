@@ -57,7 +57,7 @@ public class PlayerController : MonoBehaviour, IInteractionProvider
         stateMachine = new PlayerStateMachine(typeof(LandMovement), movementData, visData, soundData);
         stateMachine.AddAnyTransition(typeof(RaceReadyMovement), TransitionToRaceState);
 
-        IRaceController.OnRaceEnter += (IRaceController race) =>{
+        IRaceController.OnRacePrepStart += () =>{
             raceEnterTriggered = true;
         };
     }
@@ -77,7 +77,6 @@ public class PlayerController : MonoBehaviour, IInteractionProvider
 
     private void OnDestroy()
     {
-        stateMachine?.OnDestroy();
         stateMachine = null;
     }
 

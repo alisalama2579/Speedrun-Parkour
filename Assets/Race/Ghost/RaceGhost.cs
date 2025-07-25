@@ -6,20 +6,21 @@ using UnityEngine;
 public class RaceGhost : MonoBehaviour
 {
     public int startDelay;
-    public float raceTime;
     private GhostTapePlayer tapePlayer;
+    public RaceGhostInfo info;
 
-    private void Awake()
+    private void Start()
     {
         tapePlayer = GetComponent<GhostTapePlayer>();
-        raceTime = tapePlayer.recordTime + startDelay;
         IRaceController.OnRaceStart += OnRaceStart;
-        IRaceController.OnRaceEnter += OnRaceEnter;
+        IRaceController.OnRacePrepStart += OnRaceEnter;
     }
-    public void OnRaceEnter(IRaceController _)
+
+    public void OnRaceEnter()
     {
         tapePlayer.ResetTape();
     }
+
     public void OnRaceStart()
     {
         StartCoroutine(StartTape());
@@ -33,6 +34,7 @@ public class RaceGhost : MonoBehaviour
     private void OnDestroy()
     {
         IRaceController.OnRaceStart -= OnRaceStart;
-        IRaceController.OnRaceEnter -= OnRaceEnter;
+        IRaceController.OnRacePrepStart -= OnRaceEnter;
     }
+
 }

@@ -82,7 +82,7 @@ public class LandVisuals : IMovementObserverState<LandMovement>
 
     Vector2 scale;
 
-    public void Update(MovementInput frameInput)
+    public void UpdateState()
     {
         deltaTime = Time.deltaTime;
         time += deltaTime;

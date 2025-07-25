@@ -10,6 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 3628110583337667886}
   - component: {fileID: 312880032275511888}
+  - component: {fileID: 4239561852866392349}
+  - component: {fileID: 735197257407870110}
+  - component: {fileID: 9073741423004258804}
+  - component: {fileID: 1815766571678859122}
   m_Layer: 0
   m_Name: RaceController
   m_TagString: Untagged
@@ -47,13 +51,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04e1c68fdb0f324499f7b7256ce0be45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  prepState: {fileID: 9073741423004258804}
+  inRaceState: {fileID: 1815766571678859122}
+  objectiveCompletedState: {fileID: 735197257407870110}
+  notInRaceState: {fileID: 4239561852866392349}
   startingT: {fileID: 7413685651836085685}
-  raceStart: {fileID: 42811158032706987}
-  raceEnd: {fileID: 1370067103047440640}
-  raceGhosts:
-  - {fileID: 0}
-  countdownTime: 1
-  playerInPositionProperty: {fileID: 11400000, guid: 126b0a369d3a57a4d9564a0947dbe6ad, type: 2}
+  playerInPositionProperty: {fileID: 11400000, guid: 127f8b726a8b21142803de7a0b2560d8, type: 2}
+  countdownTime: 0
+  raceGhosts: []
+--- !u!114 &4239561852866392349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718632708872132303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ebb025531ac9e44cbe72d110289f497, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &735197257407870110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718632708872132303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bf1061a82ecaad49902ebce96088914, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &9073741423004258804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718632708872132303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7f1d05b2dbf1fe47b339946445e7cfd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1815766571678859122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718632708872132303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44f3ba929ad7a8c4c90c87e1a118f264, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timeRaceStarted: 0
+  raceEnd: {fileID: 0}
 --- !u!1 &3928571481703529454
 GameObject:
   m_ObjectHideFlags: 0
